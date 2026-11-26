@@ -172,6 +172,11 @@
   text-align: right;
   color: var(--text);
 }
+/* Controls keep their natural width, like in macOS Settings. */
+.field > .segmented,
+.field > .switch {
+  justify-self: start;
+}
 .field .hint {
   grid-column: 2;
   font-size: var(--fs-small);

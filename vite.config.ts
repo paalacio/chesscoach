@@ -28,6 +28,12 @@ export default defineConfig(({ mode }) => ({
     watch: { ignored: ["**/src-tauri/**"] },
   },
 
+  build: {
+    // The bundled opening-names list is ~450 KB. A desktop app loads it from
+    // disk, so one big chunk is fine.
+    chunkSizeWarningLimit: 1500,
+  },
+
   test: {
     include: ["src/**/*.test.ts"],
     environment: "node",
