@@ -2,8 +2,8 @@
 
 ## Overnight run, 26 Nov 2026: Phase 0 + Phase 1
 
-**Status:** Phase 0 and Phase 1 are built and tested on this Mac. Nothing is pushed to GitHub yet,
-because the GitHub CLI isn't logged in. So the CI build hasn't run, and Windows is untested.
+**Status:** Phase 0 and Phase 1 are built and tested on this Mac and pushed to GitHub, which starts the
+first CI build (macOS + Windows).
 
 ### What works (checked)
 
@@ -22,18 +22,11 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
 
 ### Things only you can do (a few minutes)
 
-1. **Log in to GitHub:** run `gh auth login` in a terminal. Then tell me, and I will:
-   - set this repo's git email to your GitHub no-reply address;
-   - rewrite the author of tonight's commits, which use a placeholder email (`pending-github-noreply@example.invalid`), never your iCloud address;
-   - create the public repo and push, which starts the first CI build.
-
-   I'll ask before pushing.
-2. **Before the first push, decide about `CHESS_COACH_SPEC.md`.** It's committed, and it holds your
-   Chess.com and Lichess usernames and notes about you. In a public repo that becomes public. If you'd
-   rather keep it private, I'll remove it from history before pushing.
-3. **Add Rust to your shell PATH.** My edit to `~/.zshrc` was blocked, so add this line yourself:
+1. ~~Log in to GitHub~~ Done (26 Nov, morning). Commits now use your GitHub no-reply address; the repo
+   is public at https://github.com/paalacio/chesscoach, spec included (your choice).
+2. **Add Rust to your shell PATH.** My edit to `~/.zshrc` was blocked, so add this line yourself:
    `export PATH="/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:$PATH"`
-4. **Fill in `CHESSCOM_CONTACT=`** in `.env.local` (your contact email for Chess.com), or type it in the
+3. **Fill in `CHESSCOM_CONTACT=`** in `.env.local` (your contact email for Chess.com), or type it in the
    app under Settings → Chess.com. Then the live Chess.com check can run.
 
 ### Click-through checklist (real app: `pnpm tauri dev`)
@@ -96,7 +89,7 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
 
 ### Not done yet / known gaps
 
-- CI hasn't run (no push yet), so Windows is untested. On Windows these need a look: Mica sidebar,
+- Windows has only been tested through CI builds, not by running the app. On Windows these need a look: Mica sidebar,
   Segoe UI, Ctrl shortcuts, and finding `claude.exe` at `%USERPROFILE%\.local\bin`.
 - Follow-up chat ("ask Claude about this position", streaming) isn't built yet. The plan was to leave it
   out of Phase 1 unless you want it.
