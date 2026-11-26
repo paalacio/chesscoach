@@ -195,6 +195,11 @@ Create similar schemas for: position plan, opening overview, game summary (3 les
   - default depth around 10–12 moves
   - per-node notes (mine, plus Claude's cached "why")
 - **Deviation report:** after each sync, show where my games left the repertoire (my mistake, or a new opponent move) and offer to add the new move to the tree.
+- **Course / book import (Phase 4 addition):** import annotated PGN files (from courses, books or Lichess studies) as a repertoire:
+  - keep the author's comments and variations on each move
+  - show the author's comment in the trainer when I get a move wrong
+  - include the comment in Claude's context packet so explanations build on it
+  - imported files stay in my local app data only, never in the repo or in the bundled app
 
 ### 5.6 Trainer (spaced repetition)
 - FSRS scheduling with ts-fsrs. A card is a position where it's my move. The app plays the opponent's moves automatically, weighted by how often they're played.
@@ -267,6 +272,14 @@ The goal: on macOS it should be hard to tell this isn't a native app. Detect the
   - tagged GitHub release with the macOS `.dmg` and the Windows installer
   - a short README for my friend: how to install, log into Claude Code, and get past the Windows SmartScreen warning for an unsigned app ("More info → Run anyway")
 - **Stretch (ask before doing):** play out any position against Stockfish at limited strength (UCI_LimitStrength / UCI_Elo) to practice the middlegame that comes out of my openings.
+- **New stretch phase (after Phase 5, ask me before starting):**
+  - a) Model games: in the explorer, show the top master games for the current position (from the Lichess masters explorer; check the API docs for how to fetch a game's PGN). Let me open one on the board, and let Claude summarize its plan in 3 bullets.
+  - b) Maia (human-like engine): check whether Maia-3 or the original Maia weights running on lc0 ("go nodes 1") are easier to bundle on Mac and Windows, and check the licenses. Use it to:
+    - pick realistic opponent replies in the trainer at my rating
+    - tag my mistakes as "common at your level" or "unusual"
+    - let me play out any position against a human-like opponent at a chosen rating
+  - c) Keep the engine manager generic so any UCI engine can be added in Settings, but don't build a side-by-side multi-engine view unless I ask.
+  - d) Don't build a local game database. The Lichess explorer covers what I need.
 
 **Done for a phase means:** the tests pass, the app runs with `pnpm tauri dev`, the GitHub Actions build is green (from Phase 1 on), it's committed, and you've given me screenshots and a short click-through checklist.
 

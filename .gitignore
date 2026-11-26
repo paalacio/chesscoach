@@ -30,3 +30,8 @@ pnpm-debug.log*
 
 # Screenshots from `pnpm screenshots` (regenerated each phase)
 screenshots/
+
+# Course / book / study PGN files you import stay out of the repo: ChessCoach keeps
+# imported courses in its own database in the app-data folder. (Test fixtures are the exception.)
+*.pgn
+!src-tauri/tests/fixtures/**/*.pgn
