@@ -1,6 +1,6 @@
 [package]
 name = "chesscoach"
-version = "1.0.0"
+version = "1.0.1"
 description = "ChessCoach: study chess openings with Stockfish and Claude"
 authors = ["ChessCoach contributors"]
 license = "GPL-3.0-or-later"

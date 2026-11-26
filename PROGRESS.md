@@ -1,5 +1,17 @@
 # Progress log
 
+## 1.0.1 (27 Nov 2026): the Mac download opens
+
+Checking the v1.0.0 release found a real problem: only the Mac app's main program was signed, not the app
+bundle as a whole. Apple's own check (`syspolicy_check distribution`) called a downloaded copy **fatal**
+("code has no resources but signature indicates they must be present"). Another Mac would say the app is
+"damaged", and the README's steps wouldn't get past that. Fixed by ad-hoc signing the whole bundle
+(`bundle.macOS.signingIdentity: "-"`). The signature is now valid and sealed, and what's left is the usual "not
+notarized" warning of any app without a paid Apple developer account, which System Settings → Privacy &
+Security → **Open Anyway** gets past. I started the signed app to check that it still launches Stockfish under
+Apple's hardened runtime; it does. The README's Mac steps now match current macOS (right-click → Open no longer
+works since macOS 15). The Windows files were fine.
+
 ## Phase 5 (26 Nov 2026): insights, polish, release
 
 **Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows

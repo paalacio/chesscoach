@@ -26,9 +26,10 @@ Download the installer for your computer from the
 
 The app isn't signed with a paid developer certificate, so the system warns you the first time:
 
-- **Mac**: macOS says it can't check the app. In Applications, **right-click** the app → **Open**
-  → **Open**. (Or: System Settings → Privacy & Security → "Open Anyway".) After that it opens
-  normally.
+- **Mac**: macOS says it can't verify the app. Click **Done**, then open **System Settings →
+  Privacy & Security**, scroll down to the message about Tung Tung Chessahur and click **Open
+  Anyway** (macOS asks for your password), then **Open**. After that it opens normally.
+  (On macOS 14 or older, right-clicking the app → **Open** → **Open** also works.)
 - **Windows**: SmartScreen shows "Windows protected your PC". Click **More info** → **Run anyway**.
 
 ## Set up Claude (needed for the explanations)
@@ -75,7 +76,10 @@ restore. The formats are described in [docs/data-formats.md](docs/data-formats.m
 No **Mac**, abra o `.dmg` e arraste o app para Aplicativos. No **Windows**, rode o `…_x64-setup.exe`.
 
 Na primeira vez o sistema avisa que o app não é assinado:
-- **Mac**: em Aplicativos, clique com o **botão direito** no app → **Abrir** → **Abrir**.
+- **Mac**: o macOS diz que não pode verificar o app. Clique em **OK**, abra **Ajustes do Sistema →
+  Privacidade e Segurança**, role até a mensagem sobre o Tung Tung Chessahur e clique em **Abrir Mesmo
+  Assim** (o macOS pede sua senha), depois em **Abrir**. (No macOS 14 ou mais antigo, clicar com o botão
+  direito no app → **Abrir** → **Abrir** também funciona.)
 - **Windows**: em "O Windows protegeu o computador", clique em **Mais informações** → **Executar assim mesmo**.
 
 **Claude (para as explicações):** o app usa o **Claude Code** com a sua assinatura **Claude Pro ou Max**.
