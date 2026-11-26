@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": { "type": "string", "description": "2 sentences: what this opening is about and why players choose it" },
+    "pawn_structure": { "type": "string", "description": "The typical pawn structure and what each side aims for because of it" },
+    "plans_white": { "type": "array", "maxItems": 3, "items": { "type": "string" }, "description": "White's typical plans, short" },
+    "plans_black": { "type": "array", "maxItems": 3, "items": { "type": "string" }, "description": "Black's typical plans, short" },
+    "traps": {
+      "type": "array",
+      "maxItems": 3,
+      "description": "Common traps or tactical tricks at club level in this line",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string", "description": "What happens and how to avoid or use it" }
+        },
+        "required": ["name", "description"]
+      }
+    },
+    "common_mistakes": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "type": "string" },
+      "description": "Mistakes players rated 800-1200 often make here"
+    },
+    "middlegame": { "type": "string", "description": "How to play the middlegame that comes out of this opening, 2-3 sentences" },
+    "concepts": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["summary", "pawn_structure", "plans_white", "plans_black", "traps", "common_mistakes", "middlegame", "concepts"]
+}

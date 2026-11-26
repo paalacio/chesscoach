@@ -39,9 +39,9 @@ fn live_engine_streams_multipv_lines_and_drops_stale_output() {
     assert!(name.contains("Stockfish"));
 
     // Start an infinite search, then switch position while it runs.
-    engine.analyze(AnalyzeOptions { analysis_id: 1, fen: START.into(), multipv: 3, depth: None, movetime_ms: None }).unwrap();
+    engine.analyze(AnalyzeOptions { analysis_id: 1, fen: START.into(), multipv: 3, depth: None, movetime_ms: None, searchmoves: None }).unwrap();
     std::thread::sleep(Duration::from_millis(300));
-    engine.analyze(AnalyzeOptions { analysis_id: 2, fen: RUY.into(), multipv: 3, depth: Some(14), movetime_ms: None }).unwrap();
+    engine.analyze(AnalyzeOptions { analysis_id: 2, fen: RUY.into(), multipv: 3, depth: Some(14), movetime_ms: None, searchmoves: None }).unwrap();
 
     let mut seen_multipv = std::collections::HashSet::new();
     let mut infos_after_switch = 0;

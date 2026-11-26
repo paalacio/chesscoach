@@ -33,9 +33,17 @@ hex = "=0.4.3"
 # Chess rules and PGN reading on the Rust side (used by game import and batch analysis).
 shakmaty = "=0.30.3"
 pgn-reader = "=0.29.2"
+# The Lichess token lives in the OS keychain (Keychain on Mac, Credential Manager on Windows).
+keyring-core = "=1.1.0"
 
 [target.'cfg(unix)'.dependencies]
 libc = "=0.2.191"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+apple-native-keyring-store = { version = "=1.0.3", features = ["keychain"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-native-keyring-store = "=1.1.0"
 
 [dev-dependencies]
 tempfile = "=3.27.0"

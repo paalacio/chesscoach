@@ -34,6 +34,9 @@ pub struct Settings {
     pub auto_analyze: bool,
     /// App language: "en" or "pt" (Brazilian Portuguese). Claude answers in it too.
     pub language: String,
+    /// Lichess explorer filters for "games at my level".
+    pub explorer_ratings: Vec<u32>,
+    pub explorer_speeds: Vec<String>,
 }
 
 impl Default for Settings {
@@ -56,6 +59,8 @@ impl Default for Settings {
             review_threads: None,
             auto_analyze: true,
             language: "en".into(),
+            explorer_ratings: vec![1000, 1200, 1400, 1600],
+            explorer_speeds: vec!["blitz".into(), "rapid".into()],
         }
     }
 }

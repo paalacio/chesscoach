@@ -36,6 +36,9 @@ pub struct AnalyzeOptions {
     /// Stop at this depth. If neither depth nor movetime is set, analysis runs until stopped.
     pub depth: Option<u32>,
     pub movetime_ms: Option<u64>,
+    /// Only look at these moves (UCI). Used to evaluate the explorer's moves in one search.
+    #[serde(default)]
+    pub searchmoves: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -170,11 +173,20 @@ impl EngineManager {
         // Update the tracker *before* "go" so the reader thread attributes the
         // new output correctly (it waits on this lock).
         t.on_go(opts.analysis_id, opts.fen.clone());
-        let go = match (opts.depth, opts.movetime_ms) {
+        let mut go = match (opts.depth, opts.movetime_ms) {
             (Some(d), _) => format!("go depth {d}"),
             (None, Some(ms)) => format!("go movetime {ms}"),
             (None, None) => "go infinite".to_string(),
         };
+        if let Some(moves) = opts.searchmoves.as_ref().filter(|m| !m.is_empty()) {
+            // Only plain UCI moves (like "e2e4", "e7e8q") may go to the engine.
+            let ok = moves.iter().all(|m| (4..=5).contains(&m.len()) && m.chars().all(|c| c.is_ascii_alphanumeric()));
+            if !ok {
+                return Err("Invalid move in searchmoves".into());
+            }
+            go.push_str(" searchmoves ");
+            go.push_str(&moves.join(" "));
+        }
         r.send(&go)
     }
 

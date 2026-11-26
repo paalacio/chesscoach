@@ -225,6 +225,64 @@ pub fn count_cards(conn: &Connection) -> rusqlite::Result<i64> {
     conn.query_row("SELECT COUNT(*) FROM training_cards", [], |r| r.get(0))
 }
 
+// ---------- positions index ("My games" explorer) ----------
+
+/// Records every position (and the move played) of games not indexed yet.
+/// Returns how many games were indexed.
+pub fn index_positions(conn: &Connection) -> rusqlite::Result<usize> {
+    let todo: Vec<(i64, String)> = conn
+        .prepare("SELECT id, pgn FROM games WHERE id NOT IN (SELECT DISTINCT game_id FROM game_positions)")?
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
+        .collect::<rusqlite::Result<_>>()?;
+    let mut stmt = conn.prepare_cached("INSERT OR IGNORE INTO game_positions (game_id, ply, epd, uci, san) VALUES (?1, ?2, ?3, ?4, ?5)")?;
+    let mut done = 0;
+    for (id, pgn) in todo {
+        // A PGN we can't read is skipped (it simply won't show up in the explorer).
+        let Ok(game) = crate::pgn::parse_game(&pgn) else { continue };
+        for m in &game.moves {
+            stmt.execute(params![id, m.ply, crate::lichess::epd(&m.fen_before), m.uci, m.san])?;
+        }
+        done += 1;
+    }
+    Ok(done)
+}
+
+/// The "My games" explorer: moves played from a position in the user's games
+/// with `color`, counted like Lichess does (white wins / draws / black wins).
+pub fn my_games_explorer(conn: &Connection, username: &str, color: &str, fen: &str) -> rusqlite::Result<crate::lichess::ExplorerResult> {
+    let mut stmt = conn.prepare(
+        "SELECT p.uci, p.san, COUNT(*),
+                SUM(g.result = '1-0'), SUM(g.result = '1/2-1/2'), SUM(g.result = '0-1')
+         FROM game_positions p JOIN games g ON g.id = p.game_id
+         WHERE p.epd = ?1 AND g.username = ?2 AND g.my_color = ?3
+         GROUP BY p.uci, p.san
+         ORDER BY COUNT(*) DESC
+         LIMIT 12",
+    )?;
+    let moves: Vec<crate::lichess::ExplorerMove> = stmt
+        .query_map(params![crate::lichess::epd(fen), username.to_lowercase(), color], |r| {
+            Ok(crate::lichess::ExplorerMove {
+                uci: r.get(0)?,
+                san: r.get(1)?,
+                average_rating: None,
+                // SQLite counts are i64; they're never negative.
+                white: r.get::<_, i64>(3)? as u64,
+                draws: r.get::<_, i64>(4)? as u64,
+                black: r.get::<_, i64>(5)? as u64,
+                opening: None,
+            })
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+    let sum = |f: fn(&crate::lichess::ExplorerMove) -> u64| moves.iter().map(f).sum();
+    Ok(crate::lichess::ExplorerResult {
+        white: sum(|m| m.white),
+        draws: sum(|m| m.draws),
+        black: sum(|m| m.black),
+        moves,
+        opening: None,
+    })
+}
+
 // ---------- sync ----------
 
 #[derive(Debug, Clone, Serialize)]
@@ -284,6 +342,7 @@ pub async fn sync(
                 let conn = db.lock().unwrap();
                 let db_err = |e: rusqlite::Error| ChessComError::BadResponse(e.to_string());
                 report.new_games += insert_games(&conn, &user, &games).map_err(db_err)?;
+                index_positions(&conn).map_err(db_err)?;
                 conn.execute(
                     "INSERT OR REPLACE INTO sync_archives (username, archive, etag, fetched_at) VALUES (?1, ?2, ?3, ?4)",
                     params![user, key, etag, now()],
@@ -422,6 +481,18 @@ mod tests {
         assert_eq!(save_cards(&conn, id, &[card.clone()]).unwrap(), 1);
         assert_eq!(save_cards(&conn, id, &[card]).unwrap(), 0, "same card isn't added twice");
         assert_eq!(count_cards(&conn).unwrap(), 1);
+
+        // The positions index feeds the "My games" explorer.
+        assert_eq!(index_positions(&conn).unwrap(), 2);
+        assert_eq!(index_positions(&conn).unwrap(), 0, "already indexed");
+        let start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        let as_white = my_games_explorer(&conn, "someone", "white", start).unwrap();
+        assert_eq!(as_white.moves.len(), 1);
+        assert_eq!((as_white.moves[0].san.as_str(), as_white.white, as_white.black), ("e4", 1, 0));
+        let after_e4_e5 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2";
+        let as_black = my_games_explorer(&conn, "someone", "black", after_e4_e5).unwrap();
+        assert_eq!(as_black.moves[0].san, "Bc4", "the opponent's move in my game as Black");
+        assert_eq!(as_black.white, 1, "that game was won by White");
 
         requeue(&conn, id).unwrap();
         let again = get_game(&conn, id).unwrap().unwrap();

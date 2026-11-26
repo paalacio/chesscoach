@@ -87,6 +87,24 @@ pub fn migrations() -> Migrations<'static> {
                 UNIQUE (game_id, ply)
             );",
         ),
+        // 3: Lichess explorer cache, and every position of the user's games
+        //    (for the "My games" explorer and, later, the repertoire report).
+        M::up(
+            "CREATE TABLE explorer_cache (
+                key        TEXT PRIMARY KEY,           -- source + filters + EPD
+                json       TEXT NOT NULL,
+                fetched_at INTEGER NOT NULL
+            );
+            CREATE TABLE game_positions (
+                game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                ply     INTEGER NOT NULL,              -- the move number in half-moves (1 = first move)
+                epd     TEXT NOT NULL,                 -- position BEFORE the move (FEN without counters)
+                uci     TEXT NOT NULL,
+                san     TEXT NOT NULL,
+                PRIMARY KEY (game_id, ply)
+            );
+            CREATE INDEX game_positions_epd ON game_positions(epd);",
+        ),
     ])
 }
 
@@ -159,7 +177,7 @@ pub fn calls_today(conn: &Connection) -> rusqlite::Result<i64> {
 
 /// Number of migrations (the schema version a fresh database ends up at).
 pub fn migrations_count() -> i64 {
-    2
+    3
 }
 
 #[cfg(test)]

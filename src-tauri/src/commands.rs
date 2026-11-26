@@ -48,6 +48,11 @@ impl From<ChessComError> for CmdError {
         Self { kind: e.kind().into(), message: e.to_string(), detail: e.detail() }
     }
 }
+impl From<crate::lichess::LichessError> for CmdError {
+    fn from(e: crate::lichess::LichessError) -> Self {
+        Self { kind: e.kind().into(), message: e.to_string(), detail: e.detail() }
+    }
+}
 impl From<rusqlite::Error> for CmdError {
     fn from(e: rusqlite::Error) -> Self {
         Self::new("database", e.to_string())
@@ -366,13 +371,18 @@ pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
             .param("missing", missing)
     });
 
-    // 5. Lichess token (needed later for the opening explorer)
-    checks.push(check(
-        "lichess",
-        "Lichess explorer",
-        Info,
-        "Needed for the opening explorer, which arrives in a later version.",
-    ));
+    // 5. Lichess token (for "games at my level" in the explorer; masters work without)
+    checks.push(match state.token.get() {
+        Ok(Some(_)) => check("lichess", "Lichess explorer", Pass, "Lichess token saved in the keychain."),
+        Ok(None) => check(
+            "lichess",
+            "Lichess explorer",
+            Warning,
+            "No Lichess token yet: masters games work, games at your level need a token.",
+        )
+        .fix("Create a free token at lichess.org (Settings → Lichess → Create a token) and paste it there."),
+        Err(e) => check("lichess", "Lichess explorer", Fail, e.clone()).param("error", e),
+    });
 
     Ok(checks)
 }
@@ -447,4 +457,51 @@ pub async fn review_reanalyze(state: State<'_, AppState>, id: i64) -> CmdResult<
     games::requeue(&state.db.lock().unwrap(), id)?;
     state.review.prioritize(id);
     Ok(())
+}
+
+// ---------- Lichess token & opening explorer ----------
+
+#[tauri::command]
+pub async fn lichess_token_status(state: State<'_, AppState>) -> CmdResult<bool> {
+    Ok(state.token.get()?.is_some())
+}
+
+#[tauri::command]
+pub async fn lichess_token_save(state: State<'_, AppState>, token: String) -> CmdResult<()> {
+    let token = crate::secrets::validate_token(&token).map_err(|m| CmdError::new("invalidToken", m))?;
+    state.token.set(&token)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn lichess_token_clear(state: State<'_, AppState>) -> CmdResult<()> {
+    state.token.clear()?;
+    Ok(())
+}
+
+/// Explorer data for a position. `source`: "masters", "lichess" or "mine";
+/// `color` ("white"/"black") is for "mine".
+#[tauri::command]
+pub async fn explorer_query(
+    state: State<'_, AppState>,
+    source: String,
+    fen: String,
+    color: Option<String>,
+) -> CmdResult<crate::lichess::ExplorerReply> {
+    use crate::lichess::{self, ExplorerReply, Source};
+    let s = state.settings.lock().unwrap().clone();
+    if source == "mine" {
+        let color = if color.as_deref() == Some("black") { "black" } else { "white" };
+        let result = games::my_games_explorer(&state.db.lock().unwrap(), &s.chesscom_username, color, &fen)?;
+        return Ok(ExplorerReply { result: Some(result), cached: false, stale: false, error_kind: None, error_detail: None });
+    }
+    let src = if source == "lichess" {
+        Source::Lichess { speeds: s.explorer_speeds.clone(), ratings: s.explorer_ratings.clone() }
+    } else {
+        Source::Masters
+    };
+    // A keychain problem shouldn't break the explorer: treat it as "no token".
+    let token = state.token.get().ok().flatten();
+    let ua = format!("ChessCoach/{} (+https://github.com/paalacio/chesscoach)", state.app_version);
+    Ok(lichess::query(&state.db, &state.explorer_backoff, &state.http, lichess::EXPLORER_BASE, &ua, token.as_deref(), &src, &fen).await)
 }

@@ -8,8 +8,10 @@ mod menu;
 pub mod db;
 pub mod engine;
 pub mod games;
+pub mod lichess;
 pub mod pgn;
 pub mod review;
+pub mod secrets;
 pub mod settings;
 
 use std::path::PathBuf;
@@ -28,6 +30,10 @@ pub struct AppState {
     pub http: reqwest::Client,
     /// Background game analysis (its own engine process).
     pub review: review::ReviewWorker,
+    /// The Lichess token, in the OS keychain.
+    pub token: Box<dyn secrets::TokenStore>,
+    /// Pause after Lichess answers "too many requests".
+    pub explorer_backoff: lichess::Backoff,
 }
 
 fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> {
@@ -50,6 +56,8 @@ fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> 
     let db = db::open(&data_dir.join("chesscoach.sqlite"))?;
     // Games that were being analysed when the app last quit go back in the queue.
     games::reset_interrupted(&db)?;
+    // Index positions of games imported before the index existed.
+    games::index_positions(&db)?;
     let http = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
         .build()?;
@@ -62,6 +70,8 @@ fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> 
         db: Mutex::new(db),
         engine: engine::EngineManager::new(),
         review: review::ReviewWorker::new(review_paused),
+        token: Box::new(secrets::KeychainTokenStore::new()),
+        explorer_backoff: lichess::Backoff::default(),
         claude,
         http,
     })
@@ -102,6 +112,10 @@ pub fn run() {
             commands::review_set_paused,
             commands::review_prioritize,
             commands::review_reanalyze,
+            commands::lichess_token_status,
+            commands::lichess_token_save,
+            commands::lichess_token_clear,
+            commands::explorer_query,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the ChessCoach app");
