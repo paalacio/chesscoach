@@ -1,0 +1,57 @@
+{
+  "_note": "Real answers from `claude -p` (Sonnet, Nov 2026) for the Ruy Lopez position after 5...Be7, recorded with the app's prompts. Used by the browser mock backend.",
+  "moveExplanation": {
+    "summary": "5...Be7 is a good, solid move. It's the main Closed Ruy Lopez move, and the engine sees the position as about equal after it.",
+    "ideas": [
+      "The bishop on e7 develops a piece and protects the e5 pawn's support. It also clears the way for Black to castle kingside.",
+      "It guards against tricks on the e-file. If White plays Re1, Black can answer with ...b5 and ...O-O, as in the engine's main line.",
+      "The engine slightly preferred 5...Nxe4, the Open Variation. That's a sharper path, and Be7 is just as good for equality."
+    ],
+    "better_move": null,
+    "plan_next": "Black should meet 6.Re1 with ...b5, then play ...Bb7 or ...O-O after the bishop retreats to b3. Castle soon, and get the d-pawn to d6 to support e5. After that, bring the pieces out with ...Re8 and ...Bb7.",
+    "concepts": [
+      "development",
+      "king-safety",
+      "castling",
+      "center"
+    ]
+  },
+  "positionPlan": {
+    "summary": "The position is about equal. It's a normal Closed Ruy Lopez and you're still in book. Your e4 pawn is attacked by the Nf6 and isn't defended, so deal with that first.",
+    "phase_focus": "Finish development, protect the e4 pawn and keep a solid center while Black still hasn't castled.",
+    "plan": [
+      "Play Re1 to defend e4 and put the rook on the open-looking e-file.",
+      "Follow with c3 and d4 (or d3) to build a strong center.",
+      "Retreat the bishop to b3 if Black plays ...b5, then think about a4 to challenge the queenside."
+    ],
+    "opponent_ideas": [
+      "Black wants to play ...b5 to kick your bishop, then castle and play ...d6.",
+      "Black may take on e4 with ...Nxe4 if you leave the pawn undefended."
+    ],
+    "candidate_moves": [
+      {
+        "san": "Re1",
+        "idea": "Best move: defends e4 with a rook, develops a piece and keeps the main Ruy Lopez structure."
+      },
+      {
+        "san": "d3",
+        "idea": "Solid alternative: defends e4 with a pawn and keeps a flexible, safe setup, though it blocks your c1 bishop a little."
+      },
+      {
+        "san": "Bxc6",
+        "idea": "Trades your bishop for the knight and doubles Black's pawns, but gives up your strong bishop pair. It's playable and about equal, though less ambitious."
+      }
+    ],
+    "concepts": [
+      "development",
+      "center",
+      "pawn-structure",
+      "king-safety",
+      "pawn-break"
+    ]
+  },
+  "hello": {
+    "greeting": "Hi! Ready to study some chess?",
+    "tip": "In the opening, develop your knights and bishops before moving the same piece twice."
+  }
+}
