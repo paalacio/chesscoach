@@ -265,7 +265,7 @@ export const pt: Record<keyof typeof en, string> = {
   "review.mistakeColumnsTitle": "Imprecisões / erros / capivaradas",
   "review.keyMoments": "Momentos-chave",
   "review.noKeyMoments": "Nenhuma grande virada nesta partida.",
-  "review.byYou": "seu",
+  "review.byYou": "por você",
   "review.byOpponent": "do adversário",
   "review.engineWanted": "O Stockfish preferia {move}",
   "review.askClaude": "Revisar esta partida com o Claude",
@@ -325,6 +325,18 @@ export const pt: Record<keyof typeof en, string> = {
   "about.formulas": "A fórmula da chance de vitória, a classificação dos lances e as fases da partida seguem o Lichess (scalachess, MIT).",
   "about.claude": "Explicações do Claude, pelo Claude Code com o seu próprio plano do Claude.",
   "about.dataFolder": "Pasta de dados: {path}",
+
+  // how a game ended (Chess.com writes it in English)
+  "termination.won.resignation": "{player} venceu por desistência",
+  "termination.won.checkmate": "{player} venceu por xeque-mate",
+  "termination.won.time": "{player} venceu no tempo",
+  "termination.won.abandonment": "{player} venceu por abandono",
+  "termination.drawn.agreement": "Empate por acordo",
+  "termination.drawn.repetition": "Empate por repetição",
+  "termination.drawn.stalemate": "Empate por afogamento",
+  "termination.drawn.insufficientMaterial": "Empate por material insuficiente",
+  "termination.drawn.timeoutVsInsufficientMaterial": "Empate: tempo esgotado contra material insuficiente",
+  "termination.drawn.50MoveRule": "Empate pela regra dos 50 lances",
 
   // later phases
   "placeholder.later": "Chega numa próxima versão",

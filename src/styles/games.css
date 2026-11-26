@@ -115,6 +115,11 @@
 .color-dot.black {
   background: #2b2b2b;
 }
+@media (prefers-color-scheme: dark) {
+  .color-dot {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  }
+}
 
 .badge.result.win {
   background: color-mix(in srgb, var(--green) 18%, transparent);
@@ -253,9 +258,20 @@
 .accuracy-table td.overall {
   font-weight: 700;
 }
-.accuracy-table td.counts {
+.mistake-counts {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
   color: var(--text-2);
-  white-space: nowrap;
+}
+.mistake-counts > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.mistake-counts b {
+  color: var(--text);
+  font-weight: 600;
 }
 
 .key-moments {

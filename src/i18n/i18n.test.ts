@@ -35,3 +35,18 @@ describe("translations", () => {
     expect(t.locale).toBe("pt-BR");
   });
 });
+
+import { terminationText } from "./termination";
+
+describe("game-end text from Chess.com", () => {
+  it("translates the usual phrases and keeps unknown ones", () => {
+    const pt = makeTranslator("pt");
+    expect(terminationText(pt, "muripalas won by resignation")).toBe("muripalas venceu por desistência");
+    expect(terminationText(pt, "rival won on time")).toBe("rival venceu no tempo");
+    expect(terminationText(pt, "Game drawn by repetition")).toBe("Empate por repetição");
+    expect(terminationText(pt, "Game drawn by timeout vs insufficient material")).toBe("Empate: tempo esgotado contra material insuficiente");
+    expect(terminationText(pt, "Game drawn by 50-move rule")).toBe("Empate pela regra dos 50 lances");
+    expect(terminationText(pt, "Something new")).toBe("Something new");
+    expect(terminationText(makeTranslator("en"), "x won by checkmate")).toBe("x won by checkmate");
+  });
+});

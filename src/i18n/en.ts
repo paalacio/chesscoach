@@ -322,6 +322,18 @@ export const en = {
   "about.claude": "Explanations by Claude, through Claude Code on your own Claude plan.",
   "about.dataFolder": "Data folder: {path}",
 
+  // how a game ended (Chess.com writes it in English)
+  "termination.won.resignation": "{player} won by resignation",
+  "termination.won.checkmate": "{player} won by checkmate",
+  "termination.won.time": "{player} won on time",
+  "termination.won.abandonment": "{player} won by abandonment",
+  "termination.drawn.agreement": "Draw by agreement",
+  "termination.drawn.repetition": "Draw by repetition",
+  "termination.drawn.stalemate": "Draw by stalemate",
+  "termination.drawn.insufficientMaterial": "Draw by insufficient material",
+  "termination.drawn.timeoutVsInsufficientMaterial": "Draw: timeout vs insufficient material",
+  "termination.drawn.50MoveRule": "Draw by the 50-move rule",
+
   // later phases
   "placeholder.later": "Coming in a later version",
   "placeholder.explorer.title": "Opening explorer",

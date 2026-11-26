@@ -28,7 +28,7 @@ export async function openApp(page: Page, query = "") {
     }
   });
   await page.goto(`/${query}`);
-  await page.getByRole("navigation", { name: "Sections" }).waitFor();
+  await page.locator("nav.sidebar-section").waitFor();
 }
 
 export async function importPgn(page: Page, pgn: string) {

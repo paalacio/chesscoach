@@ -9,6 +9,7 @@ import { judgementGlyph } from "../../core/review";
 import type { Color, Phase } from "../../core/types";
 import { formatScore } from "../../core/winprob";
 import { useT } from "../../i18n";
+import { terminationText } from "../../i18n/termination";
 import { useApp } from "../../store/app";
 import { useGames } from "../../store/games";
 import { EVAL_BAR_SPACE, useBoardSize } from "../analysis/AnalysisPage";
@@ -179,7 +180,9 @@ function GameHeader() {
         </span>
       </div>
       <p className="small secondary">
-        {[date, d.timeClass ? t.maybe("timeClass.", d.timeClass, d.timeClass) : null, d.termination].filter(Boolean).join(" · ")}
+        {[date, d.timeClass ? t.maybe("timeClass.", d.timeClass, d.timeClass) : null, terminationText(t, d.termination)]
+          .filter(Boolean)
+          .join(" · ")}
       </p>
       {opening && (
         <p className="small">
@@ -231,7 +234,6 @@ function AccuracyPanel({ review, myColor }: { review: GameReview; myColor: Color
             {phases.map((p) => (
               <th key={p}>{p === "overall" ? t("review.overall") : phaseLabel(t, p)}</th>
             ))}
-            <th title={t("review.mistakeColumnsTitle")}>?! / ? / ??</th>
           </tr>
         </thead>
         <tbody>
@@ -243,13 +245,20 @@ function AccuracyPanel({ review, myColor }: { review: GameReview; myColor: Color
                   {cell(c, p)}
                 </td>
               ))}
-              <td className="counts">
-                {counts(c).inaccuracy} / {counts(c).mistake} / <span className={counts(c).blunder ? "glyph blunder" : ""}>{counts(c).blunder}</span>
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="mistake-counts small" title={t("review.mistakeColumnsTitle")}>
+        {[myColor, opp].map((c) => (
+          <span key={c}>
+            <b>{c === myColor ? t("review.you") : t("review.opponent")}</b>
+            <span className="glyph inaccuracy">{counts(c).inaccuracy}?!</span>
+            <span className="glyph mistake">{counts(c).mistake}?</span>
+            <span className="glyph blunder">{counts(c).blunder}??</span>
+          </span>
+        ))}
+      </div>
     </section>
   );
 }

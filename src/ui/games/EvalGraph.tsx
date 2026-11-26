@@ -64,7 +64,13 @@ export function EvalGraph({ review, ply, onSelect }: { review: GameReview; ply: 
         {dividers.map((d) => (
           <g key={d.label}>
             <line className="eg-divider" x1={x(d.at)} x2={x(d.at)} y1={0} y2={HEIGHT} />
-            <text className="eg-label" x={x(d.at) + 4} y={11}>
+            {/* Near the right edge, put the label on the left of the line. */}
+            <text
+              className="eg-label"
+              x={x(d.at) + (x(d.at) > width - 70 ? -4 : 4)}
+              y={11}
+              textAnchor={x(d.at) > width - 70 ? "end" : "start"}
+            >
               {d.label}
             </text>
           </g>
