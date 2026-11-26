@@ -2,10 +2,11 @@
 // the board (your move, or the opponent replies you're ready for), a note, Claude's
 // "why", building progress, and where your recent games left the repertoire.
 
-import { AlertTriangle, BookMarked, Sparkles, X } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { AlertTriangle, BookMarked, GraduationCap, Sparkles, X } from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { epdOf, playUci, START_FEN, turnOf } from "../../core/chess";
 import { addMove, newTree, ROOT } from "../../core/game-tree";
+import { indexAnnotations, notesAt } from "../../core/course";
 import { type Deviation, nodeAt, repStats } from "../../core/repertoire";
 import { useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
@@ -37,6 +38,12 @@ export function RepertoirePanel() {
         />
       )}
 
+      {rep.course && (
+        <p className="small secondary rep-course-line" title={rep.course.fileName}>
+          <GraduationCap aria-hidden /> {t("course.from", { title: rep.course.title })}
+        </p>
+      )}
+
       {building ? (
         <div className="callout info rep-building" role="status">
           <Spinner small />
@@ -62,6 +69,7 @@ export function RepertoirePanel() {
       )}
 
       <PositionInfo />
+      <CourseNotes />
       <Deviations />
 
       <div className="rep-actions">
@@ -315,6 +323,37 @@ function Deviations() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** What the course says here: the author's introduction and comments on its moves. */
+function CourseNotes() {
+  const t = useT();
+  const rep = useRepertoire((s) => (s.selected != null ? s.reps[s.selected] : null));
+  const fen = useAnalysis((s) => s.tree.nodes[s.current].fen);
+  const playMove = useAnalysis((s) => s.playMove);
+  const index = useMemo(() => indexAnnotations(rep?.annotations ?? []), [rep?.annotations]);
+  if (!rep?.course) return null;
+  const here = notesAt(index, fen);
+  if (!here.about && here.moves.length === 0) return null;
+  return (
+    <div className="course-notes">
+      <div className="rep-section-title">
+        <span>{t("course.notes")}</span>
+      </div>
+      {here.about && <p className="course-about">{here.about}</p>}
+      <ul>
+        {here.moves.map((m) => (
+          <li key={m.uci}>
+            <button type="button" className="course-move" onClick={() => playMove(m.uci)}>
+              {m.san}
+              {m.nags}
+            </button>
+            {!m.main && <span className="badge">{t("course.sideLine")}</span>} {m.comment && <span className="course-comment">{m.comment}</span>}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -21,6 +21,23 @@ selected repertoire. Where the file disagrees with a move of yours that's alread
 repertoire, yours is kept. A file with `[Orientation "..."]` for the other colour is refused.
 Any PGN works, for example a Lichess study chapter or a Chessable export.
 
+### Courses, books and Lichess studies
+
+**Repertoire → Import a course** reads an annotated PGN (any number of chapters) as a new
+repertoire:
+
+- Your moves are the course's main line for your side; every opponent reply it covers is
+  kept. Other moves it shows for your side are kept as "side line" notes.
+- Comments before and after each move, and annotation symbols (`$1` = !, `$6` = ?!, `$16` = ±, …),
+  are kept per move; a chapter's opening comment is kept for its starting position.
+  Lichess board markup (`[%cal …]`, `[%csl …]`) is removed.
+- Chapters that start from a set-up position (a `FEN` header) join the repertoire if the rest of
+  the course reaches that position; otherwise only their comments are kept.
+- The side comes from an `Orientation` header, or is guessed (the side with fewer alternatives at
+  its own turns); you can change it before importing.
+
+The file is stored as it was, with the notes, only in the app's database in its data folder.
+
 ## 2. Training cards and history: JSON
 
 **Settings → Your data → Training cards → Export…** writes:

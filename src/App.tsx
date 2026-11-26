@@ -12,6 +12,7 @@ import { AnalysisPage } from "./ui/analysis/AnalysisPage";
 import { GamesPage } from "./ui/games/GamesPage";
 import { ReviewPage } from "./ui/games/ReviewPage";
 import { PlaceholderPage } from "./ui/pages/OtherPages";
+import { CourseImportSheet } from "./ui/repertoire/CourseImport";
 import { RepertoireWizard } from "./ui/repertoire/RepertoireWizard";
 import { TrainerPage } from "./ui/train/TrainerPage";
 import { SetupPage } from "./ui/pages/SetupPage";
@@ -75,6 +76,7 @@ export default function App() {
       <SettingsSheet />
       <ImportSheet />
       <AboutSheet />
+      <CourseImportSheet />
       {toast && (
         <div className="toast" role="status">
           {toast}

@@ -21,12 +21,14 @@ import {
   setMyMove,
 } from "../core/repertoire";
 import { type BuildOracle, type BuildProgress, buildRepertoire, type MoveStats } from "../core/repertoire-build";
+import { type CourseRead, readCourse } from "../core/course";
 import type { Color } from "../core/types";
 import { tNow } from "../i18n";
 import { useAnalysis } from "./analysis";
 import { useApp } from "./app";
 import { useExplorer } from "./explorer";
 import { useToast } from "./toast";
+import { setCourses } from "./course-notes";
 import { askWhy, cachedWhy } from "./why";
 
 /** Engine depth for choosing your moves while building (quick: there are many). */
@@ -54,6 +56,16 @@ async function pause(ms: number, signal: { cancelled: boolean }) {
 
 type WhyState = { status: "asking" } | { status: "done"; text: string } | { status: "error"; message: string };
 
+/** A course file being imported: what was read, and the choices in the import sheet. */
+export interface CourseDraft {
+  fileName: string;
+  pgn: string;
+  read: CourseRead;
+  name: string;
+  color: Color;
+  importing: boolean;
+}
+
 interface RepertoireState {
   ready: boolean;
   list: RepertoireInfo[];
@@ -65,8 +77,15 @@ interface RepertoireState {
   deviations: Deviation[] | null;
   /** Claude's "why" for your move, per "repId|epd" (while asking / on error). */
   why: Record<string, WhyState>;
+  courseDraft: CourseDraft | null;
 
   init(): Promise<void>;
+  /** Asks for a course / book / study PGN and reads it (the import sheet then opens). */
+  pickCourse(): Promise<void>;
+  editCourseDraft(patch: Partial<Pick<CourseDraft, "name" | "color">>): void;
+  cancelCourse(): void;
+  /** Creates a repertoire from the course draft. */
+  importCourse(): Promise<void>;
   reload(): Promise<void>;
   select(id: number | null): void;
   openWizard(open: boolean): void;
@@ -97,6 +116,8 @@ const toRepertoire = (d: Awaited<ReturnType<typeof backend.repertoireGet>>): Rep
   moves: d.moves,
   notes: Object.fromEntries(d.notes.map((n) => [n.epd, n])),
   meta: d.info.meta ?? {},
+  course: d.course ?? null,
+  annotations: d.annotations ?? [],
 });
 
 const toast = (m: string) => useToast.getState().show(m);
@@ -188,6 +209,7 @@ export const useRepertoire = create<RepertoireState>((set, get) => {
     build: null,
     deviations: null,
     why: {},
+    courseDraft: null,
 
     async init() {
       await get().reload();
@@ -201,7 +223,54 @@ export const useRepertoire = create<RepertoireState>((set, get) => {
         for (const info of list) reps[info.id] = toRepertoire(await backend.repertoireGet(info.id));
         const selected = get().selected != null && reps[get().selected as number] ? get().selected : (list[0]?.id ?? null);
         set({ list, reps, selected });
+        // The author's notes, for Explain, the trainer and "why" answers.
+        setCourses(
+          Object.values(reps)
+            .filter((r) => r.course)
+            .map((r) => ({ repertoireId: r.id, title: r.course?.title ?? r.name, annotations: r.annotations ?? [] })),
+        );
       } catch (e) {
+        toast(toBackendError(e).message);
+      }
+    },
+
+    async pickCourse() {
+      try {
+        const file = await backend.fileOpenText("PGN", ["pgn"]);
+        if (!file) return;
+        const read = readCourse(file.contents, file.name);
+        set({ courseDraft: { fileName: file.name, pgn: file.contents, read, name: read.title, color: read.color, importing: false } });
+      } catch (e) {
+        toast((e as Error).message === "noGames" ? tNow("course.noGames") : toBackendError(e).message);
+      }
+    },
+
+    editCourseDraft(patch) {
+      const d = get().courseDraft;
+      if (!d) return;
+      // A different side means reading the course again (your moves vs. replies swap).
+      const read = patch.color && patch.color !== d.color ? readCourse(d.pgn, d.fileName, patch.color) : d.read;
+      set({ courseDraft: { ...d, ...patch, read } });
+    },
+
+    cancelCourse: () => set({ courseDraft: null }),
+
+    async importCourse() {
+      const d = get().courseDraft;
+      if (!d || d.importing) return;
+      set({ courseDraft: { ...d, importing: true } });
+      try {
+        const name = d.name.trim() || d.read.title;
+        const id = await backend.repertoireCreate(name, d.color, { lines: [] });
+        await backend.repertoireSaveMoves(id, d.read.moves);
+        await backend.courseSave(id, d.read.title, d.fileName, d.pgn, d.read.annotations);
+        await get().reload();
+        set({ courseDraft: null, wizardOpen: false });
+        get().select(id);
+        useApp.getState().setPage("repertoire");
+        toast(tNow("course.imported", { count: d.read.moves.filter((m) => m.mine).length, comments: d.read.comments }));
+      } catch (e) {
+        set({ courseDraft: { ...d, importing: false } });
         toast(toBackendError(e).message);
       }
     },

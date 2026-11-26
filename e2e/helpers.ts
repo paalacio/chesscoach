@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export const RUY_PGN = `[Event "Example"]
 [White "White"]
@@ -71,4 +71,22 @@ export async function waitForYourMove(page: Page, notFen = ""): Promise<TrainerS
   await page.locator('[data-testid="trainer-board"][data-movable="true"]').waitFor();
   await page.waitForTimeout(100);
   return (await trainerSession(page)) as TrainerSnapshot;
+}
+
+// Written for these tests (not from a real course). Passed as bytes: no .pgn file in the repo.
+export const SAMPLE_COURSE = `[Event "Sample course: the Italian (made up for tests)"]
+[Orientation "white"]
+
+{ The Italian Game: quick development and pressure on f7. }
+1. e4 { Grab the centre: it opens lines for the bishop and the queen. } e5 2. Nf3 { Attacks e5 and develops. } Nc6
+3. Bc4! { The bishop eyes f7, the weakest square in Black's camp. } ( 3. Bb5 { The Ruy Lopez: a different course. } )
+3... Bc5 ( 3... Nf6 { The Two Knights. } 4. d3 { A quiet answer. } ) 4. c3 { Prepares d4. } Nf6 5. d4 $1 *
+`;
+
+/** Imports the sample course through the (mock) file picker. */
+export async function importSampleCourse(page: Page) {
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Import a course" }).first().click();
+  await (await chooser).setFiles({ name: "italian.pgn", mimeType: "application/x-chess-pgn", buffer: Buffer.from(SAMPLE_COURSE) });
+  await expect(page.getByRole("dialog")).toContainText("Import a course");
 }

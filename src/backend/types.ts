@@ -4,6 +4,7 @@
 // These types mirror the Rust structs in src-tauri/src (serde camelCase).
 
 import type { RequestKind } from "../core/context-packet";
+import type { CourseAnnotation, CourseInfo } from "../core/course";
 import type { GameLine, RepertoireMeta, RepMove, RepNote } from "../core/repertoire";
 import type { StoredCard, StoredReview } from "../core/srs";
 import type { MistakeInfo } from "../core/trainer";
@@ -89,6 +90,8 @@ export interface AskRequest {
   force?: boolean;
   /** Only return a saved answer; never start a request (error kind "notCached"). */
   cacheOnly?: boolean;
+  /** Extra context that changes the answer (notes from an imported course); part of the cache key. */
+  variant?: string | null;
 }
 
 export interface AskReply {
@@ -236,6 +239,9 @@ export interface RepertoireData {
   info: RepertoireInfo;
   moves: RepMove[];
   notes: RepNote[];
+  /** Set when the repertoire was imported from a course / book / study. */
+  course: CourseInfo | null;
+  annotations: CourseAnnotation[];
 }
 
 export interface ReviewDay {
@@ -299,6 +305,8 @@ export interface Backend {
   /** Replaces all the moves of a repertoire. */
   repertoireSaveMoves(id: number, moves: RepMove[]): Promise<void>;
   repertoireUpdate(id: number, name: string | null, meta: RepertoireMeta | null): Promise<void>;
+  /** Saves an imported course (the file as it was, and the author's notes) for a repertoire. */
+  courseSave(id: number, title: string, fileName: string, pgn: string, annotations: CourseAnnotation[]): Promise<void>;
   repertoireDelete(id: number): Promise<void>;
   /** null leaves that field as it is. */
   repertoireSetNote(id: number, epd: string, note: string | null, why: string | null): Promise<void>;

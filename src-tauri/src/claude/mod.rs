@@ -81,11 +81,16 @@ impl RequestKind {
 
 /// The cache key for an answer: hash of everything that would change it
 /// (including the app language, since Claude answers in it).
-pub fn cache_key(kind: RequestKind, fen: &str, move_played: Option<&str>, model: &str, language: &str) -> String {
+pub fn cache_key(kind: RequestKind, fen: &str, move_played: Option<&str>, model: &str, language: &str, variant: Option<&str>) -> String {
     let mut h = Sha256::new();
     for part in [kind.as_str(), fen, move_played.unwrap_or("-"), model, language, &PROMPT_VERSION.to_string()] {
         h.update(part.as_bytes());
         h.update([0u8]); // separator, so "ab"+"c" != "a"+"bc"
+    }
+    // Only added when present, so keys without a variant stay as they were.
+    if let Some(v) = variant {
+        h.update(v.as_bytes());
+        h.update([0u8]);
     }
     hex::encode(h.finalize())
 }
@@ -286,13 +291,14 @@ mod tests {
     #[test]
     fn cache_key_changes_with_every_input() {
         let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
-        let base = cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en");
-        assert_eq!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en"), "stable");
+        let base = cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en", None);
+        assert_eq!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en", None), "stable");
         assert_eq!(base.len(), 64);
-        assert_ne!(base, cache_key(RequestKind::MoveExplanation, fen, None, "sonnet", "en"));
-        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, Some("e2e4"), "sonnet", "en"));
-        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "opus", "en"));
-        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "pt"));
+        assert_ne!(base, cache_key(RequestKind::MoveExplanation, fen, None, "sonnet", "en", None));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, Some("e2e4"), "sonnet", "en", None));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "opus", "en", None));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "pt", None));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en", Some("course:1")));
     }
 
     #[test]

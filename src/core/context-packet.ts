@@ -41,6 +41,43 @@ export interface PacketInput {
   /** The line from the start: FEN of every position (root first) and the SAN that led to it. */
   history: { fen: string; san: string | null }[];
   move?: MoveContext | null;
+  /** Notes from a course / book / study the player imported (see core/course.ts). */
+  course?: CourseContext | null;
+}
+
+/** What an imported course says about the position (and the move being explained). */
+export interface CourseContext {
+  title: string;
+  /** The author's introduction to this position. */
+  about: string | null;
+  /** The course's moves from this position: `main` = in the repertoire, else a side line. */
+  moves: { san: string; comment: string; nags: string; main: boolean }[];
+  /** The author's comment on the move being explained. */
+  played: { san: string; comment: string; nags: string } | null;
+}
+
+/** Courses can be wordy: each comment is cut to this many characters. */
+const COURSE_COMMENT_MAX = 600;
+
+const quote = (text: string) => {
+  const t = text.length > COURSE_COMMENT_MAX ? `${text.slice(0, COURSE_COMMENT_MAX - 1)}…` : text;
+  return `"${t}"`;
+};
+
+/** The AUTHOR'S NOTES section of the packet. */
+export function courseText(fen: string, c: CourseContext, fenBefore?: string): string[] {
+  const out = [`AUTHOR'S NOTES (from "${c.title}", a course the player imported: the author's own words, not computed by code)`];
+  if (c.played && fenBefore) {
+    const mark = c.played.nags ? ` (author's mark: ${c.played.nags})` : "";
+    out.push(`On the move played, ${moveLabel(fenBefore, c.played.san)}: ${c.played.comment ? quote(c.played.comment) : "no comment"}${mark}`);
+  }
+  if (c.about) out.push(`About this position: ${quote(c.about)}`);
+  for (const m of c.moves) {
+    const kind = m.main ? "the course's line" : "a side line the course shows";
+    out.push(`${moveLabel(fen, m.san)}${m.nags} (${kind})${m.comment ? `: ${quote(m.comment)}` : ""}`);
+  }
+  out.push("Build on the author's ideas where they fit, and say so plainly when the engine lines disagree with them.");
+  return out;
 }
 
 /** Moves Claude may mention, as sets of SAN strings. */
@@ -134,6 +171,8 @@ export function buildPacket(input: PacketInput): Packet {
     engineFirstBefore: new Set((move?.linesBefore ?? []).map((l) => l.pvSan[0]).filter(Boolean).map(normalizeSan)),
     anywhere: new Set([...legalNow, ...legalBefore, ...allPv, ...played.map((h) => normalizeSan(h.san as string))]),
   };
+  // The course's moves here are legal (they were checked when it was imported): Claude may name them.
+  for (const m of input.course?.moves ?? []) allowed.anywhere.add(normalizeSan(m.san));
 
   let openingText = "unknown (not in the opening list)";
   if (opening.opening) {
@@ -153,7 +192,7 @@ export function buildPacket(input: PacketInput): Packet {
   out.push(`Game phase: ${phase}`);
   out.push(`Moves played so far (last 10): ${recentText}`);
   out.push(`Opening: ${openingText}`);
-  out.push("Repertoire: not set up yet");
+  out.push(input.course ? `Repertoire: from the course "${input.course.title}" (see AUTHOR'S NOTES)` : "Repertoire: not set up yet");
   out.push("Explorer stats: not available");
 
   if (move) {
@@ -187,6 +226,11 @@ export function buildPacket(input: PacketInput): Packet {
   out.push("");
   out.push("POSITION FACTS (computed by code, trust these)");
   out.push(...factsToText(positionFacts(fen)));
+
+  if (input.course) {
+    out.push("");
+    out.push(...courseText(fen, input.course, move?.fenBefore));
+  }
 
   out.push("");
   out.push(`LEGAL MOVES NOW: ${legalNow.join(", ") || "none"}`);

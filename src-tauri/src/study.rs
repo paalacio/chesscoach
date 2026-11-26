@@ -60,6 +60,31 @@ pub struct RepertoireData {
     pub info: RepertoireInfo,
     pub moves: Vec<RepMove>,
     pub notes: Vec<RepNote>,
+    /** Set when the repertoire was imported from a course / book / study. */
+    pub course: Option<CourseInfo>,
+    /// The author's notes on the course's moves.
+    pub annotations: Vec<CourseAnnotation>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseInfo {
+    pub title: String,
+    pub file_name: String,
+    pub imported_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseAnnotation {
+    pub epd: String,
+    /// "" = a note about the position itself.
+    pub uci: String,
+    pub san: String,
+    pub comment: String,
+    pub nags: String,
+    /// true = the move is in the repertoire; false = a side line the course shows.
+    pub main: bool,
 }
 
 const INFO_SELECT: &str = "SELECT r.id, r.name, r.color, r.meta_json, r.created_at, r.updated_at,
@@ -116,7 +141,18 @@ pub fn get_repertoire(conn: &Connection, id: i64) -> rusqlite::Result<Option<Rep
         .prepare("SELECT epd, note, why FROM repertoire_notes WHERE rep_id = ?1")?
         .query_map([id], |r| Ok(RepNote { epd: r.get(0)?, note: r.get(1)?, why: r.get(2)? }))?
         .collect::<rusqlite::Result<_>>()?;
-    Ok(Some(RepertoireData { info, moves, notes }))
+    let course = conn
+        .query_row("SELECT title, file_name, imported_at FROM courses WHERE rep_id = ?1", [id], |r| {
+            Ok(CourseInfo { title: r.get(0)?, file_name: r.get(1)?, imported_at: r.get(2)? })
+        })
+        .optional()?;
+    let annotations = conn
+        .prepare("SELECT epd, uci, san, comment, nags, main FROM course_annotations WHERE rep_id = ?1")?
+        .query_map([id], |r| {
+            Ok(CourseAnnotation { epd: r.get(0)?, uci: r.get(1)?, san: r.get(2)?, comment: r.get(3)?, nags: r.get(4)?, main: r.get(5)? })
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+    Ok(Some(RepertoireData { info, moves, notes, course, annotations }))
 }
 
 /// Replaces all the moves of a repertoire (it's at most a few thousand rows,
@@ -148,6 +184,34 @@ pub fn update_repertoire(conn: &Connection, id: i64, name: Option<&str>, meta: O
         )?;
     }
     Ok(())
+}
+
+/// Saves an imported course for a repertoire: the file as it was, and the author's notes
+/// (replacing an earlier import).
+pub fn save_course(
+    conn: &Connection,
+    id: i64,
+    title: &str,
+    file_name: &str,
+    pgn: &str,
+    annotations: &[CourseAnnotation],
+) -> rusqlite::Result<()> {
+    let tx = conn.unchecked_transaction()?;
+    tx.execute(
+        "INSERT OR REPLACE INTO courses (rep_id, title, file_name, pgn, imported_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![id, title, file_name, pgn, now()],
+    )?;
+    tx.execute("DELETE FROM course_annotations WHERE rep_id = ?1", [id])?;
+    {
+        let mut stmt = tx.prepare_cached(
+            "INSERT OR REPLACE INTO course_annotations (rep_id, epd, uci, san, comment, nags, main)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        )?;
+        for a in annotations {
+            stmt.execute(params![id, a.epd, a.uci, a.san, a.comment, a.nags, a.main])?;
+        }
+    }
+    tx.commit()
 }
 
 /// Deletes a repertoire, its moves and notes (cascade) and its trainer cards.
@@ -499,6 +563,30 @@ mod tests {
         let left: i64 = conn.query_row("SELECT COUNT(*) FROM repertoire_moves", [], |r| r.get(0)).unwrap();
         assert_eq!(left, 0);
         assert!(srs_list(&conn).unwrap().is_empty());
+    }
+
+    #[test]
+    fn courses_are_kept_with_their_repertoire() {
+        let conn = db::open_in_memory().unwrap();
+        let id = create_repertoire(&conn, "Italian", "white", &json!({})).unwrap();
+        let note = CourseAnnotation {
+            epd: "a".into(),
+            uci: "f1c4".into(),
+            san: "Bc4".into(),
+            comment: "Aims at f7.".into(),
+            nags: "!".into(),
+            main: true,
+        };
+        save_course(&conn, id, "My course", "course.pgn", "1. e4 *", std::slice::from_ref(&note)).unwrap();
+        // Importing again replaces the notes.
+        save_course(&conn, id, "My course", "course.pgn", "1. e4 *", std::slice::from_ref(&note)).unwrap();
+        let data = get_repertoire(&conn, id).unwrap().unwrap();
+        assert_eq!(data.course.map(|c| c.title), Some("My course".to_string()));
+        assert_eq!(data.annotations, vec![note]);
+        delete_repertoire(&conn, id).unwrap();
+        let left: i64 = conn.query_row("SELECT COUNT(*) FROM courses", [], |r| r.get(0)).unwrap();
+        let notes: i64 = conn.query_row("SELECT COUNT(*) FROM course_annotations", [], |r| r.get(0)).unwrap();
+        assert_eq!((left, notes), (0, 0));
     }
 
     #[test]

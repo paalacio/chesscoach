@@ -1,6 +1,6 @@
 // Phase 4 screenshots: repertoire, wizard, trainer, data settings. Output: screenshots/phase-4/
 import { expect, type Page, test } from "@playwright/test";
-import { importPgn, openApp, playMove, waitForYourMove } from "./helpers";
+import { importPgn, importSampleCourse, openApp, playMove, waitForYourMove } from "./helpers";
 
 for (const scheme of ["light", "dark"] as const) {
   test.describe(`${scheme} @screenshot phase-4`, () => {
@@ -69,6 +69,26 @@ for (const scheme of ["light", "dark"] as const) {
       await playMove(page, s.expected?.uci as string, s.orientation, "trainer-board");
       await expect(page.getByText("Right!")).toBeVisible();
       await shot(page, "trainer-mistake", browserName);
+    });
+
+    test("course import", async ({ page, browserName }) => {
+      test.skip(browserName !== "webkit");
+      await openApp(page, "?mock=empty");
+      await page.getByRole("button", { name: "Repertoire", exact: true }).click();
+      await importSampleCourse(page);
+      await shot(page, "course-import", browserName);
+      await page.getByRole("dialog").getByRole("button", { name: "Import", exact: true }).click();
+      const panel = page.locator(".rep-panel");
+      for (const [kind, san] of [["course", "e4"], ["reply", "e5"], ["course", "Nf3"], ["reply", "Nc6"]]) {
+        await panel.locator(kind === "course" ? ".course-move" : ".rep-reply", { hasText: san }).click();
+      }
+      await expect(panel.locator(".course-notes li", { hasText: "Bb5" })).toBeVisible();
+      await shot(page, "course-notes", browserName);
+      await page.getByRole("button", { name: "Train", exact: true }).click();
+      await page.locator(".mode-card", { hasText: "Learn new lines" }).getByRole("button", { name: "Start" }).click();
+      await waitForYourMove(page);
+      await expect(page.locator(".trainer-course-note")).toBeVisible();
+      await shot(page, "course-trainer", browserName);
     });
 
     test("settings: your data", async ({ page, browserName }) => {

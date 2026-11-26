@@ -152,6 +152,27 @@ pub fn migrations() -> Migrations<'static> {
             );
             CREATE INDEX srs_reviews_at ON srs_reviews(reviewed_at);",
         ),
+        // 5: courses / books / studies imported as repertoires. The file and the author's
+        //    notes live only here, in the app-data database (never in the repo or the app).
+        M::up(
+            "CREATE TABLE courses (
+                rep_id      INTEGER PRIMARY KEY REFERENCES repertoires(id) ON DELETE CASCADE,
+                title       TEXT NOT NULL,
+                file_name   TEXT NOT NULL,
+                pgn         TEXT NOT NULL,              -- the imported file, as it was
+                imported_at INTEGER NOT NULL
+            );
+            CREATE TABLE course_annotations (
+                rep_id  INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+                epd     TEXT NOT NULL,                  -- position before the move
+                uci     TEXT NOT NULL,                  -- '' = a note about the position itself
+                san     TEXT NOT NULL,
+                comment TEXT NOT NULL,                  -- the author's words
+                nags    TEXT NOT NULL,                  -- annotation symbols: ! ?! ± ...
+                main    INTEGER NOT NULL,               -- 1 = in the repertoire, 0 = a side line
+                PRIMARY KEY (rep_id, epd, uci)
+            );",
+        ),
     ])
 }
 
@@ -224,7 +245,7 @@ pub fn calls_today(conn: &Connection) -> rusqlite::Result<i64> {
 
 /// Number of migrations (the schema version a fresh database ends up at).
 pub fn migrations_count() -> i64 {
-    4
+    5
 }
 
 #[cfg(test)]

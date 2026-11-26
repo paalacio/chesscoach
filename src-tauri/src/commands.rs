@@ -168,6 +168,9 @@ pub struct AskRequest {
     /// Only look in the cache; never start a Claude request ("notCached" if it isn't there).
     #[serde(default)]
     cache_only: bool,
+    /// Extra context that changes the answer (e.g. notes from an imported course), part of the cache key.
+    #[serde(default)]
+    variant: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -185,7 +188,7 @@ pub async fn claude_ask(state: State<'_, AppState>, request: AskRequest) -> CmdR
         let s = state.settings.lock().unwrap();
         (s.claude_model.clone(), s.language.clone())
     };
-    let key = claude::cache_key(request.kind, &request.fen, request.move_played.as_deref(), &model, &language);
+    let key = claude::cache_key(request.kind, &request.fen, request.move_played.as_deref(), &model, &language, request.variant.as_deref());
 
     if !request.force {
         let cached = db::cache_get(&state.db.lock().unwrap(), &key)?;
@@ -515,7 +518,7 @@ pub async fn explorer_query(
 
 // ---------- repertoire & trainer (Phase 4) ----------
 
-use crate::study::{self, GameMoves, MistakeCard, RepMove, RepertoireData, RepertoireInfo, SrsCard, SrsReview};
+use crate::study::{self, CourseAnnotation, GameMoves, MistakeCard, RepMove, RepertoireData, RepertoireInfo, SrsCard, SrsReview};
 
 #[tauri::command]
 pub async fn repertoire_list(state: State<'_, AppState>) -> CmdResult<Vec<RepertoireInfo>> {
@@ -539,6 +542,19 @@ pub async fn repertoire_get(state: State<'_, AppState>, id: i64) -> CmdResult<Re
 #[tauri::command]
 pub async fn repertoire_save_moves(state: State<'_, AppState>, id: i64, moves: Vec<RepMove>) -> CmdResult<()> {
     Ok(study::save_moves(&state.db.lock().unwrap(), id, &moves)?)
+}
+
+/// Saves an imported course (the file and the author's notes) for a repertoire.
+#[tauri::command]
+pub async fn course_save(
+    state: State<'_, AppState>,
+    id: i64,
+    title: String,
+    file_name: String,
+    pgn: String,
+    annotations: Vec<CourseAnnotation>,
+) -> CmdResult<()> {
+    Ok(study::save_course(&state.db.lock().unwrap(), id, &title, &file_name, &pgn, &annotations)?)
 }
 
 #[tauri::command]

@@ -10,6 +10,8 @@ import { backend, type BackendError, toBackendError } from "../backend";
 import { currentLang } from "../i18n";
 import { legalSans, moveLabel, playUci, START_FEN, turnOf } from "../core/chess";
 import { buildPacket, buildPrompt, type MoveContext, type RequestKind } from "../core/context-packet";
+import { courseKey } from "../core/course";
+import { courseContext } from "./course-notes";
 import { linesDepth, mergeInfo } from "../core/engine-lines";
 import * as T from "../core/game-tree";
 import type { Color, EngineEvent, EngineLine } from "../core/types";
@@ -321,7 +323,9 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
 
         // 2. Build the context packet and the prompt.
         const history = T.pathTo(s.tree, n.id).map((x) => ({ fen: x.fen, san: x.san }));
-        const packet = buildPacket({ fen: n.fen, lines, history, move });
+        // Notes from an imported course about this position (and the move), if any.
+        const course = courseContext(n.fen, move ? { fenBefore: move.fenBefore, uci: move.uci } : undefined);
+        const packet = buildPacket({ fen: n.fen, lines, history, move, course });
         const prompt = buildPrompt(kind, packet, move, currentLang());
         set({ job: { key, kind, nodeId: n.id, status: "asking" } });
         requestAnalysis(); // let live analysis resume while Claude thinks
@@ -333,6 +337,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
           movePlayed: move?.uci ?? null,
           prompt,
           force,
+          variant: course ? courseKey(course) : null,
         });
         const label = move ? moveLabel(move.fenBefore, move.san) : "this position";
         const common = { cached: reply.cached, model: reply.model, label };

@@ -1,8 +1,42 @@
 # Progress log
 
+## Phase 4 addition (26 Nov 2026): course / book / study import, and the new name
+
+**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. Not tried with the
+real Claude yet: an Explain on a position that a course comments.
+
+- **The app is now called "Tung Tung Chessahur"**: window, menus, About, Setup, messages, exported
+  file names and installers. The internal ID (`app.chesscoach.desktop`) is unchanged, so your data folder
+  and Lichess token stay where they are. Code names and file formats keep "ChessCoach".
+- **Repertoire → Import a course** (toolbar, or the first step of the wizard): pick an annotated PGN
+  from a course, a book or a Lichess study. A sheet shows what was read (chapters, your moves, replies,
+  comments, side lines); you can rename it and choose the side. Then it becomes a repertoire.
+  - **The author's notes** show on the Repertoire page for each position: the introduction, a comment
+    on each of the course's moves, and the side lines it shows (click a move to play it).
+  - **In the trainer,** the author's comment shows under "Play …" while you learn a move, and again
+    when you get it wrong.
+  - **Claude gets the notes:** Explain, "Why? Ask Claude" and "Explain this opening" include an
+    AUTHOR'S NOTES section, and Claude is told to build on them (and to say so when Stockfish
+    disagrees). Those answers are cached separately from plain ones.
+  - **Privacy:** the file and the notes are kept only in the app's database in its data folder. `*.pgn`
+    files are now ignored by git, and the tests use a small course I wrote myself.
+- Decisions:
+  - your moves come from the course's main line; other moves it shows for your side are kept as side-line
+    notes (a repertoire has one move of yours per position);
+  - chapters that start from a FEN join if the course reaches that position; otherwise only their
+    comments are kept;
+  - the course's replies have no "how often played" numbers, so the trainer picks them evenly.
+- Tests: Rust 61, Vitest 96, Playwright 50. Screenshots: `screenshots/phase-4/*course*`.
+- **New stretch phase** (model games, Maia, generic engines; no local game database) is written into the
+  spec. It comes after Phase 5, and only when you say so.
+
+Checklist: Repertoire → Import a course → a Lichess study (Study → Share → Download PGN) or a course
+PGN → check the side → Import → step through, read the notes → Train → Learn new lines.
+
 ## Phase 4 (26 Nov 2026): repertoire builder, trainer, portable data
 
-**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Not tried in
+**Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45874623852)). **Not tried in
 the real window yet:**
 - building a repertoire with the real Lichess explorer and Stockfish;
 - the save and open dialogs;

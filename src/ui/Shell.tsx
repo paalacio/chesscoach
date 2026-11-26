@@ -20,6 +20,7 @@ import {
   Sparkles,
   Stethoscope,
   Swords,
+  FileUp,
   WandSparkles,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -126,6 +127,9 @@ export function Toolbar() {
             <WandSparkles />
             <span className="label">{t("rep.new")}</span>
           </button>
+          <IconButton label={t("course.importButton")} title={t("course.importTitle")} onClick={() => void useRepertoire.getState().pickCourse()}>
+            <FileUp />
+          </IconButton>
         </div>
       )}
       {page === "games" && <GamesTools />}

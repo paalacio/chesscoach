@@ -47,6 +47,14 @@ export function RepertoireWizard() {
 
         {w.step === 0 && (
           <section className="wizard-card">
+            <div className="callout info wizard-course">
+              <span>
+                {t("wizard.courseInstead")}{" "}
+                <button type="button" className="link-btn" onClick={() => void useRepertoire.getState().pickCourse()}>
+                  {t("course.importButton")}
+                </button>
+              </span>
+            </div>
             <h3>{t("wizard.games.title")}</h3>
             <p className="secondary">{t("wizard.games.text")}</p>
             {!w.facts ? (

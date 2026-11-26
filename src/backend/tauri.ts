@@ -70,6 +70,7 @@ export function createTauriBackend(): Backend {
     repertoireGet: (id) => call("repertoire_get", { id }),
     repertoireSaveMoves: (id, moves) => call("repertoire_save_moves", { id, moves }),
     repertoireUpdate: (id, name, meta) => call("repertoire_update", { id, name, meta }),
+    courseSave: (id, title, fileName, pgn, annotations) => call("course_save", { id, title, fileName, pgn, annotations }),
     repertoireDelete: (id) => call("repertoire_delete", { id }),
     repertoireSetNote: (id, epd, note, why) => call("repertoire_set_note", { id, epd, note, why }),
     srsList: () => call("srs_list"),

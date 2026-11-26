@@ -9,6 +9,7 @@
 
 import { legalSans, playUci, sanToUci, START_FEN } from "../core/chess";
 import { lookupOpening } from "../core/openings";
+import type { CourseAnnotation, CourseInfo } from "../core/course";
 import { buildRepertoire, type BuildOracle, type MoveStats } from "../core/repertoire-build";
 import { type GameLine, type Repertoire, type RepertoireMeta, type RepMove, type RepNote, sanLineToUcis } from "../core/repertoire";
 import { movesFromPgn, reviewGame, trainingCards, type GameAnalysis } from "../core/review";
@@ -115,6 +116,8 @@ interface StoredRep {
   info: RepertoireInfo;
   moves: RepMove[];
   notes: Map<string, RepNote>;
+  course: CourseInfo | null;
+  annotations: CourseAnnotation[];
 }
 
 export function mockStudy() {
@@ -157,7 +160,7 @@ export function mockStudy() {
   const create = (name: string, color: Color, meta: RepertoireMeta) => {
     const id = nextId++;
     const now = Math.floor(Date.now() / 1000);
-    reps.set(id, { info: { id, name, color, meta, moveCount: 0, createdAt: now, updatedAt: now }, moves: [], notes: new Map() });
+    reps.set(id, { info: { id, name, color, meta, moveCount: 0, createdAt: now, updatedAt: now }, moves: [], notes: new Map(), course: null, annotations: [] });
     return id;
   };
 
@@ -206,6 +209,8 @@ export function mockStudy() {
     info: { ...r.info, moveCount: r.moves.length },
     moves: r.moves,
     notes: [...r.notes.values()],
+    course: r.course,
+    annotations: r.annotations,
   });
   const localDay = (sec: number) => {
     const d = new Date(sec * 1000);
@@ -234,6 +239,11 @@ export function mockStudy() {
       const r = getRep(id);
       if (name != null) r.info.name = name;
       if (meta != null) r.info.meta = meta;
+    },
+    async courseSave(id: number, title: string, fileName: string, _pgn: string, annotations: CourseAnnotation[]) {
+      const r = getRep(id);
+      r.course = { title, fileName, importedAt: Math.floor(Date.now() / 1000) };
+      r.annotations = annotations;
     },
     async repertoireDelete(id: number) {
       reps.delete(id);

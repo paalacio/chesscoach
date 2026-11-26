@@ -33,6 +33,7 @@ import { tNow } from "../i18n";
 import { useAnalysis } from "./analysis";
 import { useApp } from "./app";
 import { useRepertoire } from "./repertoire";
+import { courseNoteOn } from "./course-notes";
 import { askWhy, cachedWhy } from "./why";
 
 export type TrainMode = "learn" | "review" | "mistakes";
@@ -55,6 +56,8 @@ export interface Session {
   /** A different move that's about as good (My mistakes). */
   alsoGood: string | null;
   reason: string | null;
+  /** The author's comment on the expected move, from an imported course. */
+  courseNote: { title: string; comment: string } | null;
   /** "lookup": checking for a saved answer (quick); "asking": Claude is answering. */
   reasonLoading: false | "lookup" | "asking";
   /** Moves shown so far (SAN), for the line above the board. */
@@ -161,9 +164,27 @@ export const useTrainer = create<TrainerState>((set, get) => {
     });
   }
 
-  /** Waits for your move. */
+  /** The author's comment on a move, from an imported course (preferring the card's repertoire). */
+  function courseNoteFor(card: TrainCard | null, fen: string, uci: string) {
+    const found = courseNoteOn(fen, uci, card?.repertoireId);
+    return found ? { title: found.title, comment: found.note.comment } : null;
+  }
+
+  /** Waits for your move. While learning a move, the author's comment on it is shown too. */
   function askFor(card: TrainCard | null, expected: { uci: string; san: string }, hint: boolean, graded: boolean) {
-    patch({ status: "yourMove", card, expected, hint, graded, wrong: null, alsoGood: null, reason: null, reasonLoading: false });
+    const fen = (get().session as Session).fen;
+    patch({
+      status: "yourMove",
+      card,
+      expected,
+      hint,
+      graded,
+      wrong: null,
+      alsoGood: null,
+      reason: null,
+      reasonLoading: false,
+      courseNote: hint ? courseNoteFor(card, fen, expected.uci) : null,
+    });
   }
 
   // ---------- learn ----------
@@ -305,6 +326,7 @@ export const useTrainer = create<TrainerState>((set, get) => {
         wrong: null,
         alsoGood: null,
         reason: null,
+        courseNote: null,
         reasonLoading: false,
         line: [],
         lesson: null,
@@ -369,7 +391,7 @@ export const useTrainer = create<TrainerState>((set, get) => {
           if (again && cur.card) queue.splice(Math.min(REPEAT_AFTER, queue.length), 0, cur.card);
           patch({ queue, answered: cur.answered + 1, total: cur.total + (again ? 1 : 0) });
         }
-        patch({ status: "wrong", wrong: played.uci, hint: true, reason: null, reasonLoading: "lookup" });
+        patch({ status: "wrong", wrong: played.uci, hint: true, reason: null, reasonLoading: "lookup", courseNote: courseNoteFor(cur.card, cur.fen, expected.uci) });
         void quickReason(cur.card, cur.fen, expected).then((reason) => patch({ reason, reasonLoading: false }));
       };
 

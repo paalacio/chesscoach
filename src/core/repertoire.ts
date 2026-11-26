@@ -13,10 +13,11 @@ import { type Game, makePgn, Node as PgnNode, ChildNode, type PgnNodeData, parse
 import { makeFen } from "chessops/fen";
 import { epdOf, playUci, sanToUci, START_FEN, turnOf } from "./chess";
 import { cleanComment } from "./game-tree";
+import type { CourseAnnotation, CourseInfo } from "./course";
 import type { Color } from "./types";
 
 /** Where a move came from (shown in the UI). */
-export type RepSource = "claude" | "theory" | "engine" | "explorer" | "user" | "pgn" | "game";
+export type RepSource = "claude" | "theory" | "engine" | "explorer" | "user" | "pgn" | "game" | "course";
 
 export interface RepMove {
   /** Position before the move. */
@@ -62,6 +63,10 @@ export interface Repertoire {
   moves: RepMove[];
   notes: Record<string, RepNote>;
   meta: RepertoireMeta;
+  /** Set when imported from a course / book / study (see core/course.ts). */
+  course?: CourseInfo | null;
+  /** The author's notes on the course's moves. */
+  annotations?: CourseAnnotation[];
 }
 
 /** One position of a repertoire, with its moves. */

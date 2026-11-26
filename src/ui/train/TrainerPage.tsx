@@ -3,7 +3,7 @@
 
 import type { DrawShape } from "@lichess-org/chessground/draw";
 import { chessgroundDests } from "chessops/compat";
-import { AlertTriangle, BookOpen, Check, GraduationCap, RotateCcw, Sparkles, Target } from "lucide-react";
+import { AlertTriangle, BookOpen, Check, GraduationCap, NotebookPen, RotateCcw, Sparkles, Target } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { positionFromFen, turnOf } from "../../core/chess";
 import { useT } from "../../i18n";
@@ -210,6 +210,20 @@ function lineText(s: Session): string {
   return s.line.map((san, i) => (i % 2 === 0 ? `${i / 2 + 1}.${san}` : san)).join(" ");
 }
 
+/** The author's comment from an imported course. */
+function CourseNote({ note }: { note: Session["courseNote"] }) {
+  const t = useT();
+  if (!note?.comment) return null;
+  return (
+    <p className="trainer-course-note">
+      <NotebookPen aria-hidden />
+      <span>
+        <b>{t("course.authorSays", { title: note.title })}</b> {note.comment}
+      </span>
+    </p>
+  );
+}
+
 /** Shows `text` with `bold` (a move) in bold, e.g. "Play <b>Nf3</b>". */
 function WithBold({ text, bold }: { text: string; bold: string }) {
   const at = bold ? text.indexOf(bold) : -1;
@@ -245,9 +259,12 @@ function Prompt({ session: s, onReason }: { session: Session; onReason: () => vo
               {s.card?.mistake && <p className="secondary small">{t("train.fromGame", { name: s.card.mistake.opponent })}</p>}
             </>
           ) : s.hint ? (
-            <p className="big">
-              <WithBold text={t("train.playThis", { move: expected })} bold={expected} />
-            </p>
+            <>
+              <p className="big">
+                <WithBold text={t("train.playThis", { move: expected })} bold={expected} />
+              </p>
+              <CourseNote note={s.courseNote} />
+            </>
           ) : (
             <p className="big">{s.mode === "learn" && s.pass === "quiz" ? t("train.fromMemory") : t("train.yourMove")}</p>
           )}
@@ -270,6 +287,7 @@ function Prompt({ session: s, onReason }: { session: Session; onReason: () => vo
           <p className="big">
             <AlertTriangle aria-hidden /> <WithBold text={t("train.wrong", { move: expected })} bold={expected} />
           </p>
+          <CourseNote note={s.courseNote} />
           {s.reasonLoading === "asking" ? (
             <p className="secondary small">
               <Spinner small /> {t("coach.asking")}

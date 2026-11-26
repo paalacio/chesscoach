@@ -58,6 +58,8 @@ src/                      React + TS frontend
                           pathTo, weighted replies, PGN export/import, where a game left the repertoire
     repertoire-build.ts   automatic build from seed lines via a BuildOracle (explorer + engine), minShare/minReach
     repertoire-proposal.ts wizard slots, the Claude proposal prompt, checking Claude's lines (legal, in the slot)
+    course.ts             course / book / study import: annotated PGN -> repertoire moves + author's notes
+                          (CourseAnnotation per move), side lines, FEN chapters; notes for Claude's packet
     srs.ts                ts-fsrs 6 wrapper (FSRS-7 pinned; dates revived from JSON), streak, training file format
     trainer.ts            trainer cards (repertoire + mistakes), due/new counts, lessons ("learn new lines")
   backend/                One `Backend` interface: tauri.ts (real, invoke/listen) and mock.ts (fixtures)
@@ -67,7 +69,8 @@ src/                      React + TS frontend
                           explorer (source, replies per position+filters, move evals, opening overview),
                           repertoire (load/edit/save, build with the live oracle, PGN, deviations), wizard,
                           trainer (sessions: learn / review / mistakes), why (Claude "why this move", cached),
-                          data (training export/import, DB backup/restore)
+                          data (training export/import, DB backup/restore), course-notes (loaded courses'
+                          notes for Explain / trainer / why; a plain module to avoid store import cycles)
   i18n/                   en.ts / pt.ts (Brazilian Portuguese) dictionaries, useT() / tNow(); pt.ts is typed
                           with en's keys, so a missing translation fails the typecheck
   ui/                     Thin React components; styles in src/styles (tokens.css = design tokens);
@@ -139,4 +142,8 @@ builds cards from repertoires (`rep:<id>:<epd>`) and mistakes (`mistake:<id>`); 
 - Files (exports, imports, backups) go through Rust commands that show the native dialog themselves
   (`file_save_text`, `file_open_text`, `db_backup`, `db_restore`); the web page never handles paths.
 - Data formats that leave the app are documented in `docs/data-formats.md`; change both together.
+- Imported courses / books / studies live only in the app-data database (`courses`, `course_annotations`).
+  Never add a real course PGN to the repo, fixtures or the bundle (`*.pgn` is gitignored; tests use
+  self-written samples). Course notes go into Claude's packet as AUTHOR'S NOTES, and `AskRequest.variant`
+  (= `courseKey`) keeps those answers cached apart from plain ones.
 - Commits: one or a few per phase; git identity for this repo is local (see PROGRESS.md).

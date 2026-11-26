@@ -1,7 +1,7 @@
 // Opening explorer helpers and the "Explain this opening" packet for Claude.
 
 import { formatMoves, moveLabel, turnOf } from "./chess";
-import { type AllowedMoves, buildPacket, languageInstruction, type MoveContext, normalizeSan, RATING_BAND } from "./context-packet";
+import { type AllowedMoves, buildPacket, languageInstruction, type MoveContext, normalizeSan, RATING_BAND, type CourseContext } from "./context-packet";
 import { type Opening, lookupOpening } from "./openings";
 import type { Color, EngineLine } from "./types";
 import { type Checked, type MoveWarning, sanTokensIn } from "./validate";
@@ -94,7 +94,7 @@ export interface OpeningPrompt {
 }
 
 export function buildOpeningPrompt(
-  input: { fen: string; lines: EngineLine[]; history: { fen: string; san: string | null }[]; move?: MoveContext | null },
+  input: { fen: string; lines: EngineLine[]; history: { fen: string; san: string | null }[]; move?: MoveContext | null; course?: CourseContext | null },
   explorer: ExplorerSection[],
   opening: Opening | null,
   language: "en" | "pt",

@@ -10,7 +10,9 @@ import { openingOfLine } from "../core/openings";
 import type { Color, EngineLine } from "../core/types";
 import type { Checked } from "../core/validate";
 import { currentLang } from "../i18n";
+import { courseKey } from "../core/course";
 import { EXPLAIN_DEPTH, useAnalysis } from "./analysis";
+import { courseContext } from "./course-notes";
 import { useApp } from "./app";
 
 /** Depth for evaluating the explorer's moves (quick: they're many). */
@@ -134,8 +136,9 @@ export const useExplorer = create<ExplorerState>((set, get) => ({
         }
       }
       const opening = openingOfLine(history.map((h) => h.fen)).opening;
-      const { prompt, allowed } = buildOpeningPrompt({ fen: node.fen, lines: lines.length ? lines : [], history }, sections, opening, currentLang());
-      const reply = await backend.claudeAsk({ kind: "openingOverview", fen: node.fen, movePlayed: null, prompt, force });
+      const course = courseContext(node.fen);
+      const { prompt, allowed } = buildOpeningPrompt({ fen: node.fen, lines: lines.length ? lines : [], history, course }, sections, opening, currentLang());
+      const reply = await backend.claudeAsk({ kind: "openingOverview", fen: node.fen, movePlayed: null, prompt, force, variant: course ? courseKey(course) : null });
       set((s) => ({
         overview: {
           ...s.overview,

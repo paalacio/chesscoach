@@ -122,6 +122,7 @@ pub fn run() {
             commands::repertoire_list,
             commands::repertoire_create,
             commands::repertoire_get,
+            commands::course_save,
             commands::repertoire_save_moves,
             commands::repertoire_update,
             commands::repertoire_delete,
