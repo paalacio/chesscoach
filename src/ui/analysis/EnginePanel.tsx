@@ -2,7 +2,8 @@
 
 import { Cpu } from "lucide-react";
 import { formatMoves } from "../../core/chess";
-import { linesDepth } from "../../core/engine-lines";
+import { linesDepth, verdictOf } from "../../core/engine-lines";
+import { turnOf } from "../../core/chess";
 import { formatScore } from "../../core/winprob";
 import { useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
@@ -68,7 +69,14 @@ export function EnginePanel() {
           {!engineOn && <p className="secondary small engine-off">{t("engine.off")}</p>}
           {(fresh ? lines : []).map((line, i) => (
             <div key={line.multipv} className={`engine-line ${preview?.line === i ? "previewing" : ""}`} role="listitem">
-              <span className={`score tabular ${line.scoreWhite.value >= 0 ? "pos" : "neg"}`}>{formatScore(line.scoreWhite)}</span>
+              <span className={`score tabular ${line.scoreWhite.value >= 0 ? "pos" : "neg"}`}>
+                {formatScore(line.scoreWhite)}
+                {i > 0 && verdictOf(lines, i, turnOf(fen)) === "asGood" && (
+                  <span className="as-good" title={t("engine.asGoodTitle")}>
+                    ≈
+                  </span>
+                )}
+              </span>
               <span className="pv">
                 {line.pvSan.map((san, k) => {
                   const label = formatMoves(fen, line.pvSan.slice(0, k + 1)).split(" ").at(-1) as string;

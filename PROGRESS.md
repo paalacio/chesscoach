@@ -1,5 +1,72 @@
 # Progress log
 
+## Phase 2 (26 Nov 2026): Chess.com import, game review, phases + language switch + "compare the best moves"
+
+**Status:** built and tested on this Mac, committed and pushed (CI runs on push). **The real Chess.com
+sync hasn't been tried yet**, because `CHESSCOM_CONTACT` in `.env.local` is still empty. Everything else was
+also checked against the real Stockfish and Claude.
+
+### What's new
+- **Games** (sidebar). Sync downloads your games from Chess.com month by month: only new months, plus the
+  two most recent ones, which are re-asked with their ETag so an unchanged month is almost free. Requests
+  go one at a time with a short pause between them. You can filter by colour and result and search by
+  opponent or opening.
+- **Background analysis.** A second Stockfish (about half your CPU) analyses every new game, newest
+  first: depth 16, max 1.5 s per position. Its progress shows in the toolbar, and you can pause it. If you
+  open a game that isn't analysed yet, it jumps to the front of the queue.
+- **Game review** (click a game):
+  - a win-chance graph (click or drag to jump) with the middlegame/endgame boundaries and dots at key moments;
+  - accuracy per phase for you and your opponent, computed the Lichess way (see below);
+  - counts of inaccuracies, mistakes and blunders;
+  - where the game left the known opening;
+  - the 5 biggest swings, with Stockfish's move;
+  - **"Review this game with Claude"**: one request gives a summary, 3 lessons tied to phases, and a
+    comment on each key moment;
+  - "Analyse" opens the current position on the analysis board.
+- **Training cards.** Every mistake or blunder you made is saved as a "find the better move" card. The
+  trainer itself comes in Phase 4.
+- **English / Português** (Settings → General). The whole UI, the menu bar and Claude's answers follow the
+  language. Moves stay in English notation (Nf3, O-O), like on Lichess and Chess.com.
+- **Several good moves, not just the best one** (your request):
+  - the board shows the best move as a solid arrow, and any move about as good as a lighter arrow;
+  - in the engine panel those lines get a ≈;
+  - **"Compare the best moves"** (⌘B) asks Claude to explain each good move: its idea, the plan after it,
+    its style (solid / sharp / …), and which one to pick at your level.
+
+### How it was checked
+- Tests: Rust 49 (+5 live checks run by hand), Vitest 58, Playwright 26 (13 tests × WebKit/Chromium). All pass.
+- **Real app:** the new database tables are created on start. A hidden test game was analysed by the real
+  worker (22 positions, depth 16, about 15 s), then deleted.
+- **Real Claude:** the game-review and compare prompts were sent with the app's settings, in English and in
+  Portuguese. The answers were good, named only real moves (unverified ones get marked), and the
+  Portuguese reads naturally. They're now the mock-mode examples.
+- Screenshots: `screenshots/phase-2/`, covering the games list, the review, the comparison, empty games,
+  and Portuguese settings/setup, in light and dark.
+
+### Decisions (and why)
+- **Accuracy** uses Lichess's game-accuracy formula: the average of a volatility-weighted mean and a
+  harmonic mean, per phase on the phase's positions. Ported from lila's `AccuracyPercent.scala`. A plain
+  average gave 94% to a game with two blunders; this gives about 90/81, like Lichess would.
+- **Key moments** are the 5 biggest drops in the mover's win chance, of at least 7.5 points.
+- **"Left the known opening"** uses the opening-name list. "Left your repertoire" comes with the
+  repertoire in Phase 4.
+- **Claude reviews games only when you ask**, at one request per game, cached per game and language.
+- **Portuguese** is Brazilian (pt-BR). A blunder is a "Capivarada", as on Chess.com Brasil, and the menus
+  use the macOS words (Ajustes, Arquivo, …). Tell me if you'd prefer European Portuguese.
+- **"About as good"** means at most 3 win-% points behind the best for the side to move, which is about how
+  much Stockfish's evaluation moves between depths. "Playable" means 3–8 points behind. The comparison
+  asks Stockfish for 4 lines at depth 18.
+- **Mock mode** uses 6 made-up club games (Stockfish playing itself with random mistakes) in your
+  openings. They are clearly marked as invented and exist only for screenshots and tests.
+
+### Click-through checklist (Phase 2, real app: `pnpm tauri dev`)
+- [ ] Fill in `CHESSCOM_CONTACT` in `.env.local` (or in Settings), then go to Games → Sync. Your months
+      import one by one, and the toolbar then shows "Analysing · …%".
+- [ ] Open a game, try ←/→ and the graph, click a key moment, then "Review this game with Claude".
+- [ ] Pause and resume the analysis; turn "Analyse new games automatically" off and on in Settings.
+- [ ] Analysis board: the lighter arrows for as-good moves, ≈ in the engine panel, ⌘B (Compare the best moves).
+- [ ] Settings → Language → Português, then check the menu bar, the setup screen, and a Claude answer.
+
 ## Overnight run, 26 Nov 2026: Phase 0 + Phase 1
 
 **Status:** Phase 0 and Phase 1 are done. Built and tested on this Mac, pushed to

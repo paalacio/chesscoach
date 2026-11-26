@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { playUci, START_FEN } from "./chess";
 import { buildPacket, buildPrompt, normalizeSan } from "./context-packet";
-import { infoToLine, mergeInfo } from "./engine-lines";
+import { goodLines, infoToLine, mergeInfo, pointsBehindBest, verdictOf } from "./engine-lines";
 import type { InfoLine } from "./types";
 import { checkMoveExplanation, checkPositionPlan, sanTokensIn } from "./validate";
 
@@ -49,6 +49,25 @@ describe("engine lines", () => {
     lines = mergeInfo(lines, START_FEN, { ...info(1, 99, ["g1f3"]), bound: "lower" }, 3);
     expect(lines[0].pvSan[0]).toBe("e4");
     expect(mergeInfo(lines, START_FEN, info(4, 0, ["a2a3"]), 3)).toBe(lines); // beyond MultiPV
+  });
+});
+
+describe("as-good moves", () => {
+  it("sorts the engine's lines into best / as good / playable / worse", () => {
+    // White to move: +30, +20, -20, -150 (centipawns).
+    const lines = [30, 20, -20, -150].map((cp, i) => infoToLine(START_FEN, info(i + 1, cp, [["e2e4", "d2d4", "g1f3", "f2f3"][i]])));
+    expect(verdictOf(lines, 0, "white")).toBe("best");
+    expect(verdictOf(lines, 1, "white")).toBe("asGood"); // ~0.9 points behind
+    expect(verdictOf(lines, 2, "white")).toBe("playable"); // ~4.6 points behind
+    expect(verdictOf(lines, 3, "white")).toBe("worse");
+    expect(goodLines(lines, "white").map((l) => l.pvSan[0])).toEqual(["e4", "d4"]);
+    expect(pointsBehindBest(lines, lines[2], "white")).toBeCloseTo(4.6, 0);
+  });
+
+  it("works from Black's side too", () => {
+    // Black to move: Stockfish scores are for Black, so +30 is good for Black.
+    const lines = [30, 25].map((cp, i) => infoToLine(RUY_BEFORE, info(i + 1, cp, [["f6e4", "f8e7"][i]])));
+    expect(verdictOf(lines, 1, "black")).toBe("asGood");
   });
 });
 
@@ -181,5 +200,62 @@ describe("validating Claude's answers", () => {
   it("sees promotions as legal when they are", () => {
     const fen = playUci("8/P7/8/8/8/8/8/k6K w - - 0 1", "h1g1")!.fen;
     expect(fen).toBeTruthy();
+  });
+});
+
+import { candidatesOf } from "./context-packet";
+import { checkBestMoves } from "./validate";
+
+describe("comparing the best moves", () => {
+  const RUY = "r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1 w kq - 4 6";
+  const lines = [
+    infoToLine(RUY, info(1, 27, ["f1e1", "b7b5", "a4b3"])),
+    infoToLine(RUY, info(2, 20, ["d2d3", "b7b5", "a4b3"])),
+    infoToLine(RUY, info(3, -40, ["a4c6", "d7c6", "d2d3"])), // ~6 points behind: playable
+    infoToLine(RUY, info(4, -200, ["b2b4", "c6b4"])),
+  ];
+  const history = [{ fen: RUY, san: null }];
+
+  it("offers the best, as-good and playable moves, never the clearly worse ones", () => {
+    const c = candidatesOf(RUY, lines);
+    expect(c.map((x) => [x.san, x.verdict])).toEqual([
+      ["Re1", "best"],
+      ["d3", "asGood"],
+      ["Bxc6", "playable"],
+    ]);
+    expect(c[0].line[0]).toBe("Re1");
+  });
+
+  it("adds the second line when only the best move is good, for contrast", () => {
+    const c = candidatesOf(RUY, [lines[0], lines[3]]);
+    expect(c.map((x) => x.verdict)).toEqual(["best", "worse"]);
+  });
+
+  it("builds the comparison prompt and checks the answer", () => {
+    const packet = buildPacket({ fen: RUY, lines, history });
+    const prompt = buildPrompt("bestMoves", packet);
+    expect(prompt).toContain("Compare the engine's top moves in this position for the side to move (White)");
+    expect(prompt).toContain("1. 6.Re1: the engine's best move. Engine line: 6.Re1 b5 7.Bb3");
+    expect(prompt).toMatch(/2\. 6\.d3: [\d.]+ win-% points behind the best; about as good/);
+
+    const checked = checkBestMoves(
+      {
+        summary: "Re1 and d3 both protect e4.",
+        moves: [
+          { san: "d3", idea: "Defends e4 with a pawn.", plan: "Play c3 and Nbd2.", style: "solid" },
+          { san: "Re1", idea: "Defends e4 with the rook.", plan: "Then c3 and d4.", style: "active" },
+          { san: "Qh5", idea: "Invented.", plan: "x", style: "sharp" },
+          { san: "Bxc6", idea: "Gives the bishop for the knight.", plan: "Then d3.", style: "weird" },
+        ],
+        recommendation: "Play Re1.",
+        concepts: ["center"],
+      },
+      packet.allowed,
+      packet.candidates,
+    );
+    expect(checked.data.moves.map((m) => m.san)).toEqual(["Re1", "d3", "Bxc6"]); // engine order
+    expect(checked.data.moves[0].verdict).toBe("best");
+    expect(checked.data.moves[2].style).toBeNull(); // unknown style dropped
+    expect(checked.warnings).toEqual([{ code: "candidateDropped", san: "Qh5" }]);
   });
 });

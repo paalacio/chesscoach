@@ -1,7 +1,7 @@
 // Claude's explanations, in the inspector (never in a modal).
 
 import { AlertTriangle, RotateCcw, Sparkles } from "lucide-react";
-import { moveLabel, sanToUci } from "../../core/chess";
+import { formatMoves, moveLabel, sanToUci } from "../../core/chess";
 import { classifyMove, winFor } from "../../core/winprob";
 import type { Judgement } from "../../core/types";
 import { hasKey, useT } from "../../i18n";
@@ -28,6 +28,8 @@ export function CoachPanel() {
   const parent = node.parent !== null ? tree.nodes[node.parent] : null;
   const moveExp = explanations[explanationKey("moveExplanation", current)];
   const planExp = explanations[explanationKey("positionPlan", current)];
+  const bestExp = explanations[explanationKey("bestMoves", current)];
+  const side = node.fen.split(" ")[1] === "w" ? "white" : "black";
   const busy = job && job.status !== "error" ? job : null;
   const jobHere = job?.nodeId === current ? job : null;
   const label = parent && node.san ? moveLabel(parent.fen, node.san) : null;
@@ -65,6 +67,12 @@ export function CoachPanel() {
           <Button variant={!label || moveExp ? "primary" : undefined} onClick={() => explain("positionPlan")} disabled={!!busy}>
             {t("coach.planButton")}
             <Kbd>{label ? shortcut("E", { shift: true }) : shortcut("E")}</Kbd>
+          </Button>
+        )}
+        {!bestExp && (
+          <Button onClick={() => explain("bestMoves")} disabled={!!busy}>
+            {t("coach.compareButton")}
+            <Kbd>{shortcut("B")}</Kbd>
           </Button>
         )}
       </div>
@@ -203,7 +211,49 @@ export function CoachPanel() {
         </article>
       )}
 
-      {!moveExp && !planExp && !jobHere && <p className="coach-hint secondary">{t("coach.hint")}</p>}
+      {bestExp?.kind === "bestMoves" && (
+        <article className="coach-card">
+          <header>
+            <h3>{side === "white" ? t("coach.compareForWhite") : t("coach.compareForBlack")}</h3>
+          </header>
+          <p className="coach-summary">
+            <RichText text={bestExp.result.data.summary} flagged={bestExp.result.flagged} />
+          </p>
+          <ul className="best-moves">
+            {bestExp.result.data.moves.map((m) => (
+              <li key={m.san} className={`verdict-${m.verdict}`}>
+                <div className="bm-head">
+                  <button type="button" className="badge accent" title={t("coach.playMove")} onClick={() => playSan(node.fen, m.san, playMove)}>
+                    {m.san}
+                  </button>
+                  <span className={`badge verdict ${m.verdict}`}>
+                    {t(`coach.verdict.${m.verdict}`)}
+                    {m.verdict !== "best" && ` · ${t("coach.behind", { n: Math.round(m.behind * 10) / 10 })}`}
+                  </span>
+                  {m.style && <span className="badge">{t(`style.${m.style}`)}</span>}
+                </div>
+                <p>
+                  <RichText text={m.idea} flagged={bestExp.result.flagged} />
+                </p>
+                <p className="secondary">
+                  <RichText text={m.plan} flagged={bestExp.result.flagged} />
+                </p>
+                <p className="bm-line small tabular">{formatMoves(node.fen, m.line)}</p>
+              </li>
+            ))}
+          </ul>
+          {bestExp.result.data.recommendation && (
+            <p className="recommendation">
+              <b>{t("coach.forYou")}</b> <RichText text={bestExp.result.data.recommendation} flagged={bestExp.result.flagged} />
+            </p>
+          )}
+          <Concepts tags={bestExp.result.data.concepts} />
+          <Warnings warnings={bestExp.result.warnings} flagged={bestExp.result.flagged} />
+          <CardFooter cached={bestExp.cached} model={bestExp.model} onRetry={() => explain("bestMoves", true)} disabled={!!busy} />
+        </article>
+      )}
+
+      {!moveExp && !planExp && !bestExp && !jobHere && <p className="coach-hint secondary">{t("coach.hint")}</p>}
     </section>
   );
 }

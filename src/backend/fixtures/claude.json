@@ -1,5 +1,5 @@
 {
-  "_note": "Real answers from `claude -p` (Sonnet, Nov 2026), recorded with the app's prompts. moveExplanation/positionPlan: Ruy Lopez after 5...Be7. gameReview/gameReviewPt: the third mock game (English / Brazilian Portuguese). Used by the browser mock backend.",
+  "_note": "Real answers from `claude -p` (Sonnet, Nov 2026), recorded with the app's prompts. moveExplanation/positionPlan/bestMoves(Pt): Ruy Lopez after 5...Be7. gameReview/gameReviewPt: the third mock game (English / Brazilian Portuguese). Used by the browser mock backend.",
   "moveExplanation": {
     "summary": "5...Be7 is a good, solid move. It's the main Closed Ruy Lopez move, and the engine sees the position as about equal after it.",
     "ideas": [
@@ -173,5 +173,66 @@
         "endgame-technique"
       ]
     }
+  },
+  "bestMoves": {
+    "summary": "All three moves are about equal, so this is a choice of style. 6.Re1 and 6.d3 keep the Ruy Lopez tension and lead to a slow, strategic game. 6.Bxc6 gives up the bishop pair to wreck Black's pawns, and it is a bit less ambitious.",
+    "moves": [
+      {
+        "san": "Re1",
+        "idea": "Defends the e4 pawn, which is currently attacked and undefended. It puts the rook behind the center and prepares d4 and c3 in the main Closed Ruy Lopez setup.",
+        "plan": "After ...b5, retreat with Bb3, then play a4 to hit Black's queenside. Follow with d3 and Bd2, and later c3 and a central break. Keep your pieces active and your king safe.",
+        "style": "positional"
+      },
+      {
+        "san": "d3",
+        "idea": "Defends e4 with a pawn and keeps a solid, flexible structure. It opens the c1-bishop and avoids early tension in the center.",
+        "plan": "After ...b5, play Bb3, then a4 to challenge Black's queenside. Next come c3, Bc2 and Nbd2 to bring the knight toward f1 or g3. Re1 can follow later.",
+        "style": "solid"
+      },
+      {
+        "san": "Bxc6",
+        "idea": "Trades your bishop for the knight to double Black's c-pawns. It also removes a defender of e5 and gives you a simple structural target.",
+        "plan": "After ...dxc6, play d3 and then h3 and a4 to keep things under control. Bring your knight to c3 and aim for a small, steady edge. Black has the bishop pair and an easy game, so don't expect much more than equality.",
+        "style": "simplifying"
+      }
+    ],
+    "recommendation": "I'd suggest 6.Re1. It is the engine's top move, and it solves the e4 problem in the most natural way, with a rook on a useful file. It is the main line, so it's easy to learn and repeat. 6.d3 is just as good and a little simpler if you want fewer things to remember.",
+    "concepts": [
+      "development",
+      "center",
+      "pawn-structure",
+      "piece-activity",
+      "pawn-break"
+    ]
+  },
+  "bestMovesPt": {
+    "summary": "As três jogadas são praticamente equivalentes: o jogo está equilibrado em todas. 6.Re1 e 6.d3 mantêm a tensão e levam à Ruy Lopez clássica; 6.Bxc6 simplifica e dá um jogo mais calmo e menos teórico.",
+    "moves": [
+      {
+        "san": "Re1",
+        "idea": "Defende o peão e4 com a torre e prepara d3 e c3 mantendo uma pressão sólida no centro. É o plano principal da Ruy Lopez fechada.",
+        "plan": "Após ...b5, jogue Bb3, depois a4 para atacar o flanco da dama das pretas, e d3 para apoiar o centro. Desenvolva o bispo para d2 e mantenha as peças bem coordenadas.",
+        "style": "solid"
+      },
+      {
+        "san": "d3",
+        "idea": "Protege o peão e4 com um peão e constrói um centro firme e simples, sem gastar tempo com a torre.",
+        "plan": "Depois de ...b5 e Bb3, jogue a4 e c3, e leve o bispo para c2. Mais tarde, prepare Nbd2 e Re1 com um jogo de manobras lento.",
+        "style": "positional"
+      },
+      {
+        "san": "Bxc6",
+        "idea": "Troca o bispo pelo cavalo para dobrar os peões pretos em c6 e tirar a tensão do flanco da dama. Em troca, você entrega o par de bispos.",
+        "plan": "Jogue d3, depois h3 e a4, e Nc3 para desenvolver as peças. Procure uma posição estável, sabendo que a vantagem estrutural é pequena.",
+        "style": "simplifying"
+      }
+    ],
+    "recommendation": "Eu sugiro 6.Re1, o melhor lance do motor. Ele protege e4, segue o plano padrão da abertura e é fácil de entender: desenvolver, pressionar o centro e depois jogar Bb3, a4 e d3. 6.d3 também é ótimo e igualmente simples, se você preferir um centro sólido de peões.",
+    "concepts": [
+      "development",
+      "center",
+      "pawn-structure",
+      "trade"
+    ]
   }
 }

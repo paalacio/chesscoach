@@ -3,7 +3,8 @@
 // - structured move fields (better_move, candidate_moves) are dropped if invalid;
 // - moves mentioned inside sentences are flagged so the UI can mark them.
 
-import { type AllowedMoves, normalizeSan } from "./context-packet";
+import { type AllowedMoves, type Candidate, normalizeSan } from "./context-packet";
+import type { Verdict } from "./engine-lines";
 
 export interface MoveExplanation {
   summary: string;
@@ -125,5 +126,58 @@ export function checkPositionPlan(raw: unknown, allowed: AllowedMoves): Checked<
     [data.summary, data.phase_focus, ...data.plan, ...data.opponent_ideas, ...candidates.map((c) => c.idea)],
     allowed.anywhere,
   );
+  return { data, warnings, flagged };
+}
+
+export const STYLES = ["solid", "active", "sharp", "positional", "simplifying", "attacking", "defensive"] as const;
+export type MoveStyle = (typeof STYLES)[number];
+
+export interface BestMoveEntry {
+  san: string;
+  idea: string;
+  plan: string;
+  style: MoveStyle | null;
+  /** From the engine, not from Claude. */
+  verdict: Verdict;
+  behind: number;
+  line: string[];
+}
+
+export interface BestMoves {
+  summary: string;
+  moves: BestMoveEntry[];
+  recommendation: string;
+  concepts: string[];
+}
+
+/**
+ * Checks Claude's comparison: only the candidate moves we sent are kept (in
+ * engine order), each with the engine's verdict; moves in the text are checked
+ * against the legal moves and engine lines.
+ */
+export function checkBestMoves(raw: unknown, allowed: AllowedMoves, candidates: Candidate[]): Checked<BestMoves> {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const warnings: MoveWarning[] = [];
+  const answers = new Map<string, Record<string, unknown>>();
+  for (const m of Array.isArray(r.moves) ? r.moves : []) {
+    const o = (m ?? {}) as Record<string, unknown>;
+    const san = normalizeSan(str(o.san));
+    if (candidates.some((c) => normalizeSan(c.san) === san)) answers.set(san, o);
+    else if (san) warnings.push({ code: "candidateDropped", san: str(o.san) });
+  }
+  const moves: BestMoveEntry[] = candidates
+    .filter((c) => answers.has(normalizeSan(c.san)))
+    .map((c) => {
+      const o = answers.get(normalizeSan(c.san)) as Record<string, unknown>;
+      const style = STYLES.includes(o.style as MoveStyle) ? (o.style as MoveStyle) : null;
+      return { san: c.san, idea: str(o.idea), plan: str(o.plan), style, verdict: c.verdict, behind: c.behind, line: c.line };
+    });
+  const data: BestMoves = {
+    summary: str(r.summary),
+    moves,
+    recommendation: str(r.recommendation),
+    concepts: strList(r.concepts, 8),
+  };
+  const flagged = unknownMoves([data.summary, data.recommendation, ...moves.flatMap((m) => [m.idea, m.plan])], allowed.anywhere);
   return { data, warnings, flagged };
 }

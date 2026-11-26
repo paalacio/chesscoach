@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "1-2 sentences: how the top moves compare and what kind of game each leads to"
+    },
+    "moves": {
+      "type": "array",
+      "maxItems": 4,
+      "description": "One entry per CANDIDATE MOVE in the packet, same order, SAN exactly as written there",
+      "items": {
+        "type": "object",
+        "properties": {
+          "san": { "type": "string" },
+          "idea": { "type": "string", "description": "What the move wants to do, 1-2 plain sentences" },
+          "plan": { "type": "string", "description": "What to aim for in the next few moves after it, following its engine line" },
+          "style": {
+            "type": "string",
+            "enum": ["solid", "active", "sharp", "positional", "simplifying", "attacking", "defensive"]
+          }
+        },
+        "required": ["san", "idea", "plan", "style"]
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "Which candidate suits a player rated 800-1200 best here, and why"
+    },
+    "concepts": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["summary", "moves", "recommendation", "concepts"]
+}

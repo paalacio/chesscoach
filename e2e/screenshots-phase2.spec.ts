@@ -43,6 +43,19 @@ for (const scheme of ["light", "dark"] as const) {
       });
     }
 
+    for (const lang of ["en", "pt"] as const) {
+      test(`compare best moves ${lang}`, async ({ page, browserName }) => {
+        test.skip(browserName !== "webkit", "Mac only");
+        await openApp(page, q(browserName, lang === "pt" ? "lang=pt" : ""));
+        await page.getByRole("button", { name: lang === "pt" ? "Importar PGN ou FEN" : "Import PGN or FEN" }).click();
+        await page.getByRole("textbox").fill("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 *");
+        await page.getByRole("button", { name: lang === "pt" ? "Importar" : "Import", exact: true }).click();
+        await page.getByRole("button", { name: lang === "pt" ? /Comparar os melhores lances/ : /Compare the best moves/ }).click();
+        await expect(page.locator(".best-moves li")).toHaveCount(3, { timeout: 10_000 });
+        await shot(page, `compare-${lang}`, browserName);
+      });
+    }
+
     test("games empty", async ({ page, browserName }) => {
       test.skip(browserName !== "webkit");
       await openApp(page, q(browserName, "mock=empty"));

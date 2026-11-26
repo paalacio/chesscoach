@@ -38,6 +38,10 @@ export const ACTIONS: Record<string, () => void> = {
     useApp.getState().setPage("analysis");
     useAnalysis.getState().explain();
   },
+  compare: () => {
+    useApp.getState().setPage("analysis");
+    useAnalysis.getState().explain("bestMoves");
+  },
   plan: () => {
     useApp.getState().setPage("analysis");
     useAnalysis.getState().explain("positionPlan");
@@ -75,7 +79,7 @@ export function installShortcuts(handleModified: boolean): () => void {
     if (mod) {
       if (!handleModified) return;
       const k = e.key.toLowerCase();
-      const map: Record<string, string> = { e: e.shiftKey ? "plan" : "explain", ",": "settings", n: "new-game", o: "import" };
+      const map: Record<string, string> = { e: e.shiftKey ? "plan" : "explain", b: "compare", ",": "settings", n: "new-game", o: "import" };
       if (map[k]) {
         e.preventDefault();
         runAction(map[k]);

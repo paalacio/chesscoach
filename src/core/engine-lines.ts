@@ -1,8 +1,8 @@
 // Turning raw engine `info` lines into display-ready candidate lines.
 
 import { turnOf, uciLineToSan } from "./chess";
-import type { EngineLine, InfoLine } from "./types";
-import { toWhitePov, winPercent } from "./winprob";
+import type { Color, EngineLine, InfoLine } from "./types";
+import { toWhitePov, winFor, winPercent } from "./winprob";
 
 /** How many moves of each line we convert to SAN and show. */
 export const PV_DISPLAY_MOVES = 14;
@@ -37,4 +37,35 @@ export function mergeInfo(lines: EngineLine[], fen: string, info: InfoLine, mult
 /** The deepest depth all shown lines have reached (what the UI shows as "depth"). */
 export function linesDepth(lines: EngineLine[]): number {
   return lines.length === 0 ? 0 : Math.min(...lines.map((l) => l.depth));
+}
+
+/**
+ * A move counts as "about as good" as the best one when the side to move loses
+ * at most this many win-% points by playing it instead. That's roughly how much
+ * Stockfish's own evaluation moves around between depths, so the engine can't
+ * really tell these moves apart.
+ */
+export const AS_GOOD_POINTS = 3;
+/** Up to this many points worse: still a reasonable, "playable" alternative. */
+export const PLAYABLE_POINTS = 8;
+
+export type Verdict = "best" | "asGood" | "playable" | "worse";
+
+/** How much worse (in win-% points, for the side to move) a line is than the best one. */
+export function pointsBehindBest(lines: EngineLine[], line: EngineLine, turn: Color): number {
+  if (lines.length === 0) return 0;
+  return Math.max(0, winFor(turn, lines[0].winWhite) - winFor(turn, line.winWhite));
+}
+
+export function verdictOf(lines: EngineLine[], index: number, turn: Color): Verdict {
+  if (index === 0) return "best";
+  const behind = pointsBehindBest(lines, lines[index], turn);
+  if (behind <= AS_GOOD_POINTS) return "asGood";
+  if (behind <= PLAYABLE_POINTS) return "playable";
+  return "worse";
+}
+
+/** The best line plus every line about as good as it (for the board arrows). */
+export function goodLines(lines: EngineLine[], turn: Color): EngineLine[] {
+  return lines.filter((_, i) => verdictOf(lines, i, turn) === "best" || verdictOf(lines, i, turn) === "asGood");
 }

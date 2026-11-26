@@ -5,6 +5,7 @@ import { chessgroundDests } from "chessops/compat";
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { fenOf, positionFromFen, turnOf } from "../../core/chess";
+import { goodLines } from "../../core/engine-lines";
 import { pathTo } from "../../core/game-tree";
 import { openingOfLine } from "../../core/openings";
 import { phaseOfLine } from "../../core/phase";
@@ -87,9 +88,17 @@ export function AnalysisPage() {
 
   const fresh = a.linesFen === node.fen;
   const top = fresh ? a.lines[0] : (a.evalCache[node.fen]?.[0] ?? null);
+  // Arrows: the best move, plus lighter ones for moves that are about as good.
+  const shownLines = fresh ? a.lines : (a.evalCache[node.fen] ?? []);
   const shapes: DrawShape[] =
-    a.engineOn && top && top.pvUci[0] && !a.preview
-      ? [{ orig: top.pvUci[0].slice(0, 2) as DrawShape["orig"], dest: top.pvUci[0].slice(2, 4) as DrawShape["orig"], brush: "engine" }]
+    a.engineOn && !a.preview
+      ? goodLines(shownLines, turnOf(node.fen))
+          .filter((l) => l.pvUci[0])
+          .map((l, i) => ({
+            orig: l.pvUci[0].slice(0, 2) as DrawShape["orig"],
+            dest: l.pvUci[0].slice(2, 4) as DrawShape["orig"],
+            brush: i === 0 ? "engine" : "engineAlt",
+          }))
       : [];
 
   // Escape leaves the line preview.

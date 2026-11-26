@@ -109,6 +109,7 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, language: &str) -> tauri::Result<Me
         &[
             &item(app, "explain", l.t("Explain Move or Position", "Explicar lance ou posição"), Some("CmdOrCtrl+E"))?,
             &item(app, "plan", l.t("Plan for This Position", "Plano para esta posição"), Some("CmdOrCtrl+Shift+E"))?,
+            &item(app, "compare", l.t("Compare the Best Moves", "Comparar os melhores lances"), Some("CmdOrCtrl+B"))?,
             &sep()?,
             &item(app, "toggle-engine", l.t("Engine On/Off (Space)", "Ligar/desligar motor (Espaço)"), None)?,
             &sep()?,

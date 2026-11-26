@@ -25,7 +25,7 @@ export interface BoardProps {
   reduceMotion: boolean;
 }
 
-/** Brushes for arrows/circles: mine are green / red / yellow, the engine's is the accent color. */
+/** Brushes for arrows/circles: mine are green / red / yellow, the engine's are the accent color. */
 function brushes(accent: string) {
   return {
     green: { key: "g", color: "#2f9e44", opacity: 1, lineWidth: 10 },
@@ -34,6 +34,8 @@ function brushes(accent: string) {
     blue: { key: "b", color: "#e8a400", opacity: 1, lineWidth: 10 },
     yellow: { key: "y", color: "#e8a400", opacity: 1, lineWidth: 10 },
     engine: { key: "e", color: accent, opacity: 0.85, lineWidth: 11 },
+    // Moves about as good as the best one: same color, lighter and thinner.
+    engineAlt: { key: "a", color: accent, opacity: 0.4, lineWidth: 8 },
   };
 }
 

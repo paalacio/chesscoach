@@ -4,13 +4,14 @@
 // moves that appear here.
 
 import { formatMoves, legalSans, moveLabel, moveNumberOf, turnOf } from "./chess";
+import { pointsBehindBest, type Verdict, verdictOf } from "./engine-lines";
 import { factsToText, positionFacts } from "./facts";
 import { openingOfLine } from "./openings";
 import { phaseOfLine } from "./phase";
 import type { Color, EngineLine, Phase } from "./types";
 import { classifyMove, describeWin, winFor } from "./winprob";
 
-export type RequestKind = "hello" | "moveExplanation" | "positionPlan" | "gameReview";
+export type RequestKind = "hello" | "moveExplanation" | "positionPlan" | "gameReview" | "bestMoves";
 
 export const RATING_BAND = "800-1200 (Chess.com rapid)";
 
@@ -46,10 +47,36 @@ export interface AllowedMoves {
   anywhere: Set<string>;
 }
 
+/** One of the engine's top moves, as offered to Claude for comparison. */
+export interface Candidate {
+  san: string;
+  verdict: Verdict;
+  /** Win-% points behind the best move, for the side to move. */
+  behind: number;
+  /** The engine's line starting with this move, in SAN. */
+  line: string[];
+}
+
 export interface Packet {
   text: string;
   allowed: AllowedMoves;
   phase: Phase;
+  /** The good moves (best, as good, playable; at most 4), for the "compare" request. */
+  candidates: Candidate[];
+}
+
+/**
+ * The moves worth comparing: the best one and every line that is as good or
+ * still playable (at most 4). If only the best qualifies, the next line is added
+ * so Claude can say why the best move is clearly better.
+ */
+export function candidatesOf(fen: string, lines: EngineLine[]): Candidate[] {
+  const turn = turnOf(fen);
+  const all = lines
+    .filter((l) => l.pvSan.length > 0)
+    .map((l, i) => ({ san: l.pvSan[0], verdict: verdictOf(lines, i, turn), behind: Math.round(pointsBehindBest(lines, l, turn) * 10) / 10, line: l.pvSan.slice(0, 8) }));
+  const good = all.filter((c) => c.verdict !== "worse").slice(0, 4);
+  return good.length < 2 && all.length >= 2 ? all.slice(0, 2) : good;
 }
 
 /** Removes check/mate marks and annotations so "Nf3+" and "Nf3!" compare equal to "Nf3". */
@@ -159,7 +186,25 @@ export function buildPacket(input: PacketInput): Packet {
   out.push("");
   out.push(`PLAYER: rated about ${RATING_BAND}`);
 
-  return { text: out.join("\n"), allowed, phase };
+  const candidates = candidatesOf(fen, lines);
+  return { text: out.join("\n"), allowed, phase, candidates };
+}
+
+const VERDICT_TEXT: Record<Verdict, string> = {
+  best: "the engine's best move",
+  asGood: "about as good as the best (the engine can't really tell them apart)",
+  playable: "a reasonable alternative, a little worse",
+  worse: "clearly worse",
+};
+
+/** The CANDIDATE MOVES section for the "compare" request. */
+export function candidatesText(fen: string, candidates: Candidate[]): string {
+  return candidates
+    .map((c, i) => {
+      const behind = c.verdict === "best" ? "" : ` ${c.behind} win-% points behind the best;`;
+      return `${i + 1}. ${moveLabel(fen, c.san)}:${behind} ${VERDICT_TEXT[c.verdict]}. Engine line: ${formatMoves(fen, c.line)}`;
+    })
+    .join("\n");
 }
 
 /** The line telling Claude which language to write in (moves stay in English SAN). */
@@ -171,6 +216,23 @@ export function languageInstruction(language: "en" | "pt"): string {
 
 /** The full user message for a request kind. */
 export function buildPrompt(kind: RequestKind, packet: Packet, move?: MoveContext | null, language: "en" | "pt" = "en"): string {
+  const side = turnOf(packet.text.match(/^FEN: (.+)$/m)?.[1] ?? "") === "white" ? "White" : "Black";
+  const fen = packet.text.match(/^FEN: (.+)$/m)?.[1] ?? "";
+  if (kind === "bestMoves") {
+    return [
+      `Compare the engine's top moves in this position for the side to move (${side}), for a player rated about ${RATING_BAND}.`,
+      "summary: 1-2 sentences on how these moves compare: are they really equal, and what kind of game does each lead to?",
+      "moves: one entry per CANDIDATE MOVE below, in the same order, with the SAN exactly as written (without the move number). idea: what the move wants to do, in plain words. plan: what to aim for in the next few moves after it, following its engine line. style: one of solid, active, sharp, positional, simplifying, attacking, defensive.",
+      "recommendation: which candidate you'd suggest to this player here, and why (for example: easier to play, fits the typical plans of this opening).",
+      "Only mention moves that appear in this packet. Use the game phase to choose what to focus on.",
+      languageInstruction(language),
+      "",
+      "CANDIDATE MOVES (verdicts computed by code from the engine's evaluation; trust them)",
+      candidatesText(fen, packet.candidates),
+      "",
+      packet.text,
+    ].join("\n");
+  }
   const header =
     kind === "moveExplanation" && move
       ? [

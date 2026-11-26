@@ -78,3 +78,16 @@ test("bad PGN shows a clear error", async ({ page }) => {
   await importPgn(page, "1. e4 e5 2. Ke3");
   await expect(page.getByRole("alert")).toContainText("Illegal move");
 });
+
+test("good alternatives get arrows and Claude can compare the best moves", async ({ page }) => {
+  await openApp(page);
+  await importPgn(page, RUY_PGN);
+  await expect(page.locator(".engine-line")).toHaveCount(3);
+  // In this position (after 5...Be7) Stockfish rates 6.Re1, 6.d3 and 6.Bxc6 about the same.
+  await expect(page.locator(".as-good")).toHaveCount(2);
+  await page.getByRole("button", { name: /Compare the best moves/ }).click();
+  const card = page.locator(".coach-card").filter({ hasText: "Best moves for White" });
+  await expect(card.locator(".best-moves li")).toHaveCount(3, { timeout: 10_000 });
+  await expect(card.locator(".badge.verdict.best")).toHaveText("Best");
+  await expect(card.locator(".recommendation")).toContainText("Re1");
+});

@@ -25,7 +25,8 @@ Rust from Homebrew's `rustup` is keg-only. If `cargo` isn't found, run:
 | Screenshots, light + dark, Mac + Windows look | `pnpm screenshots` → `screenshots/phase-1/` (gitignored) |
 | Live checks vs real Stockfish/Claude/Chess.com (manual, uses 1-2 Claude requests) | `cargo test --manifest-path src-tauri/Cargo.toml --test live -- --ignored --nocapture` |
 | Release build (Mac) | `pnpm tauri build` |
-| Regenerate data | `pnpm openings` (opening names), `node scripts/fetch-pieces.mjs`, `node scripts/record-engine-fixture.mjs`, `node scripts/make-icon.mjs` |
+| Regenerate data | `pnpm openings` (opening names), `node scripts/fetch-pieces.mjs`, `node scripts/record-engine-fixture.mjs`, `node scripts/make-mock-games.mjs` (made-up games + real engine analysis for mock mode), `node scripts/make-icon.mjs` |
+| Phase 2 screenshots | `SCREENSHOT_PHASE=phase-2 pnpm exec playwright test e2e/screenshots-phase2.spec.ts` |
 
 CI: `.github/workflows/build.yml` runs all tests on macOS, then builds macOS (Apple Silicon) and Windows
 installers with `tauri-apps/tauri-action@v1` and uploads them as workflow artifacts.
@@ -42,20 +43,29 @@ src/                      React + TS frontend
     facts.ts              material, castling, attacked-and-undefended pieces, passed pawns, open files
     phase.ts              opening/middlegame/endgame, ported from Lichess's Divider (scalachess, MIT)
     openings.ts           names from src/data/openings.json (CC0 lichess-org/chess-openings, keyed by EPD)
-    context-packet.ts     what Claude receives + prompt text; the allowed-move sets
+    context-packet.ts     what Claude receives + prompt text; the allowed-move sets; candidates for "compare"
     validate.ts           checks every move Claude names (drops invalid structured moves, flags prose)
+    review.ts             game review from the worker's evals: judgements, Lichess game accuracy (per phase),
+                          key moments, where the game left the opening, training cards, list summary
+    game-review-packet.ts the one-call-per-game Claude review (summary, 3 lessons, key-moment comments) + check
   backend/                One `Backend` interface: tauri.ts (real, invoke/listen) and mock.ts (fixtures)
     fixtures/             Real recorded Stockfish lines and Claude answers for mock mode
-  store/                  Zustand stores: app (pages, settings, sheets), analysis (tree, engine, Claude)
+  store/                  Zustand stores: app (pages, settings, sheets), analysis (tree, engine, Claude),
+                          games (list, sync, background-analysis status, open game review)
+  i18n/                   en.ts / pt.ts (Brazilian Portuguese) dictionaries, useT() / tNow(); pt.ts is typed
+                          with en's keys, so a missing translation fails the typecheck
   ui/                     Thin React components; styles in src/styles (tokens.css = design tokens)
 src-tauri/                Rust: everything touching processes, network, disk, secrets
   src/engine/             Stockfish UCI manager (+ uci.rs parser and SearchTracker for stale output)
   src/claude/             ClaudeService trait + CliClaude (`claude -p`), output parsing, binary lookup
-  src/chesscom.rs         Chess.com Published-Data API (User-Agent built from Settings)
+  src/chesscom.rs         Chess.com Published-Data API: archives, monthly games (ETag), User-Agent from Settings
+  src/pgn.rs              shakmaty + pgn-reader: positions, SAN/UCI moves and %clk times of a PGN
+  src/games.rs            games/sync/training-card storage; incremental sync (new months + 2 most recent)
+  src/review.rs           background analysis worker: own Stockfish, newest pending game first, pausable
   src/db.rs               SQLite + migrations (append-only!), Claude answer cache, calls-today log
   src/settings.rs         settings.json in the app config dir; dev builds fill blanks from .env.local
   src/commands.rs         Tauri commands called by src/backend/tauri.ts
-  src/menu.rs             native menu bar; item ids are handled in src/ui/actions.ts
+  src/menu.rs             native menu bar (en/pt, rebuilt on language change); ids handled in src/ui/actions.ts
   prompts/                coach system prompt + JSON schemas (embedded with include_str!)
 e2e/                      Playwright tests against mock mode
 ```
@@ -64,6 +74,11 @@ Data flow for "Explain": `store/analysis.ts explain()` → fixed-depth engine ev
 one before, for a move) → `buildPacket` + `buildPrompt` → `claude_ask` command (SQLite cache keyed by
 sha256(kind, FEN, move, model, PROMPT_VERSION)) → `claude -p --json-schema ... --safe-mode --tools ""`
 → `structured_output` → `checkMoveExplanation` / `checkPositionPlan` → coach panel.
+
+Game review flow: `games_sync` imports games → the worker (`review.rs`) stores one evaluation per position
+in `games.analysis_json` → on `review:event gameDone` the frontend runs `core/review.ts`, saves a summary for
+the list and training cards (`game_save_review`) → the Review page shows it; "Review with Claude" sends
+`buildGameReviewPrompt` (cache key fen = `game:<url>`).
 
 ## Conventions
 
@@ -79,4 +94,8 @@ sha256(kind, FEN, move, model, PROMPT_VERSION)) → `claude -p --json-schema ...
 - When spawning `claude`, the env vars of any parent Claude Code session (`CLAUDE_CODE_*`,
   `ANTHROPIC_*`) are removed so the CLI uses the user's own subscription login. Never use `--bare`.
 - Platform styling: `<html data-platform="mac|windows" data-vibrancy="on|off">`, values in `tokens.css`.
+- All UI text goes through `useT()` / `tNow()` with keys in `src/i18n/en.ts` + `pt.ts` (no hard-coded
+  strings). Rust sends kinds/params (errors, setup checks) and the UI translates them. Claude answers in
+  the app language (`languageInstruction`), moves stay in English SAN, concept tags stay English keys.
+- "About as good" moves: within `AS_GOOD_POINTS` (3) win-% points of the best (`core/engine-lines.ts`).
 - Commits: one or a few per phase; git identity for this repo is local (see PROGRESS.md).

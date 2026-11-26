@@ -452,6 +452,17 @@ function pick(r: AskRequest): unknown {
   const fx = claudeFixtures as Record<string, unknown>;
   if (r.kind === "hello") return fx.hello;
   if (r.kind === "gameReview") return gameReviewFixture(r);
+  if (r.kind === "bestMoves") {
+    if (epdOf(r.fen) === epdOf(RUY_AFTER)) return r.prompt.includes("Brazilian Portuguese") ? fx.bestMovesPt : fx.bestMoves;
+    // Generic: one entry per candidate listed in the prompt ("1. 6.Re1: ...").
+    const sans = [...r.prompt.matchAll(/^\d+\. \d+\.(?:\.\.)?([^:]+):/gm)].map((m) => m[1]);
+    return {
+      summary: "Sample comparison from the mock backend. In the real app, Claude explains how the engine's top moves differ.",
+      moves: sans.map((san) => ({ san, idea: "What this move wants to do.", plan: "The plan that follows from the engine line.", style: "solid" })),
+      recommendation: "The real answer recommends one of these moves for your level.",
+      concepts: ["development"],
+    };
+  }
   if (r.kind === "moveExplanation" && r.fen === RUY_BEFORE && r.movePlayed === "f8e7") return fx.moveExplanation;
   if (r.kind === "positionPlan" && epdOf(r.fen) === epdOf(RUY_AFTER)) return fx.positionPlan;
   // Generic answer: no move names except the engine's own first moves.

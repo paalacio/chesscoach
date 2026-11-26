@@ -217,12 +217,20 @@
 }
 .engine-line .score {
   flex: none;
-  width: 46px;
+  width: 56px;
   font-weight: 600;
   font-size: var(--fs-medium);
 }
 .engine-line .score.neg {
   color: var(--text-2);
+}
+.engine-line .score {
+  position: relative;
+}
+.as-good {
+  margin-left: 3px;
+  font-weight: 700;
+  color: var(--accent);
 }
 .engine-line .pv {
   flex: 1;
@@ -598,4 +606,59 @@
   font-size: var(--fs-medium);
   animation: fade-in var(--dur) var(--ease);
   z-index: 80;
+}
+
+/* "Compare the best moves" card */
+.best-moves {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.best-moves li {
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--text-3);
+}
+.best-moves li.verdict-best {
+  border-left-color: var(--accent);
+}
+.best-moves li.verdict-asGood {
+  border-left-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.best-moves p {
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.bm-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bm-head .badge.accent {
+  border: 0;
+  cursor: pointer;
+  font-weight: 650;
+}
+.badge.verdict.best {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.badge.verdict.asGood {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bm-line {
+  color: var(--text-3);
+}
+.recommendation {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  line-height: 1.45;
 }

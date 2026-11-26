@@ -36,6 +36,8 @@ pub enum RequestKind {
     PositionPlan,
     /// A whole game: summary, 3 lessons, key moments (one call per game).
     GameReview,
+    /// The engine's best move and the other good moves, compared.
+    BestMoves,
 }
 
 impl RequestKind {
@@ -45,6 +47,7 @@ impl RequestKind {
             RequestKind::MoveExplanation => "moveExplanation",
             RequestKind::PositionPlan => "positionPlan",
             RequestKind::GameReview => "gameReview",
+            RequestKind::BestMoves => "bestMoves",
         }
     }
 
@@ -54,6 +57,7 @@ impl RequestKind {
             RequestKind::MoveExplanation => include_str!("../../prompts/schemas/move_explanation.json"),
             RequestKind::PositionPlan => include_str!("../../prompts/schemas/position_plan.json"),
             RequestKind::GameReview => include_str!("../../prompts/schemas/game_review.json"),
+            RequestKind::BestMoves => include_str!("../../prompts/schemas/best_moves.json"),
         }
     }
 }
@@ -276,7 +280,7 @@ mod tests {
 
     #[test]
     fn every_schema_is_valid_json_with_required_fields() {
-        for kind in [RequestKind::Hello, RequestKind::MoveExplanation, RequestKind::PositionPlan, RequestKind::GameReview] {
+        for kind in [RequestKind::Hello, RequestKind::MoveExplanation, RequestKind::PositionPlan, RequestKind::GameReview, RequestKind::BestMoves] {
             let v: Value = serde_json::from_str(kind.schema()).expect(kind.as_str());
             assert_eq!(v["type"], "object");
             assert!(v["required"].as_array().is_some_and(|r| !r.is_empty()));

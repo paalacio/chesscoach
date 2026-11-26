@@ -8,13 +8,15 @@
 import { create } from "zustand";
 import { backend, type BackendError, toBackendError } from "../backend";
 import { currentLang } from "../i18n";
-import { moveLabel, playUci, START_FEN, turnOf } from "../core/chess";
+import { legalSans, moveLabel, playUci, START_FEN, turnOf } from "../core/chess";
 import { buildPacket, buildPrompt, type MoveContext, type RequestKind } from "../core/context-packet";
 import { linesDepth, mergeInfo } from "../core/engine-lines";
 import * as T from "../core/game-tree";
 import type { Color, EngineEvent, EngineLine } from "../core/types";
 import {
+  type BestMoves,
   type Checked,
+  checkBestMoves,
   checkMoveExplanation,
   checkPositionPlan,
   type MoveExplanation,
@@ -23,10 +25,13 @@ import {
 
 /** Depth of the one-off search used before explaining. */
 export const EXPLAIN_DEPTH = 18;
+/** Lines Stockfish looks at when comparing the best moves. */
+export const COMPARE_LINES = 4;
 
 export type Explanation =
   | { kind: "moveExplanation"; result: Checked<MoveExplanation>; cached: boolean; model: string; label: string }
-  | { kind: "positionPlan"; result: Checked<PositionPlan>; cached: boolean; model: string; label: string };
+  | { kind: "positionPlan"; result: Checked<PositionPlan>; cached: boolean; model: string; label: string }
+  | { kind: "bestMoves"; result: Checked<BestMoves>; cached: boolean; model: string; label: string };
 
 export interface ExplainJob {
   key: string;
@@ -84,7 +89,7 @@ let nextAnalysisId = 1;
 let liveId = 0;
 let liveTimer: ReturnType<typeof setTimeout> | null = null;
 /** One-off searches waiting for their `bestMove`: id -> collected lines + resolver. */
-const oneShots = new Map<number, { fen: string; lines: EngineLine[]; done: (lines: EngineLine[]) => void }>();
+const oneShots = new Map<number, { fen: string; lines: EngineLine[]; multipv: number; done: (lines: EngineLine[]) => void }>();
 /** Info events are buffered and applied once per animation frame (they can arrive very fast). */
 let pending: Extract<EngineEvent, { type: "info" }>[] = [];
 let frame: number | null = null;
@@ -108,10 +113,14 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
     }, 90);
   }
 
-  /** A fixed-depth search; resolves with its final lines. Uses the cache if deep enough. */
-  function evaluate(fen: string, depth: number): Promise<EngineLine[]> {
+  /**
+   * A fixed-depth search; resolves with its final lines. Uses the cache if it's
+   * deep enough and has enough lines (`minLines`, capped by the legal moves).
+   */
+  function evaluate(fen: string, depth: number, minLines = get().multipv): Promise<EngineLine[]> {
     const cached = get().evalCache[fen];
-    if (cached && cached.length > 0 && linesDepth(cached) >= depth) return Promise.resolve(cached);
+    const wanted = Math.min(minLines, legalSans(fen).length);
+    if (cached && cached.length >= wanted && linesDepth(cached) >= depth) return Promise.resolve(cached);
     const id = nextAnalysisId++;
     liveId = 0; // live output is no longer wanted
     return new Promise((resolve, reject) => {
@@ -121,8 +130,8 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
         oneShots.delete(id);
         resolve(lines);
       }
-      oneShots.set(id, { fen, lines: [], done: finish });
-      backend.engineAnalyze({ analysisId: id, fen, multipv: get().multipv, depth }).catch((e) => {
+      oneShots.set(id, { fen, lines: [], multipv: Math.max(minLines, get().multipv), done: finish });
+      backend.engineAnalyze({ analysisId: id, fen, multipv: Math.max(minLines, get().multipv), depth }).catch((e) => {
         clearTimeout(timeout);
         oneShots.delete(id);
         reject(toBackendError(e));
@@ -148,7 +157,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
     for (const ev of events) {
       const shot = oneShots.get(ev.analysisId);
       if (shot) {
-        shot.lines = mergeInfo(shot.lines, ev.fen, ev.info, s.multipv);
+        shot.lines = mergeInfo(shot.lines, ev.fen, ev.info, shot.multipv);
       } else if (ev.analysisId === liveId && ev.fen === s.linesFen) {
         lines = mergeInfo(lines, ev.fen, ev.info, s.multipv);
         changed = true;
@@ -283,7 +292,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
       set({ job: { key, kind, nodeId: n.id, status: "evaluating" } });
       try {
         // 1. Make sure we have deep-enough engine lines (before and after the move).
-        const lines = await evaluate(n.fen, EXPLAIN_DEPTH);
+        const lines = await evaluate(n.fen, EXPLAIN_DEPTH, kind === "bestMoves" ? COMPARE_LINES : get().multipv);
         let move: MoveContext | null = null;
         if (kind === "moveExplanation") {
           const parent = s.tree.nodes[n.parent as string];
@@ -307,10 +316,13 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
           force,
         });
         const label = move ? moveLabel(move.fenBefore, move.san) : "this position";
+        const common = { cached: reply.cached, model: reply.model, label };
         const explanation: Explanation =
           kind === "moveExplanation"
-            ? { kind, result: checkMoveExplanation(reply.data, packet.allowed), cached: reply.cached, model: reply.model, label }
-            : { kind: "positionPlan", result: checkPositionPlan(reply.data, packet.allowed), cached: reply.cached, model: reply.model, label };
+            ? { kind, result: checkMoveExplanation(reply.data, packet.allowed), ...common }
+            : kind === "bestMoves"
+              ? { kind, result: checkBestMoves(reply.data, packet.allowed, packet.candidates), ...common }
+              : { kind: "positionPlan", result: checkPositionPlan(reply.data, packet.allowed), ...common };
         set((st) => ({ explanations: { ...st.explanations, [key]: explanation }, job: null, callsToday: reply.callsToday }));
       } catch (e) {
         const error = toBackendError(e);
