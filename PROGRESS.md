@@ -2,7 +2,8 @@
 
 ## Phase 2 (26 Nov 2026): Chess.com import, game review, phases + language switch + "compare the best moves"
 
-**Status:** built and tested on this Mac, committed and pushed (CI runs on push). **The real Chess.com
+**Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45826689352)). **The real Chess.com
 sync hasn't been tried yet**, because `CHESSCOM_CONTACT` in `.env.local` is still empty. Everything else was
 also checked against the real Stockfish and Claude.
 
