@@ -134,3 +134,27 @@ async fn live_chesscom_archive_list() {
     println!("{} monthly archives, latest {:?}", archives.len(), archives.last());
     assert!(!archives.is_empty());
 }
+
+#[test]
+#[ignore]
+fn live_batch_analysis_of_a_game() {
+    use chesscoach_lib::review::{BlockingEngine, terminal_eval};
+    let pgn = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/chesscom/game.pgn")).unwrap();
+    let game = chesscoach_lib::pgn::parse_game(&pgn).unwrap();
+    let mut eng = BlockingEngine::start(&engine_path(), 2, 64).unwrap();
+    eng.new_game().unwrap();
+    let started = std::time::Instant::now();
+    let mut evals = Vec::new();
+    for fen in std::iter::once(&game.start_fen).chain(game.moves.iter().map(|m| &m.fen_after)) {
+        evals.push(terminal_eval(fen).map(Ok).unwrap_or_else(|| eng.evaluate(fen, 12, 400)).unwrap());
+    }
+    println!("{} positions in {:?}", evals.len(), started.elapsed());
+    assert_eq!(evals.len(), game.moves.len() + 1);
+    assert!(evals.iter().all(|e| e.score.is_some() && e.best.is_some()));
+    // After 9...Nxe4 10.Rxe4 d5 11.Rxe5 White is a piece up: clearly better for White.
+    println!("final score: {:?}", evals.last().unwrap().score);
+    match evals.last().unwrap().score.unwrap() {
+        chesscoach_lib::engine::uci::Score::Cp(cp) => assert!(cp > 150, "{cp}"),
+        chesscoach_lib::engine::uci::Score::Mate(m) => assert!(m > 0),
+    }
+}

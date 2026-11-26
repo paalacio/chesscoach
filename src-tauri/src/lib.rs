@@ -9,6 +9,7 @@ pub mod db;
 pub mod engine;
 pub mod games;
 pub mod pgn;
+pub mod review;
 pub mod settings;
 
 use std::path::PathBuf;
@@ -25,6 +26,8 @@ pub struct AppState {
     pub engine: engine::EngineManager,
     pub claude: claude::CliClaude,
     pub http: reqwest::Client,
+    /// Background game analysis (its own engine process).
+    pub review: review::ReviewWorker,
 }
 
 fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> {
@@ -40,10 +43,13 @@ fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> 
         settings::apply_dev_env(&mut settings, &env_text);
     }
 
+    let review_paused = !settings.auto_analyze;
     let claude = claude::CliClaude::new(&data_dir)?;
     claude.set_custom_path(Some(settings.claude_path.clone()));
 
     let db = db::open(&data_dir.join("chesscoach.sqlite"))?;
+    // Games that were being analysed when the app last quit go back in the queue.
+    games::reset_interrupted(&db)?;
     let http = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
         .build()?;
@@ -55,6 +61,7 @@ fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> 
         settings: Mutex::new(settings),
         db: Mutex::new(db),
         engine: engine::EngineManager::new(),
+        review: review::ReviewWorker::new(review_paused),
         claude,
         http,
     })
@@ -67,7 +74,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let state = init_state(app)?;
+            let review = state.review.clone();
             app.manage(state);
+            review.spawn(app.handle().clone());
             app.set_menu(menu::build(app.handle())?)?;
             Ok(())
         })
@@ -84,6 +93,14 @@ pub fn run() {
             commands::claude_calls_today,
             commands::chesscom_archives,
             commands::setup_checks,
+            commands::games_sync,
+            commands::games_list,
+            commands::game_get,
+            commands::game_save_review,
+            commands::review_status,
+            commands::review_set_paused,
+            commands::review_prioritize,
+            commands::review_reanalyze,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the ChessCoach app");
@@ -93,6 +110,7 @@ pub fn run() {
         if let tauri::RunEvent::Exit = event {
             if let Some(state) = handle.try_state::<AppState>() {
                 state.engine.shutdown();
+                state.review.shutdown();
             }
         }
     });

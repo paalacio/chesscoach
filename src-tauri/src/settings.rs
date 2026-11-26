@@ -24,6 +24,14 @@ pub struct Settings {
     pub piece_set: String,
     pub show_coordinates: bool,
     pub setup_complete: bool,
+    /// Game review: analyse each position to this depth...
+    pub review_depth: u32,
+    /// ...or for at most this long (ms), whichever comes first.
+    pub review_movetime_ms: u32,
+    /// None = about half the CPU cores.
+    pub review_threads: Option<u32>,
+    /// Analyse imported games in the background automatically.
+    pub auto_analyze: bool,
 }
 
 impl Default for Settings {
@@ -41,6 +49,10 @@ impl Default for Settings {
             piece_set: "cburnett".into(),
             show_coordinates: true,
             setup_complete: false,
+            review_depth: 16,
+            review_movetime_ms: 1500,
+            review_threads: None,
+            auto_analyze: true,
         }
     }
 }

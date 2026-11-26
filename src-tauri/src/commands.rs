@@ -7,6 +7,8 @@ use crate::AppState;
 use crate::chesscom::{self, Archive, ChessComError};
 use crate::claude::{self, ClaudeError, ClaudeService, RequestKind, StructuredRequest};
 use crate::db;
+use crate::games::{self, GameDetail, GameSummary, SyncReport, TrainingCard};
+use crate::review::WorkerStatus;
 use crate::engine::{self, AnalyzeOptions, EngineEvent, EngineStatus};
 use crate::settings::{self, Settings};
 use serde::{Deserialize, Serialize};
@@ -386,4 +388,76 @@ pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
     });
 
     Ok(checks)
+}
+
+// ---------- games & review ----------
+
+/// Downloads new games from Chess.com. Sends `sync:progress` events per month.
+#[tauri::command]
+pub async fn games_sync(app: AppHandle) -> CmdResult<SyncReport> {
+    let state = app.state::<AppState>();
+    let s = state.settings.lock().unwrap().clone();
+    let ua = chesscom::user_agent(&state.app_version, &s.chesscom_username, &s.contact_email)?;
+    let handle = app.clone();
+    let report = games::sync(&state.db, &state.http, chesscom::API_BASE, &ua, &s.chesscom_username, move |p| {
+        let _ = handle.emit("sync:progress", p);
+    })
+    .await?;
+    if report.new_games > 0 {
+        state.review.wake(); // new games to analyse
+    }
+    Ok(report)
+}
+
+#[tauri::command]
+pub async fn games_list(state: State<'_, AppState>) -> CmdResult<Vec<GameSummary>> {
+    let user = state.settings.lock().unwrap().chesscom_username.clone();
+    Ok(games::list_games(&state.db.lock().unwrap(), &user)?)
+}
+
+#[tauri::command]
+pub async fn game_get(state: State<'_, AppState>, id: i64) -> CmdResult<GameDetail> {
+    games::get_game(&state.db.lock().unwrap(), id)?.ok_or_else(|| CmdError::new("notFound", "That game isn't in the database."))
+}
+
+/// Stores what the frontend computed from the analysis: a small summary for the
+/// games list, and training cards for the user's mistakes and blunders.
+#[tauri::command]
+pub async fn game_save_review(
+    state: State<'_, AppState>,
+    id: i64,
+    summary: Value,
+    cards: Vec<TrainingCard>,
+) -> CmdResult<usize> {
+    let conn = state.db.lock().unwrap();
+    games::set_review_summary(&conn, id, &summary)?;
+    Ok(games::save_cards(&conn, id, &cards)?)
+}
+
+#[tauri::command]
+pub async fn review_status(state: State<'_, AppState>) -> CmdResult<WorkerStatus> {
+    let mut st = state.review.status();
+    st.pending = games::count_pending(&state.db.lock().unwrap())?;
+    Ok(st)
+}
+
+#[tauri::command]
+pub async fn review_set_paused(state: State<'_, AppState>, paused: bool) -> CmdResult<()> {
+    state.review.set_paused(paused);
+    Ok(())
+}
+
+/// Analyse this game next.
+#[tauri::command]
+pub async fn review_prioritize(state: State<'_, AppState>, id: i64) -> CmdResult<()> {
+    state.review.prioritize(id);
+    Ok(())
+}
+
+/// Throw away a game's analysis and analyse it again next.
+#[tauri::command]
+pub async fn review_reanalyze(state: State<'_, AppState>, id: i64) -> CmdResult<()> {
+    games::requeue(&state.db.lock().unwrap(), id)?;
+    state.review.prioritize(id);
+    Ok(())
 }
