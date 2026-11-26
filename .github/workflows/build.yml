@@ -6,7 +6,9 @@ name: Build
 on:
   push:
     branches: [main]
+    paths-ignore: ["**.md"] # notes-only changes don't need a 25-minute build
   pull_request:
+    paths-ignore: ["**.md"]
   workflow_dispatch:
 
 concurrency:

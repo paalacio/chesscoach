@@ -2,8 +2,12 @@
 
 ## Overnight run, 26 Nov 2026: Phase 0 + Phase 1
 
-**Status:** Phase 0 and Phase 1 are built and tested on this Mac and pushed to GitHub, which starts the
-first CI build (macOS + Windows).
+**Status:** Phase 0 and Phase 1 are done. Built and tested on this Mac, pushed to
+https://github.com/paalacio/chesscoach, and **CI is green** (tests + macOS + Windows builds,
+[run](https://github.com/paalacio/chesscoach/actions/runs/45818183525)). Installers are on the run page
+under Artifacts: `ChessCoach-windows-x64-nsis` (setup .exe for your friend), `-msi`, and the macOS
+`.app` / `.dmg`. The first Windows build failed while unzipping Stockfish (a PowerShell module
+clash); fixed by using Windows' own `tar.exe`.
 
 ### What works (checked)
 
@@ -89,7 +93,7 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
 
 ### Not done yet / known gaps
 
-- Windows has only been tested through CI builds, not by running the app. On Windows these need a look: Mica sidebar,
+- Windows builds in CI, but nobody has run the app on Windows yet. On Windows these need a look: Mica sidebar,
   Segoe UI, Ctrl shortcuts, and finding `claude.exe` at `%USERPROFILE%\.local\bin`.
 - Follow-up chat ("ask Claude about this position", streaming) isn't built yet. The plan was to leave it
   out of Phase 1 unless you want it.
