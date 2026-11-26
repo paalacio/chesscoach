@@ -2,7 +2,8 @@
 
 ## Phase 5 (26 Nov 2026): insights, polish, release
 
-**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **The release isn't
+**Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45905648228)). **The release isn't
 made yet:** it needs your go-ahead (see "Release" below). Not tried in the real window: the Liquid Glass
 setting.
 
