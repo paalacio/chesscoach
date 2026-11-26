@@ -120,6 +120,10 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
     liveTimer = setTimeout(() => {
       const s = get();
       if (!s.engineOn || s.job?.status === "evaluating") return;
+      // A one-off search (Explain, explorer evals, repertoire build) is running: starting live
+      // analysis now would stop it before it reports. Each one-off search asks for live
+      // analysis again when it's done.
+      if (oneShots.size > 0) return;
       const fen = s.tree.nodes[s.current].fen;
       liveId = nextAnalysisId++;
       set({ linesFen: fen, lines: s.evalCache[fen] ?? [] });
@@ -368,6 +372,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
         requestAnalysis();
         return lines;
       } catch {
+        requestAnalysis();
         return get().evalCache[fen] ?? [];
       }
     },

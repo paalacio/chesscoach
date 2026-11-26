@@ -2,8 +2,11 @@
 
 ## Phase 4 addition (26 Nov 2026): course / book / study import, and the new name
 
-**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. Not tried with the
-real Claude yet: an Explain on a position that a course comments.
+**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Checked with the
+real Claude:** a move explanation of 5...Be7 (Ruy Lopez, real Stockfish lines) with a course comment in the
+packet. Claude built on the author's idea ("the course's quiet main line", deciding later between ...b5,
+...d6 and ...d5), said plainly that Stockfish slightly prefers 5...Nxe4, and named only moves that pass the
+app's check.
 
 - **The app is now called "Tung Tung Chessahur"**: window, menus, About, Setup, messages, exported
   file names and installers. The internal ID (`app.chesscoach.desktop`) is unchanged, so your data folder
