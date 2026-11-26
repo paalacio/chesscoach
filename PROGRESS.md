@@ -2,7 +2,9 @@
 
 ## Phase 4 addition (26 Nov 2026): course / book / study import, and the new name
 
-**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Checked with the
+**Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45902521021)). CI also found a real bug, now
+fixed: live analysis could stop an Explain's engine search, which then waited 30 s. **Checked with the
 real Claude:** a move explanation of 5...Be7 (Ruy Lopez, real Stockfish lines) with a course comment in the
 packet. Claude built on the author's idea ("the course's quiet main line", deciding later between ...b5,
 ...d6 and ...d5), said plainly that Stockfish slightly prefers 5...Nxe4, and named only moves that pass the
