@@ -2,7 +2,8 @@
 
 ## Phase 3 (26 Nov 2026): opening explorer
 
-**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Lichess games at
+**Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45864556834)). **Lichess games at
 your level haven't been tried for real yet**, because that needs your Lichess token (step 4 under "Things
 only you can do"). The Masters explorer was checked against the real Lichess.
 
