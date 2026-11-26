@@ -60,6 +60,11 @@ export function createTauriBackend(): Backend {
     reviewReanalyze: (id) => call("review_reanalyze", { id }),
     onReviewEvent: (cb) => listen<ReviewEvent>("review:event", (e) => cb(e.payload)),
 
+    lichessTokenStatus: () => call("lichess_token_status"),
+    lichessTokenSave: (token) => call("lichess_token_save", { token }),
+    lichessTokenClear: () => call("lichess_token_clear"),
+    explorerQuery: (source, fen, color) => call("explorer_query", { source, fen, color: color ?? null }),
+
     openUrl: (url) => openUrl(url),
     onMenu: (cb) => listen<string>("menu", (e) => cb(e.payload)),
     async showContextMenu(items: ContextMenuItem[]) {

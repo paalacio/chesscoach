@@ -18,6 +18,7 @@ import { EvalBar, type PromotionRole, PromotionPicker } from "../board/BoardExtr
 import { phaseLabel } from "../components/coach";
 import { IconButton } from "../components/controls";
 import { useAccentColor, useReducedMotion } from "../hooks";
+import { ExplorerPanel } from "../explorer/ExplorerPanel";
 import { CoachPanel } from "./CoachPanel";
 import { EnginePanel } from "./EnginePanel";
 import { MoveList } from "./MoveList";
@@ -51,7 +52,8 @@ export function useOpeningAndPhase() {
   }, [tree, current]);
 }
 
-export function AnalysisPage() {
+/** `mode="explorer"` shows the opening explorer in the inspector instead of the Coach. */
+export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explorer" }) {
   const t = useT();
   const a = useAnalysis();
   const settings = useApp((s) => s.settings);
@@ -208,9 +210,7 @@ export function AnalysisPage() {
       <aside className="inspector" data-open={inspectorOpen} aria-label={t("inspector.title")} aria-hidden={!inspectorOpen}>
         <EnginePanel />
         <div className="inspector-split">
-          <div className="inspector-scroll coach-scroll">
-            <CoachPanel />
-          </div>
+          <div className="inspector-scroll coach-scroll">{mode === "explorer" ? <ExplorerPanel /> : <CoachPanel />}</div>
           <div className="inspector-scroll moves-scroll">
             <MoveList />
           </div>

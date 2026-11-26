@@ -1,10 +1,9 @@
 // Pages that arrive in later phases.
 
-import { BookOpen, ChartLine, Compass, GraduationCap } from "lucide-react";
+import { BookOpen, ChartLine, GraduationCap } from "lucide-react";
 import { useT } from "../../i18n";
 
 const PLACEHOLDERS = {
-  explorer: { icon: <Compass />, title: "placeholder.explorer.title", text: "placeholder.explorer.text" },
   repertoire: { icon: <BookOpen />, title: "placeholder.repertoire.title", text: "placeholder.repertoire.text" },
   train: { icon: <GraduationCap />, title: "placeholder.train.title", text: "placeholder.train.text" },
   insights: { icon: <ChartLine />, title: "placeholder.insights.title", text: "placeholder.insights.text" },

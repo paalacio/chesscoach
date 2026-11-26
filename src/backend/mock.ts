@@ -10,10 +10,12 @@
 // URL options: ?platform=windows  ?mock=errors (setup problems, Claude not logged in)
 
 import { epdOf, positionFromFen, turnOf } from "../core/chess";
+import { mainlineFrom, ROOT, treeFromPgn } from "../core/game-tree";
 import type { EngineEvent, InfoLine } from "../core/types";
 import type { ReviewSummary, TrainingCard } from "../core/review";
 import claudeFixtures from "./fixtures/claude.json";
 import engineFixtures from "./fixtures/engine.json";
+import explorerFixture from "./fixtures/explorer.json";
 import gamesFixture from "./fixtures/games.json";
 import {
   type AnalysisStatus,
@@ -23,6 +25,10 @@ import {
   type Backend,
   BackendError,
   type ContextMenuItem,
+  type ExplorerMove,
+  type ExplorerReply,
+  type ExplorerResult,
+  type ExplorerSource,
   type GameDetail,
   type GameSummary,
   type Platform,
@@ -62,6 +68,8 @@ const DEFAULT_SETTINGS: Settings = {
   reviewThreads: null,
   autoAnalyze: true,
   language: params.get("lang") === "pt" ? "pt" : "en",
+  explorerRatings: [1000, 1200, 1400, 1600],
+  explorerSpeeds: ["blitz", "rapid"],
 };
 
 const SETTINGS_KEY = "chesscoach.mock.settings";
@@ -256,7 +264,22 @@ export function createMockBackend(): Backend {
       if (errorsMode) throw new BackendError("error", "Stockfish was not found. Reinstall the app or set an engine path in Settings.");
       timers.forEach(clearTimeout);
       timers = [];
-      const frames = framesFor(o.fen, o.multipv);
+      // A search restricted to some moves (explorer evals): made-up scores for exactly those moves.
+      const frames = o.searchmoves?.length
+        ? [
+            o.searchmoves.map((first, k) => ({
+              depth: o.depth ?? 14,
+              seldepth: null,
+              multipv: k + 1,
+              score: { kind: "cp" as const, value: ((hash(o.fen + first) % 120) - 50) * (turnOf(o.fen) === "white" ? 1 : -1) },
+              bound: null,
+              nodes: 100_000,
+              nps: 5_000_000,
+              timeMs: 20,
+              pv: madeUpPv(o.fen, first, 5),
+            })),
+          ]
+        : framesFor(o.fen, o.multipv);
       const limited = o.depth != null || o.movetimeMs != null;
       const step = limited ? 60 : 260;
       frames.forEach((frame, i) => {
@@ -317,6 +340,7 @@ export function createMockBackend(): Backend {
     },
 
     ...mockGames(() => settings),
+    ...mockExplorer(() => settings),
 
     openUrl: async (url) => {
       window.open(url, "_blank", "noopener");
@@ -452,6 +476,19 @@ function pick(r: AskRequest): unknown {
   const fx = claudeFixtures as Record<string, unknown>;
   if (r.kind === "hello") return fx.hello;
   if (r.kind === "gameReview") return gameReviewFixture(r);
+  if (r.kind === "openingOverview") {
+    if (epdOf(r.fen) === epdOf(RUY_AFTER)) return r.prompt.includes("Brazilian Portuguese") ? fx.openingOverviewPt : fx.openingOverview;
+    return {
+      summary: "Sample opening explanation from the mock backend. In the real app, Claude explains the opening here.",
+      pawn_structure: "The real answer describes the typical pawn structure.",
+      plans_white: ["Develop your pieces and castle."],
+      plans_black: ["Challenge the center."],
+      traps: [{ name: "A typical trap", description: "The real answer describes traps at your level." }],
+      common_mistakes: ["Moving the same piece twice in the opening."],
+      middlegame: "The real answer explains the middlegame plans.",
+      concepts: ["development", "center"],
+    };
+  }
   if (r.kind === "bestMoves") {
     if (epdOf(r.fen) === epdOf(RUY_AFTER)) return r.prompt.includes("Brazilian Portuguese") ? fx.bestMovesPt : fx.bestMoves;
     // Generic: one entry per candidate listed in the prompt ("1. 6.Re1: ...").
@@ -503,5 +540,85 @@ function gameReviewFixture(r: AskRequest): unknown {
     ],
     key_moments: ids.map((id) => ({ id, comment: "The real review explains what happened here.", better_move: null })),
     concepts: ["development", "tactics"],
+  };
+}
+
+/**
+ * Explorer in mock mode:
+ * - Masters: real answers recorded from Lichess for a few positions (fixtures/explorer.json).
+ * - Lichess games: made up from the masters numbers (more decisive games, as at club level),
+ *   available once a token is "saved"; without one, the usual "needs a token" error.
+ * - My games: computed for real from the made-up mock games.
+ */
+function mockExplorer(getSettings: () => Settings) {
+  const masters = (explorerFixture as unknown as { masters: Record<string, ExplorerResult> }).masters;
+  let token = params.get("token") === "1";
+  const games = (gamesFixture as unknown as { games: { pgn: string; myColor: "white" | "black"; result: string }[] }).games;
+  let index: Map<string, Map<string, ExplorerMove>> | null = null;
+
+  function buildIndex() {
+    const idx = new Map<string, Map<string, ExplorerMove>>();
+    for (const g of games) {
+      const tree = treeFromPgn(g.pgn);
+      for (const n of mainlineFrom(tree, ROOT).slice(1)) {
+        const key = `${g.myColor}|${epdOf(tree.nodes[n.parent as string].fen)}`;
+        const moves = idx.get(key) ?? new Map<string, ExplorerMove>();
+        const m = moves.get(n.uci as string) ?? { uci: n.uci as string, san: n.san as string, averageRating: null, white: 0, draws: 0, black: 0, opening: null };
+        if (g.result === "1-0") m.white++;
+        else if (g.result === "0-1") m.black++;
+        else m.draws++;
+        moves.set(m.uci, m);
+        idx.set(key, moves);
+      }
+    }
+    return idx;
+  }
+
+  const total = (moves: ExplorerMove[]) => ({
+    white: moves.reduce((a, m) => a + m.white, 0),
+    draws: moves.reduce((a, m) => a + m.draws, 0),
+    black: moves.reduce((a, m) => a + m.black, 0),
+  });
+
+  return {
+    lichessTokenStatus: async () => token,
+    async lichessTokenSave(t: string) {
+      if (t.trim().length < 10) throw new BackendError("invalidToken", "That doesn't look like a Lichess API token.");
+      token = true;
+    },
+    async lichessTokenClear() {
+      token = false;
+    },
+    async explorerQuery(source: ExplorerSource, fen: string, color?: "white" | "black"): Promise<ExplorerReply> {
+      await delay(250);
+      const none = { result: null, cached: false, stale: false, errorKind: null, errorDetail: null };
+      if (source === "mine") {
+        index ??= buildIndex();
+        const moves = [...(index.get(`${color ?? "white"}|${epdOf(fen)}`)?.values() ?? [])].sort(
+          (a, b) => b.white + b.draws + b.black - (a.white + a.draws + a.black),
+        );
+        return { ...none, result: { ...total(moves), moves, opening: null } };
+      }
+      const base = masters[epdOf(fen)];
+      if (source === "masters") return base ? { ...none, result: base, cached: true } : { ...none, result: { white: 0, draws: 0, black: 0, moves: [], opening: null } };
+      if (!token) return { ...none, errorKind: "lichessNeedsToken" };
+      if (!base) return { ...none, result: { white: 0, draws: 0, black: 0, moves: [], opening: null } };
+      // Club level: ~60x more games, far fewer draws, a bit more variety.
+      const scale = (n: number) => Math.round(n * 60);
+      const moves = base.moves.map((m, i) => {
+        const decisive = m.white + m.black || 1;
+        const draws = Math.round(m.draws * 0.12);
+        const extra = m.draws - draws;
+        return {
+          ...m,
+          averageRating: 1350 + ((i * 37) % 120),
+          white: scale(m.white + (extra * m.white) / decisive),
+          draws: scale(draws),
+          black: scale(m.black + (extra * m.black) / decisive),
+        };
+      });
+      void getSettings;
+      return { ...none, result: { ...total(moves), moves, opening: base.opening } };
+    },
   };
 }

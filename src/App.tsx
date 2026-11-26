@@ -3,6 +3,7 @@ import { backend } from "./backend";
 import { langOf } from "./i18n";
 import { useAnalysis } from "./store/analysis";
 import { useApp } from "./store/app";
+import { useExplorer } from "./store/explorer";
 import { useGames } from "./store/games";
 import { useToast } from "./store/toast";
 import { installShortcuts, runAction } from "./ui/actions";
@@ -22,6 +23,7 @@ export default function App() {
     init();
     useAnalysis.getState().init();
     useGames.getState().init();
+    useExplorer.getState().init();
     const offKeys = installShortcuts(backend.isMock);
     let offMenu: (() => void) | undefined;
     backend.onMenu(runAction).then((off) => (offMenu = off));
@@ -52,13 +54,14 @@ export default function App() {
         <Toolbar />
         <div className="page">
           {/* The analysis page stays mounted so the board doesn't reset. */}
-          <div style={{ display: page === "analysis" ? "contents" : "none" }}>
-            <AnalysisPage />
+          {/* The analysis board stays mounted (it's shared by Analysis and Explorer). */}
+          <div style={{ display: page === "analysis" || page === "explorer" ? "contents" : "none" }}>
+            <AnalysisPage mode={page === "explorer" ? "explorer" : "analysis"} />
           </div>
           {page === "setup" && <SetupPage />}
           {page === "games" && <GamesPage />}
           {page === "review" && <ReviewPage />}
-          {(page === "explorer" || page === "repertoire" || page === "train" || page === "insights") && <PlaceholderPage page={page} />}
+          {(page === "repertoire" || page === "train" || page === "insights") && <PlaceholderPage page={page} />}
         </div>
       </main>
       <SettingsSheet />

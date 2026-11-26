@@ -1,11 +1,12 @@
 // Settings, Import and About sheets.
 
 import { useEffect, useState } from "react";
-import { backend, type Settings } from "../../backend";
+import { backend, type Settings, toBackendError } from "../../backend";
 import { treeFromText } from "../../core/game-tree";
 import { LANGUAGES, type Lang, langOf, useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
+import { useExplorer } from "../../store/explorer";
 import { Button, Segmented, Sheet, Switch } from "../components/controls";
 
 export function SettingsSheet() {
@@ -58,6 +59,8 @@ export function SettingsSheet() {
         <input id="s-mail" className="text-input" type="email" value={draft.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} spellCheck={false} />
         <p className="hint">{t("settings.contactHint")}</p>
       </div>
+
+      <LichessTokenField />
 
       <div className="sheet-section-title">{t("settings.board")}</div>
       <div className="field">
@@ -155,6 +158,81 @@ export function SettingsSheet() {
         <input id="s-claude" className="text-input" placeholder={t("settings.claudePathAuto")} value={draft.claudePath} onChange={(e) => set("claudePath", e.target.value)} spellCheck={false} />
       </div>
     </Sheet>
+  );
+}
+
+/** The Lichess token is saved straight to the keychain (not with the other settings). */
+function LichessTokenField() {
+  const t = useT();
+  const [saved, setSaved] = useState<boolean | null>(null);
+  const [value, setValue] = useState("");
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const refresh = useExplorer((s) => s.refreshToken);
+  useEffect(() => {
+    backend.lichessTokenStatus().then(setSaved).catch(() => setSaved(false));
+  }, []);
+  async function save() {
+    try {
+      await backend.lichessTokenSave(value);
+      setSaved(true);
+      setValue("");
+      setMessage({ ok: true, text: t("settings.lichessSaved") });
+      refresh();
+    } catch (e) {
+      const err = toBackendError(e);
+      setMessage({ ok: false, text: err.kind === "invalidToken" ? t("settings.lichessInvalid") : err.message });
+    }
+  }
+  async function clear() {
+    await backend.lichessTokenClear().catch(() => {});
+    setSaved(false);
+    setMessage(null);
+    refresh();
+  }
+  return (
+    <>
+      <div className="sheet-section-title">Lichess</div>
+      <div className="field">
+        <label htmlFor="s-lichess">{t("settings.lichessToken")}</label>
+        <div className="token-row">
+          {saved ? (
+            <>
+              <span className="token-saved">{t("settings.lichessHasToken")}</span>
+              <Button size="small" onClick={clear}>
+                {t("settings.lichessRemove")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <input
+                id="s-lichess"
+                className="text-input"
+                type="password"
+                autoComplete="off"
+                placeholder="lip_…"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                spellCheck={false}
+              />
+              <Button size="small" onClick={save} disabled={!value.trim()}>
+                {t("settings.lichessSave")}
+              </Button>
+            </>
+          )}
+        </div>
+        <p className="hint">
+          {t("settings.lichessHint")}{" "}
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => backend.openUrl("https://lichess.org/account/oauth/token/create?description=ChessCoach")}
+          >
+            {t("settings.lichessCreate")}
+          </button>
+        </p>
+        {message && <p className={`hint ${message.ok ? "ok-text" : "error-text"}`}>{message.text}</p>}
+      </div>
+    </>
   );
 }
 

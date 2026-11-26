@@ -87,7 +87,7 @@ export function installShortcuts(handleModified: boolean): () => void {
       return;
     }
     if (typing(e) || e.altKey) return;
-    const onAnalysis = app.page === "analysis";
+    const onAnalysis = app.page === "analysis" || app.page === "explorer";
     const keys: Record<string, string> = {
       ArrowLeft: "prev",
       ArrowRight: "next",

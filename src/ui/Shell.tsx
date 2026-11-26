@@ -99,8 +99,8 @@ export function Toolbar() {
   const page = useApp((s) => s.page);
   const inspectorOpen = useApp((s) => s.inspectorOpen);
   const title =
-    page === "analysis" ? (
-      <AnalysisTitle />
+    page === "analysis" || page === "explorer" ? (
+      <AnalysisTitle page={page} />
     ) : page === "review" ? (
       <ReviewTitle />
     ) : page === "games" ? (
@@ -114,10 +114,10 @@ export function Toolbar() {
     <header className="toolbar" data-tauri-drag-region>
       {title}
       <div className="toolbar-spacer" data-tauri-drag-region />
-      {page === "analysis" && <AnalysisTools />}
+      {(page === "analysis" || page === "explorer") && <AnalysisTools />}
       {page === "games" && <GamesTools />}
       {page === "review" && <ReviewTools />}
-      {(page === "analysis" || page === "review") && (
+      {(page === "analysis" || page === "review" || page === "explorer") && (
         <div className="toolbar-group">
           <span className="toolbar-divider" />
           <IconButton label={t("toolbar.inspector")} pressed={inspectorOpen} onClick={() => runAction("toggle-inspector")}>
@@ -227,12 +227,12 @@ function ReviewTools() {
   );
 }
 
-function AnalysisTitle() {
+function AnalysisTitle({ page }: { page: "analysis" | "explorer" }) {
   const t = useT();
   const { opening } = useOpeningAndPhase();
   return (
     <div className="toolbar-title" data-tauri-drag-region>
-      <h1 data-tauri-drag-region>{t("page.analysis")}</h1>
+      <h1 data-tauri-drag-region>{t(page === "explorer" ? "page.explorer" : "page.analysis")}</h1>
       <span className="subtitle" data-tauri-drag-region>
         {opening.opening ? `${opening.opening.eco} · ${opening.opening.name}` : t("toolbar.freeAnalysis")}
       </span>

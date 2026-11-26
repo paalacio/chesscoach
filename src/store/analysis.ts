@@ -80,6 +80,10 @@ interface AnalysisState {
   playPreview(): void;
   explain(kind?: RequestKind, force?: boolean): Promise<void>;
   cancelExplain(): void;
+  /** Deep-enough engine lines for a position (cached, or a one-off search). */
+  evaluatePosition(fen: string, depth: number): Promise<EngineLine[]>;
+  /** One search restricted to these moves; returns each move's line (for the explorer). */
+  evaluateMoves(fen: string, ucis: string[], depth: number): Promise<Record<string, EngineLine>>;
 }
 
 export const explanationKey = (kind: RequestKind, nodeId: string) => `${kind}:${nodeId}`;
@@ -89,7 +93,18 @@ let nextAnalysisId = 1;
 let liveId = 0;
 let liveTimer: ReturnType<typeof setTimeout> | null = null;
 /** One-off searches waiting for their `bestMove`: id -> collected lines + resolver. */
-const oneShots = new Map<number, { fen: string; lines: EngineLine[]; multipv: number; done: (lines: EngineLine[]) => void }>();
+/** `restricted`: a searchmoves search, whose lines aren't the position's real best lines. */
+const oneShots = new Map<number, { fen: string; lines: EngineLine[]; multipv: number; restricted?: boolean; done: (lines: EngineLine[]) => void }>();
+/**
+ * One-off searches run one after another: the engine does one search at a time,
+ * and starting a new one would stop the previous one before it finishes.
+ */
+let oneShotQueue: Promise<unknown> = Promise.resolve();
+function queued<T>(job: () => Promise<T>): Promise<T> {
+  const run = oneShotQueue.then(job, job);
+  oneShotQueue = run.catch(() => {});
+  return run;
+}
 /** Info events are buffered and applied once per animation frame (they can arrive very fast). */
 let pending: Extract<EngineEvent, { type: "info" }>[] = [];
 let frame: number | null = null;
@@ -118,6 +133,10 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
    * deep enough and has enough lines (`minLines`, capped by the legal moves).
    */
   function evaluate(fen: string, depth: number, minLines = get().multipv): Promise<EngineLine[]> {
+    return queued(() => evaluateNow(fen, depth, minLines));
+  }
+
+  function evaluateNow(fen: string, depth: number, minLines: number): Promise<EngineLine[]> {
     const cached = get().evalCache[fen];
     const wanted = Math.min(minLines, legalSans(fen).length);
     if (cached && cached.length >= wanted && linesDepth(cached) >= depth) return Promise.resolve(cached);
@@ -177,7 +196,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
       flush(); // apply any lines still buffered first
       const shot = oneShots.get(ev.analysisId);
       if (shot) {
-        storeInCache(shot.fen, shot.lines);
+        if (!shot.restricted) storeInCache(shot.fen, shot.lines);
         shot.done(shot.lines);
       }
     } else {
@@ -335,6 +354,38 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
       backend.claudeCancel().catch(() => {});
       set({ job: null });
       requestAnalysis();
+    },
+
+    async evaluatePosition(fen, depth) {
+      if (!get().engineOn) return get().evalCache[fen] ?? [];
+      try {
+        const lines = await evaluate(fen, depth);
+        requestAnalysis();
+        return lines;
+      } catch {
+        return get().evalCache[fen] ?? [];
+      }
+    },
+
+    async evaluateMoves(fen, ucis, depth) {
+      if (ucis.length === 0 || !get().engineOn) return {};
+      const lines = await queued(
+        () =>
+          new Promise<EngineLine[]>((resolve) => {
+        const id = nextAnalysisId++;
+        liveId = 0;
+        const timeout = setTimeout(() => finish(oneShots.get(id)?.lines ?? []), 20_000);
+        function finish(l: EngineLine[]) {
+          clearTimeout(timeout);
+          oneShots.delete(id);
+          resolve(l);
+        }
+        oneShots.set(id, { fen, lines: [], multipv: ucis.length, restricted: true, done: finish });
+        backend.engineAnalyze({ analysisId: id, fen, multipv: ucis.length, depth, searchmoves: ucis }).catch(() => finish([]));
+          }),
+      );
+      requestAnalysis();
+      return Object.fromEntries(lines.filter((l) => l.pvUci[0]).map((l) => [l.pvUci[0], l]));
     },
   };
 });

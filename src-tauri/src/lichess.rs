@@ -229,16 +229,23 @@ fn cache_put(conn: &Connection, key: &str, json: &str) -> rusqlite::Result<()> {
     Ok(())
 }
 
-/// Remembers when Lichess said "too many requests", so we wait before asking again.
+/// Keeps the app polite with Lichess: one request at a time (Lichess asks for
+/// that), and after a "too many requests" it waits before asking again.
 #[derive(Default)]
-pub struct Backoff(Mutex<i64>);
+pub struct Backoff {
+    /// Until when (unix seconds) we don't ask Lichess.
+    until: Mutex<i64>,
+    /// Held while a request is in flight, so the next one waits its turn.
+    /// (An async mutex, because it is held across the `.await` of the request.)
+    gate: tokio::sync::Mutex<()>,
+}
 
 impl Backoff {
     pub fn active(&self, at: i64) -> bool {
-        *self.0.lock().unwrap() > at
+        *self.until.lock().unwrap() > at
     }
     pub fn start(&self, at: i64) {
-        *self.0.lock().unwrap() = at + BACKOFF_SECS;
+        *self.until.lock().unwrap() = at + BACKOFF_SECS;
     }
 }
 
@@ -264,6 +271,8 @@ pub async fn query(
             return ExplorerReply { result: parse(json), cached: true, stale: false, error_kind: None, error_detail: None };
         }
     }
+    // Wait for any request already in flight (one at a time).
+    let _turn = backoff.gate.lock().await;
     let error = if backoff.active(now()) {
         LichessError::RateLimited
     } else {

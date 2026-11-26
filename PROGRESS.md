@@ -1,5 +1,80 @@
 # Progress log
 
+## Phase 3 (26 Nov 2026): opening explorer
+
+**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Lichess games at
+your level haven't been tried for real yet**, because that needs your Lichess token (step 4 under "Things
+only you can do"). The Masters explorer was checked against the real Lichess.
+
+### What's new
+- **Explorer** (sidebar). The same board as Analysis, with the explorer for the current position on the
+  right. Three sources:
+  - **Masters**: Lichess's database of master games played over the board. Works without a token.
+  - **My level**: Lichess rated games, filtered by rating (default 1000–1600) and speed (default blitz and
+    rapid). Click the chips to change the filters; your choice is saved. Needs a Lichess token.
+  - **My games**: your own Chess.com games as White or as Black, built on this computer from the games you
+    synced.
+- **Each row** shows:
+  - the move and its opening name;
+  - how often it's played (share and count);
+  - a White / draw / Black bar;
+  - Stockfish's evaluation after the move (depth 14, for the top 8 moves).
+  
+  Click a row to play the move.
+- **"Explain this opening"** sends one Claude request with:
+  - the explorer numbers from every source you've looked at;
+  - Stockfish's lines;
+  - the opening name.
+  
+  The answer covers the main idea, the pawn structure, plans for each side, traps, common mistakes at club
+  level, and how the middlegame usually goes. It comes in English or Portuguese and is cached per position
+  and language.
+- **Lichess token** (Settings → Lichess):
+  - paste the token and press Save; it goes to the macOS Keychain (Windows: Credential Manager), never
+    into a file;
+  - "Create a token" opens the Lichess page with the name already filled in; no permissions need ticking;
+  - the Setup screen shows whether a token is saved.
+- **Lichess being down never breaks the app:**
+  - answers are cached for 30 days;
+  - if Lichess fails, the last answer shows with a note;
+  - after "too many requests" (HTTP 429), the app waits 60 s before asking again;
+  - the panel offers Masters or My games instead.
+
+### How it was checked
+- Tests: Rust 55 (+6 live checks run by hand), Vitest 63, Playwright 32 (16 tests × WebKit/Chromium). All pass.
+- **Real Lichess:** the Masters explorer for the start position returned 3.0M games with e4 first. The
+  live check (`live_lichess_masters_explorer`) and the mock-mode recording both use real answers.
+- **Real Claude:** "Explain this opening" on the Closed Ruy Lopez, in English and in Portuguese. The
+  answers were good and are now the mock-mode examples.
+- Screenshots: `screenshots/phase-3/`, covering Masters, My level, no token, and Explain in English and
+  Portuguese, in light and dark.
+
+### Decisions (and why)
+- **Host `explorer.lichess.org`.** Lichess moved the explorer there; the spec's `explorer.lichess.ovh`
+  is the old address. I checked the current API: `/masters` answers without a token and `/lichess`
+  answers 401 without one, so the app only asks `/lichess` once a token is saved.
+- **Token:**
+  - needs no scopes;
+  - is checked for its shape before saving (10–200 letters, digits, `_` or `-`);
+  - is stored with the `keyring-core` crate and the native Apple and Windows stores, under service
+    `app.chesscoach.desktop` and account `lichess-api-token`.
+- **Requests to Lichess go one at a time**, as Lichess asks.
+- **My games:**
+  - every position of every synced game is indexed once, keyed by the position without move counters,
+    so transpositions land on the same row;
+  - it's split by the colour you played.
+- **Explorer evaluations** are short Stockfish searches limited to the explorer's moves. They wait their
+  turn behind "Explain" and the other one-off searches, so two never fight over the engine.
+
+### Click-through checklist (Phase 3, real app: `pnpm tauri dev`)
+- [ ] Explorer → Masters: step through a Ruy Lopez. The rows load and the evaluations appear a second
+      later; click a row to play it.
+- [ ] Settings → Lichess → "Create a token" (no boxes to tick), paste it, press Save. Then try Explorer →
+      My level and the rating and speed chips.
+- [ ] After a Chess.com sync: Explorer → My games, as White and as Black.
+- [ ] "Explain this opening" on one of your openings (Ruy Lopez, Queen's Gambit, King's Indian, Sicilian).
+- [ ] Turn Wi-Fi off and go back to a position you already looked at: the saved answer still shows.
+
 ## Phase 2 (26 Nov 2026): Chess.com import, game review, phases + language switch + "compare the best moves"
 
 **Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
@@ -100,6 +175,8 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
    `export PATH="/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:$PATH"`
 3. **Fill in `CHESSCOM_CONTACT=`** in `.env.local` (your contact email for Chess.com), or type it in the
    app under Settings → Chess.com. Then the live Chess.com check can run.
+4. **Make a Lichess token** (for "My level" in the Explorer). Log in at lichess.org, then in the app go to
+   Settings → Lichess → "Create a token". Tick nothing, create it, paste it into the app and press Save.
 
 ### Click-through checklist (real app: `pnpm tauri dev`)
 
@@ -169,6 +246,5 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
   I left it for the Phase 5 polish as planned.
 - The Chess.com fixture is hand-made in the documented shape. Once the contact is set, I'll replace it
   with a recorded real response.
-- The JSON schemas for opening overview, game summary, key-moment batch and repertoire proposal will
-  come with the phases that use them.
-- The Lichess token in the keychain is Phase 3.
+- The JSON schema for the repertoire proposal comes with Phase 4.
+- The Windows Credential Manager code for the Lichess token compiles in CI but hasn't been run on Windows.

@@ -53,7 +53,7 @@ test("the app can be switched to Portuguese in Settings", async ({ page }) => {
   await openApp(page);
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("radio", { name: "Português" }).click();
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.locator(".sheet-footer").getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("button", { name: "Partidas", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Análise" })).toBeVisible();
   await page.getByRole("button", { name: "Partidas", exact: true }).click();

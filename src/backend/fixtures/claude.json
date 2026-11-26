@@ -234,5 +234,89 @@
       "pawn-structure",
       "trade"
     ]
+  },
+  "openingOverview": {
+    "summary": "The Closed Ruy Lopez is a classic opening where White builds slowly and keeps pressure on the e5 pawn and the knight on c6, while Black develops safely and aims for a solid position. Players choose it because it is sound, rich in plans, and gives long-term chances without early risks. The engine says it is about equal, and the explorer shows White scoring a healthy 56% at master level, mostly through draws.",
+    "pawn_structure": "Both sides have pawns on e4 and e5, so the center is locked in tension. White's main idea is to support e4 (with Re1 and d3 or c3 and d4) and later break with d4. Black wants to protect e5 with ...d6, kick the bishop with ...b5, and later free the position with ...d5 or ...Na5 and ...c5. The e4 pawn is currently only defended by nothing but the Nf3 trick, so White must watch it: it is attacked by the Nf6 and is undefended.",
+    "plans_white": [
+      "Play Re1 to defend e4 (85% of master games, scoring 56%). Then c3 and d4 to claim the center.",
+      "Keep the bishop on the diagonal with Bb3 after Black's ...b5, and add Nbd2 and Nf1-g3 to reposition the knights.",
+      "Build slowly with d3 and c3 if you prefer a safer, solid game (6.d3 also scores 56%)."
+    ],
+    "plans_black": [
+      "Play ...b5 to kick the bishop, then ...d6 and ...O-O to get castled and safe.",
+      "Support e5 with ...d6 and ...Bb7 or ...Bd7, keeping the center solid.",
+      "Free your game later with a pawn break such as ...d5 or ...c5 once you are fully developed."
+    ],
+    "traps": [
+      {
+        "name": "The e4 pawn trick",
+        "description": "Right now e4 is only attacked, not defended. If White forgets it and plays something slow, Black can take on e4 with the knight. Play Re1 (or d3) so the pawn is safe. As Black, 5...Nxe4 is only good when White cannot punish it, so check carefully before grabbing."
+      },
+      {
+        "name": "Taking on c6 too early",
+        "description": "After 6.Bxc6 dxc6, White's idea is to win e5. But Black usually can defend and gets the bishop pair, so grabbing the pawn with Nxe5 can lose material to tactics on the e-file. Make sure e5 is truly winning before you take it."
+      },
+      {
+        "name": "Ignoring the pin on the e-file",
+        "description": "After Re1 and Black's careless ...b5 or ...O-O moves, the e5 pawn can become loose if the knight on c6 leaves or is traded. Watch for Bxc6 followed by Nxe5 ideas."
+      }
+    ],
+    "common_mistakes": [
+      "Forgetting to defend e4 before playing other moves, so the pawn is lost to ...Nxe4.",
+      "Retreating the bishop to the wrong place after ...b5: Bb3 keeps it active, while giving it up on c6 without a reason hands Black the bishop pair.",
+      "As Black, rushing pawn breaks like ...d5 before castling and finishing development, or forgetting to castle."
+    ],
+    "middlegame": "Expect a slow, maneuvering fight. White usually gets a small space edge and prepares d4, while Black stays solid and waits for a good moment to hit back in the center. Improve your worst-placed piece, such as a knight heading toward f1-g3 or d2-f1, and keep your king safe. Do not rush: patience is rewarded here.",
+    "concepts": [
+      "development",
+      "center",
+      "pawn-structure",
+      "pawn-break",
+      "king-safety",
+      "piece-activity"
+    ]
+  },
+  "openingOverviewPt": {
+    "summary": "A Ruy Lopez Fechada é uma das aberturas mais clássicas e respeitadas: as Brancas desenvolvem rápido, rocam e pressionam o cavalo de c6, que defende o peão e5. Nos jogos de mestres, 6.Re1 aparece em 85% das partidas e as Brancas pontuam 56%, mostrando que é uma posição sólida, com leve vantagem de iniciativa e pouco risco.",
+    "pawn_structure": "Os dois lados têm peões centrais e4 e e5 frente a frente, e o centro costuma ficar fechado por muito tempo. As Brancas querem preparar c3 e d4 para abrir o centro com apoio; as Pretas querem manter e5 firme, jogar ...b5 e ...d6 e depois ...O-O, atacando a base com ...d5 ou ...f5 em algum momento. Por enquanto o peão e4 está atacado e sem defesa extra, então 6.Re1 é a forma natural de protegê-lo.",
+    "plans_white": [
+      "Defender e4 com Re1 (a jogada mais popular e a preferida do motor), retirar o bispo para b3 depois de ...b5 e preparar c3 e d4.",
+      "Jogar c3 e d4 para ganhar espaço no centro e dar ao bispo de b3 uma diagonal ativa contra f7.",
+      "Reagrupar as peças (Nbd2-f1-g3 ou Bd2/Nc3) e usar o ataque ao centro e à ala do rei se as Pretas ficarem passivas."
+    ],
+    "plans_black": [
+      "Jogar ...b5 para expulsar o bispo, depois ...O-O, ...d6 e ...Bb7 para desenvolver com solidez.",
+      "Manter o peão e5 bem protegido e preparar o avanço ...d5 para igualar no centro.",
+      "Reagrupar o cavalo de c6 (por exemplo ...Na5 e ...c5) para ganhar espaço na ala da dama."
+    ],
+    "traps": [
+      {
+        "name": "Peão e4 sem defesa",
+        "description": "Se as Brancas fazem uma jogada lenta e esquecem de defender e4, as Pretas podem capturá-lo com ...Nxe4, pois o peão está atacado e não defendido. Com 6.Re1 (ou 6.d3) o problema desaparece."
+      },
+      {
+        "name": "Bxc6 e captura em e5",
+        "description": "Se as Pretas ignoram a ameaça, Bxc6 seguido de Nxe5 ganha um peão. Por isso o cavalo de c6 e o peão e5 precisam estar sempre bem defendidos antes de qualquer jogada ousada."
+      },
+      {
+        "name": "Ruim para as Pretas: ...b5 sem cuidado",
+        "description": "Depois de ...b5 as Pretas enfraquecem casas da ala da dama, e o bispo em b3 mira f7. Se esquecerem de roque ou desenvolvimento, as Brancas podem criar ameaças táticas contra f7."
+      }
+    ],
+    "common_mistakes": [
+      "Não defender e4 e perder o peão central logo no início.",
+      "Trocar Bxc6 cedo demais sem um plano claro, entregando o par de bispos sem vantagem concreta.",
+      "Mover as mesmas peças várias vezes e esquecer de terminar o desenvolvimento antes de avançar peões na ala."
+    ],
+    "middlegame": "O jogo costuma ser manobrístico e posicional: ninguém precisa ter pressa. Melhore suas peças piores, mantenha o centro protegido e só abra a posição com c3 e d4 (Brancas) ou ...d5 (Pretas) quando suas peças estiverem prontas. Fique atento a táticas em f7 e e5 e a trocas que simplifiquem a favor de quem tem a melhor estrutura.",
+    "concepts": [
+      "development",
+      "center",
+      "castling",
+      "pawn-structure",
+      "pawn-break",
+      "king-safety"
+    ]
   }
 }

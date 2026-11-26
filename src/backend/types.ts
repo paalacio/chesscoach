@@ -28,6 +28,9 @@ export interface Settings {
   autoAnalyze: boolean;
   /** "en" | "pt" */
   language: string;
+  /** Lichess explorer filters: rating groups (1000 = 1000-1199, ...) and speeds. */
+  explorerRatings: number[];
+  explorerSpeeds: string[];
 }
 
 export interface AppInfo {
@@ -51,6 +54,8 @@ export interface AnalyzeOptions {
   multipv: number;
   depth?: number | null;
   movetimeMs?: number | null;
+  /** Only search these moves (UCI). */
+  searchmoves?: string[] | null;
 }
 
 export type CheckStatus = "ok" | "warning" | "error" | "info";
@@ -170,6 +175,38 @@ export type ReviewEvent =
   | { type: "gameError"; gameId: number; message: string }
   | { type: "status"; status: WorkerStatus };
 
+// ---------- opening explorer (Phase 3) ----------
+
+export type ExplorerSource = "masters" | "lichess" | "mine";
+
+export interface ExplorerMove {
+  uci: string;
+  san: string;
+  averageRating: number | null;
+  white: number;
+  draws: number;
+  black: number;
+  opening: { eco: string; name: string } | null;
+}
+
+export interface ExplorerResult {
+  white: number;
+  draws: number;
+  black: number;
+  moves: ExplorerMove[];
+  opening: { eco: string; name: string } | null;
+}
+
+export interface ExplorerReply {
+  result: ExplorerResult | null;
+  cached: boolean;
+  /** An old cached answer, shown because Lichess couldn't be reached. */
+  stale: boolean;
+  /** Why Lichess couldn't be asked: "lichessNeedsToken", "lichessRateLimited", ... */
+  errorKind: string | null;
+  errorDetail: string | null;
+}
+
 export type ContextMenuItem = { id: string; label: string; enabled?: boolean } | "separator";
 
 export interface Backend {
@@ -204,6 +241,12 @@ export interface Backend {
   reviewPrioritize(id: number): Promise<void>;
   reviewReanalyze(id: number): Promise<void>;
   onReviewEvent(cb: (ev: ReviewEvent) => void): Promise<() => void>;
+
+  lichessTokenStatus(): Promise<boolean>;
+  lichessTokenSave(token: string): Promise<void>;
+  lichessTokenClear(): Promise<void>;
+  /** `color` is for "mine": the user's games with that colour. */
+  explorerQuery(source: ExplorerSource, fen: string, color?: Color): Promise<ExplorerReply>;
 
   openUrl(url: string): Promise<void>;
   /** Native menu bar clicks (menu item ids, see src-tauri/src/menu.rs). */

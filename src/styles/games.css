@@ -330,3 +330,153 @@
   margin: 3px 0 4px;
   line-height: 1.45;
 }
+
+/* ---------- opening explorer ---------- */
+.explorer-icon {
+  color: var(--accent);
+}
+.explorer-panel > .segmented {
+  display: flex;
+  width: 100%;
+}
+.explorer-panel > .segmented button {
+  flex: 1;
+}
+.explorer-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.chip {
+  height: 20px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  box-shadow: inset 0 0 0 0.5px var(--border-control);
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+  font-weight: 600;
+}
+.explorer-callout {
+  margin-top: 8px;
+}
+.explorer-empty {
+  margin-top: 10px;
+}
+.explorer-table {
+  margin-top: 8px;
+}
+.explorer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) 66px minmax(90px, 1.3fr) 44px;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 30px;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  text-align: left;
+  font-size: var(--fs-medium);
+  color: var(--text);
+}
+.explorer-row:not(.head):hover {
+  background: var(--bg-hover);
+}
+.explorer-row.head {
+  min-height: 20px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.explorer-row .num {
+  text-align: right;
+}
+.ex-move {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.ex-opening {
+  font-size: 10.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ex-games {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+}
+.ex-share {
+  font-weight: 600;
+}
+.ex-eval {
+  color: var(--text-2);
+}
+.wdl {
+  display: flex;
+  height: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.2);
+}
+.wdl > span {
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wdl .w {
+  background: #f4f4f4;
+  color: #333;
+}
+.wdl .d {
+  background: #a1a1a6;
+  color: #fff;
+}
+.wdl .b {
+  background: #3a3a3c;
+  color: #eee;
+}
+.opening-overview {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--separator);
+}
+.opening-overview .coach-hint {
+  margin-top: 6px;
+}
+
+/* Lichess token field in Settings */
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.token-saved {
+  color: var(--green);
+  font-weight: 500;
+}
+.ok-text {
+  color: var(--green);
+}

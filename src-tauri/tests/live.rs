@@ -158,3 +158,22 @@ fn live_batch_analysis_of_a_game() {
         chesscoach_lib::engine::uci::Score::Mate(m) => assert!(m > 0),
     }
 }
+
+#[tokio::test]
+#[ignore]
+async fn live_lichess_masters_explorer() {
+    // Masters works without a token; one request.
+    let start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let r = chesscoach_lib::lichess::fetch(
+        &reqwest::Client::new(),
+        chesscoach_lib::lichess::EXPLORER_BASE,
+        "ChessCoach/0.1 (+https://github.com/paalacio/chesscoach)",
+        None,
+        &chesscoach_lib::lichess::Source::Masters,
+        start,
+    )
+    .await
+    .expect("masters explorer");
+    println!("masters: {} games, top move {}", r.white + r.draws + r.black, r.moves[0].san);
+    assert!(r.moves.iter().any(|m| m.san == "e4"));
+}
