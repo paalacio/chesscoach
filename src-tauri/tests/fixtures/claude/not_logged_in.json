@@ -1,0 +1,10 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": true,
+  "duration_ms": 50,
+  "num_turns": 1,
+  "result": "Not logged in \u00b7 Please run /login",
+  "session_id": "00000000-0000-0000-0000-000000000000",
+  "total_cost_usd": 0
+}

@@ -1,0 +1,46 @@
+[package]
+name = "chesscoach"
+version = "0.1.0"
+description = "ChessCoach: study chess openings with Stockfish and Claude"
+authors = ["ChessCoach contributors"]
+license = "GPL-3.0-or-later"
+edition = "2024"
+
+[lib]
+# The `_lib` suffix keeps the lib name different from the bin name
+# (needed on Windows, see https://github.com/rust-lang/cargo/issues/8519).
+name = "chesscoach_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.6", features = [] }
+
+# Versions are pinned exactly (`=`) so builds are reproducible. Cargo.lock is committed too.
+[dependencies]
+tauri = { version = "=2.12.7", features = ["macos-private-api"] }
+tauri-plugin-opener = "=2.7.3"
+tauri-plugin-os = "=2.4.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+thiserror = "=2.0.21"
+tokio = { version = "=1.54.1", features = ["process", "time", "io-util", "sync", "macros", "rt"] }
+# native-tls uses the OS TLS stack (Security.framework / SChannel), so no extra build tools are needed.
+reqwest = { version = "=0.13.5", default-features = false, features = ["native-tls", "json", "http2", "charset", "system-proxy"] }
+rusqlite = { version = "=0.43.0", features = ["bundled"] }
+rusqlite_migration = "=2.9.0"
+sha2 = "=0.11.2"
+hex = "=0.4.3"
+
+[target.'cfg(unix)'.dependencies]
+libc = "=0.2.191"
+
+[dev-dependencies]
+tempfile = "=3.27.0"
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

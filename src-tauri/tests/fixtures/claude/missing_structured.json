@@ -1,0 +1,16 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 1320,
+  "duration_api_ms": 1016,
+  "num_turns": 2,
+  "result": "Here is some text instead of JSON.",
+  "stop_reason": "tool_use",
+  "session_id": "c21d28e6-4f22-4900-9767-71d2e67e8d3b",
+  "total_cost_usd": 0.0002796,
+  "terminal_reason": "completed",
+  "permission_denials": [],
+  "uuid": "12222029-e0df-46c2-bfde-6c532e7a9101"
+}

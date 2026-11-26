@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": { "type": "string", "description": "1-2 sentences, plain English: was the move good, and why" },
+    "ideas": { "type": "array", "items": { "type": "string" }, "maxItems": 3 },
+    "better_move": {
+      "type": ["object", "null"],
+      "description": "Only if the engine preferred another move clearly. Must be the engine's line 1 move from the position before the move, in SAN.",
+      "properties": {
+        "san": { "type": "string" },
+        "why": { "type": "string" }
+      },
+      "required": ["san", "why"]
+    },
+    "plan_next": { "type": "string", "description": "what to aim for in the next few moves" },
+    "concepts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "tags like development, king-safety, hanging-piece, pawn-break"
+    }
+  },
+  "required": ["summary", "ideas", "better_move", "plan_next", "concepts"]
+}

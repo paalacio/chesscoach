@@ -1,0 +1,29 @@
+# Dependencies and build output
+node_modules
+dist
+dist-ssr
+dist-mock
+
+# Local-only settings and secrets (never commit these)
+.env.local
+*.local
+
+# Stockfish binaries are downloaded by scripts/fetch-stockfish.mjs (large, GPL, fetched in CI)
+src-tauri/binaries/stockfish-*
+
+# Playwright output (screenshots we want to keep go to screenshots/)
+test-results
+playwright-report
+blob-report
+
+# Logs
+logs
+*.log
+pnpm-debug.log*
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?

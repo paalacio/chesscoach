@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "properties": {
+    "greeting": { "type": "string", "description": "One short friendly sentence" },
+    "tip": { "type": "string", "description": "One opening principle for a beginner, one sentence" }
+  },
+  "required": ["greeting", "tip"]
+}

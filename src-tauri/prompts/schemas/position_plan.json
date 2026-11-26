@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": { "type": "string", "description": "1-2 sentences: who stands better and why, plain English" },
+    "phase_focus": { "type": "string", "description": "What matters most in this phase of the game here, one sentence" },
+    "plan": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 3,
+      "description": "Plan for the side to move over the next few moves, as short steps"
+    },
+    "opponent_ideas": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 2,
+      "description": "What the other side wants to do"
+    },
+    "candidate_moves": {
+      "type": "array",
+      "maxItems": 3,
+      "description": "Moves from the ENGINE LINES only (first move of each line), in SAN",
+      "items": {
+        "type": "object",
+        "properties": {
+          "san": { "type": "string" },
+          "idea": { "type": "string" }
+        },
+        "required": ["san", "idea"]
+      }
+    },
+    "concepts": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["summary", "phase_focus", "plan", "opponent_ideas", "candidate_moves", "concepts"]
+}
