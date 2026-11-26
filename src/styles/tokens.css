@@ -1,0 +1,156 @@
+/* Design tokens. Everything platform- or theme-specific lives in these variables.
+   <html data-platform="mac|windows" data-vibrancy="on|off"> is set at startup (src/main.tsx).
+   Light/dark follows the system through prefers-color-scheme. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Type (macOS sizes: 13 px body, 11 px secondary) */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-body: 13px;
+  --fs-small: 11px;
+  --fs-medium: 12px;
+  --fs-title: 15px;
+  --fs-large: 22px;
+  --lh: 1.38;
+
+  /* Shape */
+  --radius-xs: 4px;
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --radius-board: 10px;
+
+  /* Layout */
+  --sidebar-w: 212px;
+  --toolbar-h: 52px;
+  --inspector-w: 348px;
+  --traffic-lights-w: 78px;
+
+  /* Motion (150-250 ms, eased). Zeroed for "reduce motion" in base.css. */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 250ms;
+
+  /* Accent: macOS blue unless the webview exposes the system accent (below). */
+  --accent: #007aff;
+  --accent-text: #ffffff;
+
+  /* System colors (light) */
+  --green: #28a745;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --yellow: #e5a800;
+  --purple: #af52de;
+
+  /* Text */
+  --text: rgba(0, 0, 0, 0.85);
+  --text-2: rgba(0, 0, 0, 0.55);
+  --text-3: rgba(0, 0, 0, 0.3);
+
+  /* Surfaces */
+  --bg-window: #ffffff;
+  --bg-content: #ffffff;
+  --bg-inspector: #fbfbfb;
+  --bg-sidebar: transparent; /* vibrancy shows through on Mac */
+  --bg-sidebar-fallback: #e9e9eb;
+  --bg-elevated: #ffffff;
+  --bg-control: #ffffff;
+  --bg-control-pressed: #f0f0f0;
+  --bg-field: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.045);
+  --bg-subtle: rgba(0, 0, 0, 0.035);
+  --bg-selected: rgba(0, 0, 0, 0.075);
+  --sidebar-selection: rgba(0, 0, 0, 0.09);
+  --separator: rgba(0, 0, 0, 0.1);
+  --border-control: rgba(0, 0, 0, 0.13);
+  --shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+  --shadow-popover: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 30px rgba(0, 0, 0, 0.16);
+  --shadow-sheet: 0 0 0 0.5px rgba(0, 0, 0, 0.15), 0 22px 70px rgba(0, 0, 0, 0.3);
+  --shadow-board: 0 1px 2px rgba(0, 0, 0, 0.12), 0 8px 28px rgba(0, 0, 0, 0.14);
+  --scrim: rgba(0, 0, 0, 0.18);
+
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+
+  /* Board themes (overridden by .board-theme-* classes in board.css) */
+  --sq-light: #f0d9b5;
+  --sq-dark: #b58863;
+}
+
+/* Use the macOS accent color when WebKit exposes it. */
+/* Text on accent backgrounds stays white: WebKit's AccentColorText can be black. */
+@supports (color: AccentColor) {
+  :root[data-platform="mac"] {
+    --accent: AccentColor;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #0a84ff;
+    --green: #32d74b;
+    --red: #ff453a;
+    --orange: #ff9f0a;
+    --yellow: #ffd60a;
+    --purple: #bf5af2;
+
+    --text: rgba(255, 255, 255, 0.88);
+    --text-2: rgba(255, 255, 255, 0.55);
+    --text-3: rgba(255, 255, 255, 0.28);
+
+    --bg-window: #1e1e1e;
+    --bg-content: #1e1e1e;
+    --bg-inspector: #232323;
+    --bg-sidebar-fallback: #2b2b2d;
+    --bg-elevated: #2c2c2e;
+    --bg-control: #3a3a3c;
+    --bg-control-pressed: #4a4a4c;
+    --bg-field: rgba(255, 255, 255, 0.06);
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --bg-subtle: rgba(255, 255, 255, 0.04);
+    --bg-selected: rgba(255, 255, 255, 0.1);
+    --sidebar-selection: rgba(255, 255, 255, 0.12);
+    --separator: rgba(255, 255, 255, 0.1);
+    --border-control: rgba(255, 255, 255, 0.12);
+    --shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+    --shadow-popover: 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 22px 70px rgba(0, 0, 0, 0.6);
+    --shadow-board: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+    --scrim: rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Windows 11: Segoe UI Variable, smaller radii, Windows accent, Mica sidebar. */
+:root[data-platform="windows"] {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, monospace;
+  --fs-body: 14px;
+  --fs-small: 12px;
+  --fs-medium: 13px;
+  --radius-xs: 3px;
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 8px;
+  --toolbar-h: 48px;
+  --traffic-lights-w: 0px;
+  --accent: #005fb8;
+  --bg-sidebar-fallback: #f3f3f3;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-platform="windows"] {
+    --accent: #60cdff;
+    --accent-text: #000000;
+    --bg-sidebar-fallback: #202020;
+  }
+}
+
+/* No vibrancy/Mica (browser mock mode, or Windows 10): paint the sidebar. */
+:root[data-vibrancy="off"] {
+  --bg-sidebar: var(--bg-sidebar-fallback);
+}

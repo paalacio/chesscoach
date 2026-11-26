@@ -27,3 +27,6 @@ pnpm-debug.log*
 .idea
 .DS_Store
 *.sw?
+
+# Screenshots from `pnpm screenshots` (regenerated each phase)
+screenshots/

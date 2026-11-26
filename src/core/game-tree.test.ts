@@ -35,6 +35,13 @@ describe("chess helpers", () => {
     expect(playUci(START_FEN, "e2e5")).toBeNull();
   });
 
+  it("writes castling the standard way whichever form the board sends", () => {
+    const fen = "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4";
+    expect(playUci(fen, "e1h1")).toEqual(playUci(fen, "e1g1"));
+    expect(playUci(fen, "e1h1")?.uci).toBe("e1g1");
+    expect(playUci(fen, "e1h1")?.san).toBe("O-O");
+  });
+
   it("formats move numbers for both sides", () => {
     expect(formatMoves(START_FEN, ["e4", "e5", "Nf3"])).toBe("1.e4 e5 2.Nf3");
     const afterE4 = playUci(START_FEN, "e2e4")!.fen;

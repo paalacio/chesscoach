@@ -4,6 +4,7 @@
 pub mod chesscom;
 pub mod claude;
 mod commands;
+mod menu;
 pub mod db;
 pub mod engine;
 pub mod settings;
@@ -65,8 +66,10 @@ pub fn run() {
         .setup(|app| {
             let state = init_state(app)?;
             app.manage(state);
+            app.set_menu(menu::build(app.handle())?)?;
             Ok(())
         })
+        .on_menu_event(|app, event| menu::forward_events(app, event))
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::get_settings,

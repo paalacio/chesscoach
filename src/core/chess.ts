@@ -1,9 +1,9 @@
 // Small helpers around chessops (the chess rules library).
 
-import { Chess } from "chessops/chess";
+import { castlingSide, Chess } from "chessops/chess";
 import { makeFen, parseFen } from "chessops/fen";
 import { makeSan, makeSanAndPlay, parseSan } from "chessops/san";
-import { makeUci, parseUci } from "chessops/util";
+import { kingCastlesTo, makeUci, parseUci } from "chessops/util";
 import type { Color } from "./types";
 
 export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -44,13 +44,22 @@ export function moveNumberOf(fen: string): number {
   return Number(fen.trim().split(/\s+/)[5] ?? 1) || 1;
 }
 
-/** Plays a UCI move. Returns the new FEN and the move in SAN, or null if illegal. */
+/**
+ * Plays a UCI move. Returns the new FEN, the move in SAN and the move in
+ * standard UCI, or null if illegal.
+ *
+ * Castling can be written two ways: king two squares ("e1g1", what Stockfish
+ * uses) or king onto rook ("e1h1", what the board sends). We always return the
+ * first form, so the same move always gets the same id in the move tree.
+ */
 export function playUci(fen: string, uci: string): { fen: string; san: string; uci: string } | null {
   const pos = positionFromFen(fen);
   const move = parseUci(uci);
   if (!move || !pos.isLegal(move)) return null;
+  const side = castlingSide(pos, move);
+  const standard = side && "from" in move ? { ...move, to: kingCastlesTo(pos.turn, side) } : move;
   const san = makeSanAndPlay(pos, move);
-  return { fen: fenOf(pos), san, uci: makeUci(move) };
+  return { fen: fenOf(pos), san, uci: makeUci(standard) };
 }
 
 /** Converts a sequence of UCI moves into SAN, stopping at the first illegal one. */

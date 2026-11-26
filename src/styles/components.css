@@ -1,0 +1,475 @@
+/* In-house controls styled like AppKit (and close to WinUI on Windows). */
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--bg-control);
+  box-shadow: var(--shadow-control);
+  font-size: var(--fs-body);
+  font-weight: 450;
+  white-space: nowrap;
+  transition:
+    background var(--dur-fast) var(--ease),
+    opacity var(--dur-fast) var(--ease);
+}
+.btn:active:not(:disabled) {
+  background: var(--bg-control-pressed);
+}
+.btn:disabled {
+  opacity: 0.45;
+}
+.btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.9;
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.2);
+}
+.btn.primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 85%, black);
+}
+.btn.large {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: var(--radius-m);
+}
+.btn.small {
+  height: 20px;
+  padding: 0 7px;
+  font-size: var(--fs-small);
+}
+
+/* Toolbar icon buttons: borderless until hovered, like macOS toolbars. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 28px;
+  min-width: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--text-2);
+  transition:
+    background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.icon-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.icon-btn:active:not(:disabled) {
+  background: var(--bg-selected);
+}
+.icon-btn[aria-pressed="true"] {
+  color: var(--accent);
+}
+.icon-btn:disabled {
+  opacity: 0.35;
+}
+.icon-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.7;
+}
+.icon-btn .label {
+  font-size: var(--fs-medium);
+}
+
+.link-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: inherit;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Segmented control ---------- */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 0 0 0.5px var(--border-control);
+}
+.segmented button {
+  height: 20px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: calc(var(--radius-s) - 2px);
+  background: transparent;
+  font-size: var(--fs-medium);
+  color: var(--text);
+  transition: background var(--dur-fast) var(--ease);
+}
+.segmented button[data-state="on"] {
+  background: var(--bg-control);
+  box-shadow: var(--shadow-control);
+  font-weight: 500;
+}
+.segmented button:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Switch ---------- */
+.switch {
+  position: relative;
+  width: 26px;
+  height: 15px;
+  flex: none;
+  border: 0;
+  padding: 0;
+  border-radius: 8px;
+  background: var(--text-3);
+  transition: background var(--dur) var(--ease);
+}
+.switch[data-state="checked"] {
+  background: var(--accent);
+}
+.switch .thumb {
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0.5px 1.5px rgba(0, 0, 0, 0.35);
+  transition: transform var(--dur) var(--ease-out);
+}
+.switch[data-state="checked"] .thumb {
+  transform: translateX(11px);
+}
+.switch:disabled {
+  opacity: 0.4;
+}
+
+/* ---------- Fields ---------- */
+.field {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 6px 14px;
+  margin-bottom: 10px;
+}
+.field > label {
+  text-align: right;
+  color: var(--text);
+}
+.field .hint {
+  grid-column: 2;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  margin-top: -2px;
+}
+.text-input,
+.text-area,
+.select {
+  height: 22px;
+  width: 100%;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--bg-field);
+  box-shadow: inset 0 0 0 0.5px var(--border-control), 0 0.5px 0 rgba(0, 0, 0, 0.03);
+  font-size: var(--fs-body);
+}
+.text-area {
+  height: auto;
+  min-height: 140px;
+  padding: 6px 8px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: var(--fs-medium);
+  line-height: 1.45;
+}
+.text-input:focus,
+.text-area:focus,
+.select:focus {
+  box-shadow: inset 0 0 0 0.5px var(--accent), var(--focus-ring);
+}
+.select {
+  appearance: auto;
+  padding: 0 4px;
+}
+
+/* Search field: rounded with a magnifier */
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-field svg {
+  position: absolute;
+  left: 7px;
+  width: 13px;
+  height: 13px;
+  color: var(--text-2);
+}
+.search-field input {
+  height: 24px;
+  width: 100%;
+  padding: 0 8px 0 25px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 0 0 0.5px var(--border-control);
+}
+
+/* ---------- Sheets (macOS-style, slide from the top of the window) ---------- */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  animation: fade-in var(--dur) var(--ease);
+  z-index: 50;
+}
+.sheet {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--toolbar-h) + 8px);
+  width: min(560px, calc(100vw - 48px));
+  max-height: calc(100vh - var(--toolbar-h) - 32px);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-50%);
+  border-radius: var(--radius-l);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sheet);
+  animation: sheet-in var(--dur-slow) var(--ease-out);
+  z-index: 51;
+}
+.sheet.wide {
+  width: min(680px, calc(100vw - 48px));
+}
+.sheet-body {
+  padding: 18px 20px 8px;
+  overflow-y: auto;
+}
+.sheet h2 {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sheet .sheet-desc {
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+.sheet-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+}
+.sheet-section-title {
+  font-weight: 600;
+  margin: 16px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid var(--separator);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Popover ---------- */
+.popover {
+  z-index: 60;
+  min-width: 180px;
+  padding: 10px 12px;
+  border-radius: var(--radius-m);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-popover);
+  animation: fade-in var(--dur-fast) var(--ease);
+}
+
+/* Context menu stand-in for the browser mock (the real app uses native menus). */
+.mock-context-menu {
+  position: fixed;
+  z-index: 100;
+  min-width: 180px;
+  padding: 5px;
+  border-radius: var(--radius-m);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-popover);
+}
+.mock-context-menu button {
+  display: block;
+  width: 100%;
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  text-align: left;
+}
+.mock-context-menu button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.mock-context-menu button:disabled {
+  color: var(--text-3);
+}
+.mock-context-menu hr {
+  border: 0;
+  border-top: 0.5px solid var(--separator);
+  margin: 4px 8px;
+}
+
+/* ---------- Small things ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--bg-selected);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.badge.accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  box-shadow: inset 0 0 0 0.5px var(--border-control);
+  font-size: 10px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--text-2) 30%, transparent);
+  border-top-color: var(--text-2);
+  animation: spin 0.8s linear infinite;
+}
+.spinner.small {
+  width: 11px;
+  height: 11px;
+  border-width: 1.5px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--bg-subtle), var(--bg-selected), var(--bg-subtle));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.status-dot.ok {
+  background: var(--green);
+}
+.status-dot.warning {
+  background: var(--orange);
+}
+.status-dot.error {
+  background: var(--red);
+}
+.status-dot.info {
+  background: var(--text-3);
+}
+
+.callout {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+  font-size: var(--fs-medium);
+  color: var(--text-2);
+}
+.callout svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin-top: 2px;
+}
+.callout.error {
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: var(--text);
+}
+.callout.error svg {
+  color: var(--red);
+}
+.callout.warning svg {
+  color: var(--orange);
+}
+
+/* Grouped list (like System Settings) */
+.group {
+  border-radius: var(--radius-m);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 0.5px var(--separator), 0 0.5px 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+.group-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+}
+.group-row + .group-row {
+  border-top: 0.5px solid var(--separator);
+}

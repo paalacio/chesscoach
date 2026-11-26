@@ -1,0 +1,237 @@
+/* App shell: translucent sidebar | toolbar + page (+ inspector). */
+
+.app {
+  display: flex;
+  height: 100%;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: var(--sidebar-w);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sidebar);
+  border-right: 0.5px solid var(--separator);
+}
+
+/* The strip where the traffic lights sit (Mac) is draggable. */
+.sidebar-top {
+  height: var(--toolbar-h);
+  flex: none;
+}
+
+:root[data-platform="windows"] .sidebar-top {
+  height: 12px;
+}
+
+.sidebar-section {
+  padding: 4px 10px;
+}
+
+.sidebar-heading {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 10px 8px 4px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  text-align: left;
+  font-size: var(--fs-body);
+  color: var(--text);
+  transition: background var(--dur-fast) var(--ease);
+}
+.sidebar-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+  flex: none;
+  stroke-width: 1.8;
+}
+.sidebar-item:hover {
+  background: var(--bg-hover);
+}
+.sidebar-item[aria-current="page"] {
+  background: var(--sidebar-selection);
+  font-weight: 500;
+}
+.sidebar-item .badge {
+  margin-left: auto;
+}
+.sidebar-item .soon {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calls-counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.calls-counter svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ---------- Main column ---------- */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-content);
+}
+
+.toolbar {
+  height: var(--toolbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 0 18px;
+  border-bottom: 0.5px solid var(--separator);
+  background: var(--bg-content);
+}
+.toolbar-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.toolbar-title h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.toolbar-title .subtitle {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toolbar-spacer {
+  flex: 1;
+}
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.page-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 28px 32px 40px;
+}
+
+.page-narrow {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ---------- Inspector (right panel) ---------- */
+.inspector {
+  width: var(--inspector-w);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 0.5px solid var(--separator);
+  background: var(--bg-inspector);
+  transition:
+    width var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+.inspector[data-open="false"] {
+  width: 0;
+  opacity: 0;
+  border-left: 0;
+  overflow: hidden;
+}
+.inspector-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.panel {
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--separator);
+}
+.panel:last-child {
+  border-bottom: 0;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  margin-bottom: 8px;
+}
+.panel-title {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+.panel-header .right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Placeholder pages */
+.empty-state {
+  margin: auto;
+  max-width: 360px;
+  text-align: center;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+}
+.empty-state svg {
+  width: 40px;
+  height: 40px;
+  color: var(--text-3);
+  stroke-width: 1.4;
+}
+.empty-state h2 {
+  font-size: var(--fs-title);
+  color: var(--text);
+  font-weight: 600;
+}
