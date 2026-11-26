@@ -76,6 +76,7 @@ const DEFAULT_SETTINGS: Settings = {
   repDepth: 12,
   newCardsPerDay: 10,
   dailyGoal: 20,
+  liquidGlass: false,
 };
 
 const SETTINGS_KEY = "chesscoach.mock.settings";
@@ -191,6 +192,10 @@ function domContextMenu(items: ContextMenuItem[]): Promise<string | null> {
     menu.style.left = `${x}px`;
     menu.style.top = `${y}px`;
     document.body.appendChild(menu);
+    // Keep it inside the window (native menus do this by themselves).
+    const box = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(4, Math.min(x, innerWidth - box.width - 4))}px`;
+    menu.style.top = `${Math.max(4, Math.min(y, innerHeight - box.height - 4))}px`;
     const onDown = (e: MouseEvent) => !menu.contains(e.target as Node) && done(null);
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && done(null);
     setTimeout(() => {

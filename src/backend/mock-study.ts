@@ -17,6 +17,7 @@ import { answerCard, type StoredCard, type StoredReview } from "../core/srs";
 import { repertoireCards, type MistakeInfo } from "../core/trainer";
 import type { Color } from "../core/types";
 import explorerFixture from "./fixtures/explorer.json";
+import claudeFixtures from "./fixtures/claude.json";
 import gamesFixture from "./fixtures/games.json";
 import type { ExplorerResult, RepertoireData, RepertoireInfo, ReviewDay, SrsData } from "./types";
 import { BackendError } from "./types";
@@ -288,6 +289,16 @@ export function mockStudy() {
       const fresh = (data.reviews ?? []).filter((r) => !reviews.some((x) => x.cardId === r.cardId && x.reviewedAt === r.reviewedAt && x.rating === r.rating));
       reviews.push(...fresh);
       return { cards: n, reviews: fresh.length };
+    },
+    async conceptCounts() {
+      if (emptyMode) return [];
+      // From the real recorded Claude review of the first mock game, plus made-up counts for the others.
+      const review = (claudeFixtures as unknown as { gameReview?: { answer?: { lessons?: { concept?: string }[]; concepts?: string[] } } }).gameReview?.answer;
+      const tags = new Map<string, number>();
+      for (const l of review?.lessons ?? []) if (l.concept) tags.set(l.concept, (tags.get(l.concept) ?? 0) + 1);
+      for (const c of review?.concepts ?? []) tags.set(c, (tags.get(c) ?? 0) + 1);
+      for (const [t, n] of [["tactics", 3], ["development", 2], ["king-safety", 2], ["hanging-piece", 2], ["pawn-structure", 1]] as const) tags.set(t, (tags.get(t) ?? 0) + n);
+      return [...tags.entries()].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count);
     },
     async mistakeCards() {
       return emptyMode ? [] : mistakes;

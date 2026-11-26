@@ -78,6 +78,26 @@ fn init_state(app: &tauri::App) -> Result<AppState, Box<dyn std::error::Error>> 
     })
 }
 
+/// The window's background effect on macOS: the sidebar material, with Liquid Glass in
+/// front of it when turned on in Settings. Tauri uses the first effect the system
+/// supports, so older macOS versions keep the sidebar material.
+pub fn apply_window_effects(app: &tauri::AppHandle, liquid_glass: bool) {
+    #[cfg(target_os = "macos")]
+    if let Some(window) = app.get_webview_window("main") {
+        use tauri::window::{Effect, EffectState, EffectsBuilder};
+        let mut effects = EffectsBuilder::new();
+        if liquid_glass {
+            effects = effects.effect(Effect::LiquidGlassRegular);
+        }
+        let config = effects.effect(Effect::Sidebar).state(EffectState::FollowsWindowActiveState).build();
+        if let Err(e) = window.set_effects(config) {
+            eprintln!("Could not set the window effect: {e}");
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, liquid_glass);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
@@ -88,10 +108,16 @@ pub fn run() {
         .setup(|app| {
             let state = init_state(app)?;
             let review = state.review.clone();
-            let language = state.settings.lock().unwrap().language.clone();
+            let (language, liquid_glass) = {
+                let s = state.settings.lock().unwrap();
+                (s.language.clone(), s.liquid_glass)
+            };
             app.manage(state);
             review.spawn(app.handle().clone());
             app.set_menu(menu::build(app.handle(), &language)?)?;
+            if liquid_glass {
+                apply_window_effects(app.handle(), true);
+            }
             Ok(())
         })
         .on_menu_event(|app, event| menu::forward_events(app, event))
@@ -133,6 +159,7 @@ pub fn run() {
             commands::srs_export,
             commands::srs_import,
             commands::mistake_cards,
+            commands::concept_counts,
             commands::recent_game_moves,
             commands::file_save_text,
             commands::file_open_text,

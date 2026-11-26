@@ -49,6 +49,13 @@ export function SettingsSheet() {
         <Segmented<Lang> label={t("settings.language")} value={langOf(draft.language)} onChange={(v) => set("language", v)} options={LANGUAGES} />
         <p className="hint">{t("settings.languageHint")}</p>
       </div>
+      {backend.platform === "mac" && (
+        <div className="field">
+          <label>{t("settings.liquidGlass")}</label>
+          <Switch checked={draft.liquidGlass} onChange={(v) => set("liquidGlass", v)} label={t("settings.liquidGlass")} />
+          <p className="hint">{t("settings.liquidGlassHint")}</p>
+        </div>
+      )}
 
       <div className="sheet-section-title">Chess.com</div>
       <div className="field">

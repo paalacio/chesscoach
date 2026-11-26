@@ -11,7 +11,7 @@ import { installShortcuts, runAction } from "./ui/actions";
 import { AnalysisPage } from "./ui/analysis/AnalysisPage";
 import { GamesPage } from "./ui/games/GamesPage";
 import { ReviewPage } from "./ui/games/ReviewPage";
-import { PlaceholderPage } from "./ui/pages/OtherPages";
+import { InsightsPage } from "./ui/pages/InsightsPage";
 import { CourseImportSheet } from "./ui/repertoire/CourseImport";
 import { RepertoireWizard } from "./ui/repertoire/RepertoireWizard";
 import { TrainerPage } from "./ui/train/TrainerPage";
@@ -70,7 +70,7 @@ export default function App() {
           {page === "setup" && <SetupPage />}
           {page === "games" && <GamesPage />}
           {page === "review" && <ReviewPage />}
-          {page === "insights" && <PlaceholderPage page={page} />}
+          {page === "insights" && <InsightsPage />}
         </div>
       </main>
       <SettingsSheet />

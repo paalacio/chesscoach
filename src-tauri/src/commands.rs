@@ -96,6 +96,9 @@ pub async fn save_settings(app: AppHandle, state: State<'_, AppState>, settings:
         let menu = crate::menu::build(&app, &settings.language).map_err(|e| e.to_string())?;
         app.set_menu(menu).map_err(|e| e.to_string())?;
     }
+    if old.liquid_glass != settings.liquid_glass {
+        crate::apply_window_effects(&app, settings.liquid_glass);
+    }
     if old.auto_analyze != settings.auto_analyze {
         state.review.set_paused(!settings.auto_analyze);
     }
@@ -630,6 +633,20 @@ pub struct ImportCounts {
 pub async fn srs_import(state: State<'_, AppState>, data: SrsData) -> CmdResult<ImportCounts> {
     let (cards, reviews) = study::srs_import(&state.db.lock().unwrap(), &data.cards, &data.reviews)?;
     Ok(ImportCounts { cards, reviews })
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConceptCount {
+    tag: String,
+    count: i64,
+}
+
+/// Claude's concept tags from game reviews, most frequent first (for Insights).
+#[tauri::command]
+pub async fn concept_counts(state: State<'_, AppState>) -> CmdResult<Vec<ConceptCount>> {
+    let counts = study::concept_counts(&state.db.lock().unwrap())?;
+    Ok(counts.into_iter().map(|(tag, count)| ConceptCount { tag, count }).collect())
 }
 
 #[tauri::command]

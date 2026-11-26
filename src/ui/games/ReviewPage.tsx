@@ -2,8 +2,10 @@
 // accuracy per phase, key moments, Claude's review and the moves on the right.
 
 import { AlertTriangle, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-import { useRef } from "react";
-import { moveLabel, positionFromFen, turnOf } from "../../core/chess";
+import { useMemo, useRef } from "react";
+import { epdOf, moveLabel, positionFromFen, turnOf } from "../../core/chess";
+import { deviationOf, type GameLine } from "../../core/repertoire";
+import { useRepertoire } from "../../store/repertoire";
 import type { GameReview, MoveReview } from "../../core/review";
 import { judgementGlyph } from "../../core/review";
 import type { Color, Phase } from "../../core/types";
@@ -190,7 +192,51 @@ function GameHeader() {
         </p>
       )}
       {open.review?.leftBook && <LeftBook review={open.review} />}
+      <RepertoireLine />
     </section>
+  );
+}
+
+/** Where the game left your repertoire (the one for your colour it followed longest). */
+function RepertoireLine() {
+  const t = useT();
+  const open = useGames((s) => s.open);
+  const goto = useGames((s) => s.goto);
+  const reps = useRepertoire((s) => s.reps);
+  const d = useMemo(() => {
+    if (!open) return null;
+    const line: GameLine = {
+      gameId: open.detail.id,
+      url: open.detail.url,
+      myColor: open.detail.myColor,
+      opponent: "",
+      myResult: open.detail.myResult,
+      endTime: open.detail.endTime,
+      moves: open.moves.slice(0, 60).map((m) => ({ ply: m.ply, epd: epdOf(m.fenBefore), uci: m.uci, san: m.san })),
+    };
+    return deviationOf(Object.values(reps), line);
+  }, [open, reps]);
+  if (!d) return null;
+  const rep = reps[d.repertoireId];
+  const move = (san: string) => (
+    <button type="button" className="link-btn" onClick={() => goto(d.ply)}>
+      {moveLabel(d.fen, san)}
+    </button>
+  );
+  return (
+    <p className="small secondary left-book">
+      {d.kind === "mine" && d.played && d.expected ? (
+        <>
+          {t("review.repYou", { name: rep?.name ?? "" })} {move(d.played.san)} {t("review.repYours", { move: d.expected.san })}
+        </>
+      ) : d.kind === "opponent" && d.played ? (
+        <>
+          {t("review.repOpponent", { name: rep?.name ?? "" })} {move(d.played.san)}
+        </>
+      ) : (
+        t("review.repEnd", { name: rep?.name ?? "", n: Math.floor((d.ply + 1) / 2) })
+      )}
+    </p>
   );
 }
 
@@ -204,8 +250,7 @@ function LeftBook({ review }: { review: GameReview }) {
       {lb.byMe ? t("review.leftBookYou") : t("review.leftBookOpponent")}{" "}
       <button type="button" className="link-btn" onClick={() => goto(lb.index + 1)}>
         {moveLabel(m.fenBefore, m.san)}
-      </button>{" "}
-      <span className="faint">{t("review.repertoireLater")}</span>
+      </button>
     </p>
   );
 }

@@ -97,8 +97,8 @@ interface RepertoireState {
   useMyMove(fen: string, uci: string): Promise<void>;
   addOpponentMove(fen: string, uci: string): Promise<void>;
   removeMoveAt(epd: string, uci: string): Promise<void>;
-  /** Adds the moves on the analysis board (from the start) to the selected repertoire. */
-  addBoardLine(): Promise<void>;
+  /** Adds the moves on the analysis board (from the start) to a repertoire (default: the selected one). */
+  addBoardLine(repId?: number): Promise<void>;
   setNote(epd: string, note: string): Promise<void>;
   /** Builds (or extends) a repertoire automatically. */
   runBuild(id: number, seeds: string[][], from?: { fen: string; ply: number; reach: number }): Promise<void>;
@@ -324,8 +324,8 @@ export const useRepertoire = create<RepertoireState>((set, get) => {
       if (rep) await get().setMoves(rep.id, removeMove(rep, epd, uci));
     },
 
-    async addBoardLine() {
-      const rep = current();
+    async addBoardLine(repId) {
+      const rep = repId != null ? (get().reps[repId] ?? null) : current();
       if (!rep) return;
       const a = useAnalysis.getState();
       const path = treePath(a.tree, a.current);

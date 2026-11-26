@@ -1,5 +1,61 @@
 # Progress log
 
+## Phase 5 (26 Nov 2026): insights, polish, release
+
+**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **The release isn't
+made yet:** it needs your go-ahead (see "Release" below). Not tried in the real window: the Liquid Glass
+setting.
+
+### What's new
+- **Insights** (sidebar):
+  - your numbers at a glance: games, score, accuracy, and accuracy per phase;
+  - **openings to fix next**: openings you play at least 3 times that score under 50%, or where your
+    accuracy in the opening or your mistakes per game are clearly worse than usual, most urgent first,
+    with "See the games";
+  - **results by opening**, as White and as Black (wins/draws/losses, score, accuracy);
+  - **accuracy per phase over time**: a line per phase, averaged over your last few games, with a hover
+    tooltip and a "Show the numbers" table;
+  - **your most common mistake themes**, from Claude's game reviews (each game counted once).
+  
+  Games analysed before this phase get their summary updated once, in the background, when Insights opens.
+- **Leftovers from Phase 4:**
+  - right-click a move → "Add the line to ‹repertoire›";
+  - rename a repertoire;
+  - the game review says where the game left your repertoire.
+- **Polish:** a **Liquid Glass** switch in Settings → General (macOS 26+, off by default; older macOS keeps
+  the normal translucent sidebar). Window titles fixed for the new name (the Mac and Windows window settings
+  still said ChessCoach).
+- **README.md** for your friend: install on Mac/Windows, getting past the "unknown app" warnings, installing
+  and logging into Claude Code, Settings. In English and Portuguese.
+- **Release workflow:** pushing a tag like `v1.0.0` makes CI build both installers and attach them to a
+  **draft** GitHub release, which stays private until it's published. The version is now **1.0.0**.
+
+### How it was checked
+- Tests: Rust 62, Vitest 102, Playwright 60 (30 tests × WebKit/Chromium). All pass.
+- Screenshots: `screenshots/phase-5/` (Insights in English and Portuguese, light and dark, Mac and
+  Windows look; the review's repertoire line; the Liquid Glass setting).
+
+### Decisions (and why)
+- Charts are small in-house SVG components (like the eval graph), no chart library: three lines and some
+  bars don't need one. Colours: the first three slots of a palette checked for colour blindness, with
+  labels at the line ends and a table, so colour is never the only cue.
+- Opening families merge Chess.com's spelling ("Ruy Lopez Opening", "Kings Indian Defense") with the
+  opening list's ("Ruy Lopez", "King's Indian Defense").
+- The release is a **draft**: you check it on GitHub and press Publish.
+
+### Release
+When you're happy with the app (`pnpm tauri dev`, or the built app), I push the tag `v1.0.0`. About 20
+minutes later the draft release, with the Mac `.dmg` and the Windows installer, is ready on GitHub to publish.
+
+### Click-through checklist (Phase 5, real app)
+- [ ] Insights: after a Chess.com sync, check the numbers, hover the chart, try As White / As Black,
+      "See the games".
+- [ ] Settings → General → Liquid Glass on, then Save. The sidebar should change. Switch it off again if
+      it looks wrong.
+- [ ] Right-click a move on the analysis board → "Add the line to …"; Repertoire → Rename….
+- [ ] Open a reviewed game: the line under the opening says where it left your repertoire.
+- [ ] Read README.md as your friend would.
+
 ## Phase 4 addition (26 Nov 2026): course / book / study import, and the new name
 
 **Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows

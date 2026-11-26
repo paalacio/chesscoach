@@ -43,6 +43,8 @@ export interface Settings {
   /** Trainer: new moves per day, and the daily goal (cards). */
   newCardsPerDay: number;
   dailyGoal: number;
+  /** macOS 26+: Liquid Glass behind the sidebar. */
+  liquidGlass: boolean;
 }
 
 export interface AppInfo {
@@ -315,6 +317,8 @@ export interface Backend {
   srsReviewDays(): Promise<ReviewDay[]>;
   srsExport(): Promise<SrsData>;
   srsImport(data: SrsData): Promise<{ cards: number; reviews: number }>;
+  /** Claude's concept tags from its game reviews, most frequent first (Insights). */
+  conceptCounts(): Promise<{ tag: string; count: number }[]>;
   /** "Find the better move" cards from reviewed games. */
   mistakeCards(): Promise<MistakeInfo[]>;
   /** The first moves of the most recent games (for the repertoire report). */

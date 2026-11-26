@@ -464,6 +464,41 @@ pub fn recent_game_moves(conn: &Connection, limit: i64, max_ply: i64) -> rusqlit
     Ok(games)
 }
 
+// ---------- insights ----------
+
+/// How often each of Claude's concept tags comes up in its game reviews (each game
+/// counted once, even if it was reviewed in two languages), most frequent first.
+pub fn concept_counts(conn: &Connection) -> rusqlite::Result<Vec<(String, i64)>> {
+    let rows: Vec<(String, String)> = conn
+        .prepare("SELECT fen, response_json FROM claude_cache WHERE kind = 'gameReview' ORDER BY created_at")?
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
+        .collect::<rusqlite::Result<_>>()?;
+    // The latest review of each game (the cache "fen" of a game review is "game:<url>").
+    let mut latest: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    for (game, json) in rows {
+        latest.insert(game, json);
+    }
+    let mut counts: std::collections::HashMap<String, i64> = std::collections::HashMap::new();
+    for json in latest.values() {
+        let Ok(v) = serde_json::from_str::<Value>(json) else { continue };
+        let mut tags: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        for lesson in v["lessons"].as_array().into_iter().flatten() {
+            if let Some(t) = lesson["concept"].as_str() {
+                tags.insert(t.to_string());
+            }
+        }
+        for t in v["concepts"].as_array().into_iter().flatten().filter_map(Value::as_str) {
+            tags.insert(t.to_string());
+        }
+        for t in tags {
+            *counts.entry(t).or_default() += 1;
+        }
+    }
+    let mut out: Vec<(String, i64)> = counts.into_iter().collect();
+    out.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+    Ok(out)
+}
+
 // ---------- backup and restore ----------
 
 /// Writes a complete, compact copy of the database to `path` (replacing the file).
@@ -646,6 +681,25 @@ mod tests {
         assert_eq!(g.len(), 1);
         assert_eq!(g[0].moves.iter().map(|m| m.san.as_str()).collect::<Vec<_>>(), ["e4", "e5", "Nf3", "Nc6"]);
         assert_eq!(g[0].opponent, "them");
+    }
+
+    #[test]
+    fn concept_counts_count_each_game_once() {
+        let conn = db::open_in_memory().unwrap();
+        let put = |key: &str, fen: &str, json: &str| {
+            db::cache_put(
+                &conn,
+                &db::CacheEntry { key, kind: "gameReview", fen, move_played: None, model: "sonnet", prompt_version: 1, response_json: json },
+            )
+            .unwrap();
+        };
+        let review = r#"{"lessons":[{"concept":"tactics"},{"concept":"development"}],"concepts":["tactics","center"]}"#;
+        put("a-en", "game:a", review);
+        put("a-pt", "game:a", review); // the same game in Portuguese: still one game
+        put("b", "game:b", r#"{"lessons":[{"concept":"tactics"}],"concepts":[]}"#);
+        let counts = concept_counts(&conn).unwrap();
+        assert_eq!(counts[0], ("tactics".to_string(), 2));
+        assert!(counts.contains(&("center".to_string(), 1)));
     }
 
     #[test]

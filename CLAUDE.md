@@ -31,6 +31,8 @@ Rust from Homebrew's `rustup` is keg-only. If `cargo` isn't found, run:
 | Phase 2 screenshots | `SCREENSHOT_PHASE=phase-2 pnpm exec playwright test e2e/screenshots-phase2.spec.ts` |
 | Phase 3 screenshots | `pnpm exec playwright test e2e/screenshots-phase3.spec.ts` → `screenshots/phase-3/` |
 | Phase 4 screenshots | `pnpm exec playwright test e2e/screenshots-phase4.spec.ts` → `screenshots/phase-4/` |
+| Phase 5 screenshots | `pnpm exec playwright test e2e/screenshots-phase5.spec.ts` → `screenshots/phase-5/` |
+| Release | bump `version` in package.json, tauri.conf.json, Cargo.toml; push a tag `vX.Y.Z` → CI makes a **draft** release with both installers; publish it on GitHub |
 | Re-record the Lichess masters fixture (real network, no token, ~220 requests) | `node scripts/record-explorer-fixture.mjs` |
 
 CI: `.github/workflows/build.yml` runs all tests on macOS, then builds macOS (Apple Silicon) and Windows
@@ -60,6 +62,8 @@ src/                      React + TS frontend
     repertoire-proposal.ts wizard slots, the Claude proposal prompt, checking Claude's lines (legal, in the slot)
     course.ts             course / book / study import: annotated PGN -> repertoire moves + author's notes
                           (CourseAnnotation per move), side lines, FEN chapters; notes for Claude's packet
+    insights.ts           Insights: results by opening family (Chess.com + list spellings merged), accuracy
+                          trend per phase (rolling), openings to fix, Claude concept tags
     srs.ts                ts-fsrs 6 wrapper (FSRS-7 pinned; dates revived from JSON), streak, training file format
     trainer.ts            trainer cards (repertoire + mistakes), due/new counts, lessons ("learn new lines")
   backend/                One `Backend` interface: tauri.ts (real, invoke/listen) and mock.ts (fixtures)
@@ -142,6 +146,9 @@ builds cards from repertoires (`rep:<id>:<epd>`) and mistakes (`mistake:<id>`); 
 - Files (exports, imports, backups) go through Rust commands that show the native dialog themselves
   (`file_save_text`, `file_open_text`, `db_backup`, `db_restore`); the web page never handles paths.
 - Data formats that leave the app are documented in `docs/data-formats.md`; change both together.
+- Game summaries carry `version` (`SUMMARY_VERSION` in core/review.ts); older ones are recomputed from the
+  stored analysis when Insights opens. Bump it when the summary gains fields.
+- README.md is for end users (install, Claude login, unsigned-app warnings), in English and Portuguese.
 - Imported courses / books / studies live only in the app-data database (`courses`, `course_annotations`).
   Never add a real course PGN to the repo, fixtures or the bundle (`*.pgn` is gitignored; tests use
   self-written samples). Course notes go into Claude's packet as AUTHOR'S NOTES, and `AskRequest.variant`

@@ -232,7 +232,13 @@ export interface ReviewSummary {
   blunders: number;
   openingEco: string | null;
   openingName: string | null;
+  /** Your accuracy per phase (added in version 2, for Insights). */
+  phases?: Record<Phase, number | null>;
+  /** 2 = has `phases`. Older summaries are recomputed from the stored analysis. */
+  version?: number;
 }
+
+export const SUMMARY_VERSION = 2;
 
 export function summarize(review: GameReview, myColor: Color): ReviewSummary {
   const opp: Color = myColor === "white" ? "black" : "white";
@@ -245,6 +251,12 @@ export function summarize(review: GameReview, myColor: Color): ReviewSummary {
     blunders: c.blunder,
     openingEco: review.opening?.eco ?? null,
     openingName: review.opening?.name ?? null,
+    phases: {
+      opening: review.accuracy[myColor].opening,
+      middlegame: review.accuracy[myColor].middlegame,
+      endgame: review.accuracy[myColor].endgame,
+    },
+    version: SUMMARY_VERSION,
   };
 }
 

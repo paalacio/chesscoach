@@ -1,11 +1,13 @@
 # Tests on every push/PR, then builds the app for macOS (Apple Silicon) and
 # Windows and uploads the installers as workflow artifacts (Actions tab → run →
-# Artifacts). Phase 5 adds publishing a GitHub release on version tags.
+# Artifacts). A version tag (v1.0.0, ...) also attaches them to a *draft* GitHub
+# release, which stays private until it's published on GitHub.
 name: Build
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
     paths-ignore: ["**.md"] # notes-only changes don't need a 25-minute build
   pull_request:
     paths-ignore: ["**.md"]
@@ -52,6 +54,8 @@ jobs:
 
   build:
     needs: test
+    permissions:
+      contents: write # to create the draft release on version tags
     strategy:
       fail-fast: false
       matrix:
@@ -85,6 +89,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }}
-          # No tagName/releaseId: build only, no GitHub release yet.
+          # On a version tag: a draft release with the installers. Otherwise: build only.
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: "Tung Tung Chessahur ${{ github.ref_name }}"
+          releaseBody: "Installers for macOS (Apple Silicon) and Windows. How to install and set up: see the README."
+          releaseDraft: true
+          prerelease: false
           uploadWorkflowArtifacts: true
           workflowArtifactNamePattern: "TungTungChessahur-[platform]-[arch]-[bundle]"

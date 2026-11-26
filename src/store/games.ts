@@ -19,7 +19,7 @@ import {
   type WorkerStatus,
 } from "../backend";
 import { buildGameReviewPrompt, type CheckedGameReview, checkGameReview, type GameReviewPacket } from "../core/game-review-packet";
-import { type GameMove, type GameReview, movesFromPgn, reviewGame, summarize, trainingCards } from "../core/review";
+import { type GameMove, type GameReview, movesFromPgn, reviewGame, summarize, trainingCards, SUMMARY_VERSION } from "../core/review";
 import type { Color } from "../core/types";
 import { currentLang } from "../i18n";
 
@@ -65,6 +65,10 @@ interface GamesState {
 
   init(): Promise<void>;
   reload(): Promise<void>;
+  /** Analysed games whose summary is missing or old: being updated (for Insights). */
+  upgrading: { done: number; total: number } | null;
+  /** Recomputes old summaries from the stored analysis (once; quick, no engine). */
+  upgradeSummaries(): Promise<void>;
   setFilter(f: Partial<GamesState["filter"]>): void;
   sync(): Promise<void>;
   setPaused(paused: boolean): Promise<void>;
@@ -85,7 +89,8 @@ async function reviewAndSave(detail: GameDetail): Promise<{ startFen: string; mo
   const { startFen, moves } = movesFromPgn(detail.pgn);
   if (!detail.analysis) return { startFen, moves, review: null };
   const review = reviewGame(startFen, moves, detail.analysis, detail.myColor);
-  if (!detail.reviewSummary) {
+  // Save the summary if there's none yet, or it's from before per-phase accuracy (Insights).
+  if ((detail.reviewSummary?.version ?? 0) < SUMMARY_VERSION) {
     await backend.gameSaveReview(detail.id, summarize(review, detail.myColor), trainingCards(review, detail.myColor));
   }
   return { startFen, moves, review };
@@ -139,6 +144,25 @@ export const useGames = create<GamesState>((set, get) => ({
       }
     });
     backend.reviewStatus().then((w) => set({ worker: w })).catch(() => {});
+    await get().reload();
+  },
+
+  upgrading: null,
+
+  async upgradeSummaries() {
+    if (get().upgrading) return;
+    const old = get().games.filter((g) => g.analysisStatus === "done" && (g.reviewSummary?.version ?? 0) < SUMMARY_VERSION);
+    if (old.length === 0) return;
+    set({ upgrading: { done: 0, total: old.length } });
+    for (const [i, g] of old.entries()) {
+      try {
+        await reviewAndSave(await backend.gameGet(g.id));
+      } catch (e) {
+        console.warn("summary update failed", g.id, e);
+      }
+      set({ upgrading: { done: i + 1, total: old.length } });
+    }
+    set({ upgrading: null });
     await get().reload();
   },
 

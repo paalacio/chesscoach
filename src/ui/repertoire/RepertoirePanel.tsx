@@ -79,6 +79,7 @@ export function RepertoirePanel() {
         <Button size="small" onClick={() => useRepertoire.getState().importPgn(rep.id)} disabled={!!build}>
           {t("rep.importPgn")}
         </Button>
+        <RenameButton id={rep.id} name={rep.name} />
         <DeleteButton id={rep.id} />
       </div>
     </section>
@@ -355,6 +356,38 @@ function CourseNotes() {
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Rename: the button turns into a small field (Enter saves, Escape cancels). */
+function RenameButton({ id, name }: { id: number; name: string }) {
+  const t = useT();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  if (!editing) {
+    return (
+      <Button size="small" onClick={() => (setValue(name), setEditing(true))}>
+        {t("rep.rename")}
+      </Button>
+    );
+  }
+  const save = () => {
+    setEditing(false);
+    if (value.trim() && value.trim() !== name) void useRepertoire.getState().rename(id, value.trim());
+  };
+  return (
+    <input
+      className="text-input rep-rename"
+      aria-label={t("rep.rename")}
+      value={value}
+      autoFocus
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={save}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") save();
+        if (e.key === "Escape") setEditing(false);
+      }}
+    />
   );
 }
 

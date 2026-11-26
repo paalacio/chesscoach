@@ -79,6 +79,7 @@ export function createTauriBackend(): Backend {
     srsExport: () => call("srs_export"),
     srsImport: (data) => call("srs_import", { data }),
     mistakeCards: () => call("mistake_cards"),
+    conceptCounts: () => call("concept_counts"),
     recentGameMoves: (limit, maxPly) => call("recent_game_moves", { limit: limit ?? null, maxPly: maxPly ?? null }),
 
     fileSaveText: (defaultName, filterName, extension, contents) =>

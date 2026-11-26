@@ -47,6 +47,8 @@ pub struct Settings {
     /// Trainer: new moves to learn per day, and the daily goal (cards reviewed).
     pub new_cards_per_day: u32,
     pub daily_goal: u32,
+    /// macOS 26+: Liquid Glass behind the sidebar (the normal sidebar material on older macOS).
+    pub liquid_glass: bool,
 }
 
 impl Default for Settings {
@@ -76,6 +78,7 @@ impl Default for Settings {
             rep_depth: 12,
             new_cards_per_day: 10,
             daily_goal: 20,
+            liquid_glass: false,
         }
     }
 }

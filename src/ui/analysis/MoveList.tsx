@@ -3,9 +3,11 @@
 
 import { Fragment, useEffect, useRef } from "react";
 import { backend } from "../../backend";
+import { START_FEN } from "../../core/chess";
 import * as T from "../../core/game-tree";
 import { tNow, useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
+import { useRepertoire } from "../../store/repertoire";
 import { useToast } from "../../store/toast";
 import { copyText } from "../components/controls";
 
@@ -42,6 +44,7 @@ function buildRows(tree: T.GameTree): Row[] {
 function useMoveMenu() {
   const { tree, explain, goto, promote, remove } = useAnalysis();
   const toast = useToast((s) => s.show);
+  const reps = useRepertoire((s) => s.list);
   return async (id: string) => {
     const node = tree.nodes[id];
     goto(id);
@@ -53,12 +56,15 @@ function useMoveMenu() {
       { id: "delete", label: tNow("menu.deleteFromHere") },
       "separator",
       { id: "copy-fen", label: tNow("menu.copyFen") },
-      { id: "repertoire", label: tNow("menu.addToRepertoire"), enabled: false },
+      ...(reps.length
+        ? reps.map((r) => ({ id: `repertoire:${r.id}`, label: tNow("menu.addToRepertoire", { name: r.name }), enabled: tree.nodes[T.ROOT].fen === START_FEN }))
+        : [{ id: "repertoire", label: tNow("menu.addToRepertoireNone"), enabled: false }]),
     ]);
     if (choice === "explain") explain("moveExplanation");
     else if (choice === "plan") explain("positionPlan");
     else if (choice === "promote") promote(id);
     else if (choice === "delete") remove(id);
+    else if (choice?.startsWith("repertoire:")) void useRepertoire.getState().addBoardLine(Number(choice.split(":")[1]));
     else if (choice === "copy-fen") {
       await copyText(node.fen);
       toast(tNow("toast.copiedFen"));
