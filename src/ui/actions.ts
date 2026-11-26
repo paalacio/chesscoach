@@ -2,8 +2,10 @@
 // toolbar buttons. Menu item ids (src-tauri/src/menu.rs) are the keys.
 
 import { treeToPgn } from "../core/game-tree";
+import { tNow } from "../i18n";
 import { useAnalysis } from "../store/analysis";
 import { type Page, useApp } from "../store/app";
+import { useGames } from "../store/games";
 import { useToast } from "../store/toast";
 import { copyText } from "./components/controls";
 
@@ -20,11 +22,11 @@ export const ACTIONS: Record<string, () => void> = {
   "copy-fen": async () => {
     const a = useAnalysis.getState();
     await copyText(a.tree.nodes[a.current].fen);
-    useToast.getState().show("Copied FEN");
+    useToast.getState().show(tNow("toast.copiedFen"));
   },
   "copy-pgn": async () => {
     await copyText(treeToPgn(useAnalysis.getState().tree));
-    useToast.getState().show("Copied PGN");
+    useToast.getState().show(tNow("toast.copiedPgn"));
   },
   flip: () => useAnalysis.getState().flip(),
   "toggle-engine": () => {
@@ -94,6 +96,21 @@ export function installShortcuts(handleModified: boolean): () => void {
     if (onAnalysis && keys[e.key]) {
       e.preventDefault();
       runAction(keys[e.key]);
+    } else if (app.page === "review") {
+      const g = useGames.getState();
+      const open = g.open;
+      const reviewKeys: Record<string, () => void> = {
+        ArrowLeft: () => g.step(-1),
+        ArrowRight: () => g.step(1),
+        ArrowUp: () => g.goto(0),
+        ArrowDown: () => open && g.goto(open.moves.length),
+        f: g.flip,
+        F: g.flip,
+      };
+      if (reviewKeys[e.key]) {
+        e.preventDefault();
+        reviewKeys[e.key]();
+      }
     }
   };
   window.addEventListener("keydown", onKey);

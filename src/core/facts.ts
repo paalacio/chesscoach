@@ -51,16 +51,16 @@ function materialOf(pieces: Record<Role, number>): number {
 function castlingStatus(pos: Position, color: Color): string {
   const king = pos.board.kingOf(color);
   const homeRank = color === "white" ? 0 : 7;
-  if (king !== undefined && squareRank(king) === homeRank) {
-    const file = squareFile(king);
-    const rook = (f: number) => pos.board.get(homeRank * 8 + f);
-    const isOwnRook = (f: number) => rook(f)?.role === "rook" && rook(f)?.color === color;
-    if (file === 6 && isOwnRook(5)) return "castled kingside";
-    if (file === 2 && isOwnRook(3)) return "castled queenside";
-  }
   const rights = pos.castles.castlingRights.intersect(SquareSet.fromRank(homeRank));
   const kingside = rights.has(homeRank * 8 + 7);
   const queenside = rights.has(homeRank * 8 + 0);
+  // A king on its home rank, on the g/h or a/b/c file, with no castling rights
+  // left, has (almost always) castled. The rook may have moved on since.
+  if (king !== undefined && squareRank(king) === homeRank && !kingside && !queenside) {
+    const file = squareFile(king);
+    if (file >= 6) return "castled kingside";
+    if (file <= 2) return "castled queenside";
+  }
   if (kingside && queenside) return "not castled yet (can castle on both sides)";
   if (kingside) return "not castled yet (can still castle kingside)";
   if (queenside) return "not castled yet (can still castle queenside)";

@@ -32,6 +32,8 @@ pub struct Settings {
     pub review_threads: Option<u32>,
     /// Analyse imported games in the background automatically.
     pub auto_analyze: bool,
+    /// App language: "en" or "pt" (Brazilian Portuguese). Claude answers in it too.
+    pub language: String,
 }
 
 impl Default for Settings {
@@ -53,6 +55,7 @@ impl Default for Settings {
             review_movetime_ms: 1500,
             review_threads: None,
             auto_analyze: true,
+            language: "en".into(),
         }
     }
 }

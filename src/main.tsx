@@ -7,6 +7,7 @@ import "./styles/components.css";
 import "./styles/board.css";
 import "./styles/pieces.css";
 import "./styles/analysis.css";
+import "./styles/games.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";

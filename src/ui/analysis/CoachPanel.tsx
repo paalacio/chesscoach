@@ -1,61 +1,23 @@
 // Claude's explanations, in the inspector (never in a modal).
 
 import { AlertTriangle, RotateCcw, Sparkles } from "lucide-react";
-import { Fragment, type ReactNode } from "react";
 import { moveLabel, sanToUci } from "../../core/chess";
-import { normalizeSan } from "../../core/context-packet";
 import { classifyMove, winFor } from "../../core/winprob";
-import { sanTokensIn } from "../../core/validate";
+import type { Judgement } from "../../core/types";
+import { hasKey, useT } from "../../i18n";
 import { EXPLAIN_DEPTH, explanationKey, useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
+import { Concepts, judgementLabel, RichText, Warnings } from "../components/coach";
 import { Button, Kbd, shortcut, Spinner } from "../components/controls";
 
-/** Renders text, marking moves Claude mentioned that couldn't be verified. */
-function RichText({ text, flagged }: { text: string; flagged: string[] }): ReactNode {
-  if (flagged.length === 0) return text;
-  const tokens = new Set(sanTokensIn(text).filter((t) => flagged.includes(t)));
-  if (tokens.size === 0) return text;
-  const pattern = new RegExp(`(${[...tokens].map((t) => t.replace(/[+=]/g, "\\$&")).join("|")})`, "g");
-  return text.split(pattern).map((part, i) =>
-    tokens.has(normalizeSan(part)) ? (
-      <span key={i} className="unverified" title="This move isn't in the engine lines or the legal moves">
-        {part}
-      </span>
-    ) : (
-      <Fragment key={i}>{part}</Fragment>
-    ),
-  );
-}
-
-const JUDGEMENT_LABEL = { inaccuracy: "Inaccuracy", mistake: "Mistake", blunder: "Blunder" } as const;
-
-function Concepts({ tags }: { tags: string[] }) {
-  if (tags.length === 0) return null;
-  return (
-    <div className="concepts">
-      {tags.map((t) => (
-        <span className="badge" key={t}>
-          {t.replace(/-/g, " ")}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function Warnings({ warnings, flagged }: { warnings: string[]; flagged: string[] }) {
-  if (warnings.length === 0 && flagged.length === 0) return null;
-  return (
-    <div className="callout warning coach-warning">
-      <AlertTriangle aria-hidden />
-      <span>
-        {warnings.join(" ")}
-        {flagged.length > 0 && ` Moves marked like this weren't verified: ${flagged.join(", ")}.`}
-      </span>
-    </div>
-  );
+/** Error text for the user: a translated message for known kinds, else the backend's message. */
+export function errorText(t: ReturnType<typeof useT>, error: { kind: string; message: string }): string {
+  const key = `error.${error.kind}`;
+  return hasKey(key) ? t(key, { detail: error.message }) : error.message;
 }
 
 export function CoachPanel() {
+  const t = useT();
   const { tree, current, explanations, job, callsToday, evalCache } = useAnalysis();
   const explain = useAnalysis((s) => s.explain);
   const cancel = useAnalysis((s) => s.cancelExplain);
@@ -71,7 +33,7 @@ export function CoachPanel() {
   const label = parent && node.san ? moveLabel(parent.fen, node.san) : null;
 
   // Judgement badge from the engine (not from Claude).
-  let judgement: keyof typeof JUDGEMENT_LABEL | null = null;
+  let judgement: Judgement | null = null;
   if (parent) {
     const before = evalCache[parent.fen]?.[0];
     const after = evalCache[node.fen]?.[0];
@@ -82,12 +44,12 @@ export function CoachPanel() {
   }
 
   return (
-    <section className="panel coach-panel" aria-label="Coach">
+    <section className="panel coach-panel" aria-label={t("coach.title")}>
       <div className="panel-header">
         <Sparkles className="coach-icon" aria-hidden />
-        <span className="panel-title">Coach</span>
-        <span className="right small secondary tabular" title="Real Claude requests today (cached answers don't count)">
-          {callsToday ?? "–"} Claude call{callsToday === 1 ? "" : "s"} today
+        <span className="panel-title">{t("coach.title")}</span>
+        <span className="right small secondary tabular" title={t("coach.callsTitle")}>
+          {callsToday === null ? "–" : t("coach.callsToday", { count: callsToday })}
         </span>
       </div>
 
@@ -95,13 +57,13 @@ export function CoachPanel() {
         {/* Once an answer is shown, its button disappears ("Ask again" is on the card). */}
         {label && !moveExp && (
           <Button variant="primary" onClick={() => explain("moveExplanation")} disabled={!!busy}>
-            Explain {label}
+            {t("coach.explainMove", { move: label })}
             <Kbd>{shortcut("E")}</Kbd>
           </Button>
         )}
         {!planExp && (
           <Button variant={!label || moveExp ? "primary" : undefined} onClick={() => explain("positionPlan")} disabled={!!busy}>
-            Plan for this position
+            {t("coach.planButton")}
             <Kbd>{label ? shortcut("E", { shift: true }) : shortcut("E")}</Kbd>
           </Button>
         )}
@@ -111,9 +73,9 @@ export function CoachPanel() {
         <div className="coach-loading" aria-live="polite">
           <div className="coach-step">
             <Spinner small />
-            {jobHere.status === "evaluating" ? `Checking with Stockfish (depth ${EXPLAIN_DEPTH})…` : "Asking Claude…"}
+            {jobHere.status === "evaluating" ? t("coach.evaluating", { depth: EXPLAIN_DEPTH }) : t("coach.asking")}
             <button type="button" className="link-btn" onClick={cancel}>
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
           <div className="skeleton" style={{ width: "95%" }} />
@@ -126,14 +88,14 @@ export function CoachPanel() {
         <div className="callout error">
           <AlertTriangle aria-hidden />
           <span>
-            {jobHere.error.message}{" "}
+            {errorText(t, jobHere.error)}{" "}
             {["notLoggedIn", "notFound"].includes(jobHere.error.kind) && (
               <button type="button" className="link-btn" onClick={() => setPage("setup")}>
-                Open setup
+                {t("common.openSetup")}
               </button>
             )}{" "}
             <button type="button" className="link-btn" onClick={() => explain(jobHere.kind, true)}>
-              Try again
+              {t("common.tryAgain")}
             </button>
           </span>
         </div>
@@ -143,7 +105,7 @@ export function CoachPanel() {
         <article className="coach-card">
           <header>
             <h3>{moveExp.label}</h3>
-            {judgement && <span className={`badge judgement ${judgement}`}>{JUDGEMENT_LABEL[judgement]}</span>}
+            {judgement && <span className={`badge judgement ${judgement}`}>{judgementLabel(t, judgement)}</span>}
           </header>
           <p className="coach-summary">
             <RichText text={moveExp.result.data.summary} flagged={moveExp.result.flagged} />
@@ -162,21 +124,21 @@ export function CoachPanel() {
               <button
                 type="button"
                 className="badge accent"
-                title="Play this move as a variation"
+                title={t("coach.playAsVariation")}
                 onClick={() => {
                   const san = moveExp.result.data.better_move?.san;
                   goto(parent.id); // zustand updates synchronously, so the move is played from here
                   if (san) playSan(parent.fen, san, playMove);
                 }}
               >
-                Better: {moveExp.result.data.better_move.san}
+                {t("coach.better", { move: moveExp.result.data.better_move.san })}
               </button>
               <span>
                 <RichText text={moveExp.result.data.better_move.why} flagged={moveExp.result.flagged} />
               </span>
             </div>
           )}
-          <h4>Next few moves</h4>
+          <h4>{t("coach.nextMoves")}</h4>
           <p>
             <RichText text={moveExp.result.data.plan_next} flagged={moveExp.result.flagged} />
           </p>
@@ -189,7 +151,7 @@ export function CoachPanel() {
       {planExp?.kind === "positionPlan" && (
         <article className="coach-card">
           <header>
-            <h3>Plan for {node.fen.split(" ")[1] === "w" ? "White" : "Black"}</h3>
+            <h3>{node.fen.split(" ")[1] === "w" ? t("coach.planForWhite") : t("coach.planForBlack")}</h3>
           </header>
           <p className="coach-summary">
             <RichText text={planExp.result.data.summary} flagged={planExp.result.flagged} />
@@ -208,11 +170,11 @@ export function CoachPanel() {
           </ol>
           {planExp.result.data.candidate_moves.length > 0 && (
             <>
-              <h4>Candidate moves</h4>
+              <h4>{t("coach.candidates")}</h4>
               <ul className="candidates">
                 {planExp.result.data.candidate_moves.map((c) => (
                   <li key={c.san}>
-                    <button type="button" className="badge accent" title="Play this move" onClick={() => playSan(node.fen, c.san, playMove)}>
+                    <button type="button" className="badge accent" title={t("coach.playMove")} onClick={() => playSan(node.fen, c.san, playMove)}>
                       {c.san}
                     </button>
                     <span>
@@ -225,7 +187,7 @@ export function CoachPanel() {
           )}
           {planExp.result.data.opponent_ideas.length > 0 && (
             <>
-              <h4>What your opponent wants</h4>
+              <h4>{t("coach.opponentWants")}</h4>
               <ul className="coach-ideas">
                 {planExp.result.data.opponent_ideas.map((idea, i) => (
                   <li key={i}>
@@ -241,24 +203,20 @@ export function CoachPanel() {
         </article>
       )}
 
-      {!moveExp && !planExp && !jobHere && (
-        <p className="coach-hint secondary">
-          Stockfish finds the moves; Claude explains them in plain words. Each new explanation uses one request from your Claude
-          plan, and answers are saved so asking again is free.
-        </p>
-      )}
+      {!moveExp && !planExp && !jobHere && <p className="coach-hint secondary">{t("coach.hint")}</p>}
     </section>
   );
 }
 
-function CardFooter({ cached, model, onRetry, disabled }: { cached: boolean; model: string; onRetry: () => void; disabled: boolean }) {
+export function CardFooter({ cached, model, onRetry, disabled }: { cached: boolean; model: string; onRetry: () => void; disabled: boolean }) {
+  const t = useT();
   return (
     <footer className="coach-footer small secondary">
       <span>
-        {cached ? "Saved answer" : "New answer"} · Claude {model}
+        {cached ? t("coach.savedAnswer") : t("coach.newAnswer")} · Claude {model}
       </span>
-      <button type="button" className="link-btn" onClick={onRetry} disabled={disabled} title="Ask Claude again (uses a request)">
-        <RotateCcw size={11} /> Ask again
+      <button type="button" className="link-btn" onClick={onRetry} disabled={disabled} title={t("coach.askAgainTitle")}>
+        <RotateCcw size={11} /> {t("coach.askAgain")}
       </button>
     </footer>
   );

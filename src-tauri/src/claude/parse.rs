@@ -23,6 +23,15 @@ pub enum ClaudeError {
 }
 
 impl ClaudeError {
+    /// The value inside the error (limit message, timeout seconds, technical message).
+    pub fn detail(&self) -> Option<String> {
+        match self {
+            ClaudeError::UsageLimit(s) | ClaudeError::Failed(s) => Some(s.clone()),
+            ClaudeError::Timeout(secs) => Some(secs.to_string()),
+            _ => None,
+        }
+    }
+
     pub fn kind(&self) -> &'static str {
         match self {
             ClaudeError::NotFound => "notFound",

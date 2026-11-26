@@ -3,11 +3,11 @@
 // As everywhere: Stockfish calculates (key moments, better moves), Claude explains.
 
 import { formatMoves, legalSans, moveLabel } from "./chess";
-import { normalizeSan, RATING_BAND } from "./context-packet";
+import { languageInstruction, normalizeSan, RATING_BAND } from "./context-packet";
 import { factsToText, positionFacts } from "./facts";
 import { type GameReview, judgementGlyph } from "./review";
 import type { Color, Phase } from "./types";
-import { sanTokensIn } from "./validate";
+import { type MoveWarning, sanTokensIn } from "./validate";
 
 export interface GameInfo {
   white: string;
@@ -60,7 +60,7 @@ export function buildGameReviewPrompt(info: GameInfo, review: GameReview, langua
   };
   const cnt = (c: Color) => {
     const k = review.counts[c];
-    return `${k.inaccuracy} inaccuracies, ${k.mistake} mistakes, ${k.blunder} blunders`;
+    return `inaccuracies ${k.inaccuracy}, mistakes ${k.mistake}, blunders ${k.blunder}`;
   };
 
   // Compact move list: "1.e4 (52) e5 (51) 2.Nf3 (53) ..." with ?!/?/?? marks.
@@ -100,10 +100,7 @@ export function buildGameReviewPrompt(info: GameInfo, review: GameReview, langua
     ? `${review.opening.eco} ${review.opening.name}${left ? `; left the named opening line with ${moveLabel(left.fenBefore, left.san)}, played by ${who(left.color)}` : ""}`
     : "not in the opening list";
 
-  const languageLine =
-    language === "pt"
-      ? "Write every text field in Brazilian Portuguese (português do Brasil). Keep chess moves in standard English SAN exactly as written in this packet (e.g. Nf3, O-O)."
-      : "Write in English.";
+  const languageLine = languageInstruction(language);
 
   const prompt = [
     `Write a short review of this game for the player, who had the ${side(me)} pieces and is rated about ${RATING_BAND}.`,
@@ -140,7 +137,7 @@ export interface GameReviewAnswer {
 
 export interface CheckedGameReview {
   data: GameReviewAnswer;
-  warnings: string[];
+  warnings: MoveWarning[];
   flagged: string[];
 }
 
@@ -150,7 +147,7 @@ const PHASES: Phase[] = ["opening", "middlegame", "endgame"];
 /** Checks Claude's game review: unknown key moments and invented better moves are dropped, unknown moves in text flagged. */
 export function checkGameReview(raw: unknown, packet: GameReviewPacket): CheckedGameReview {
   const r = (raw ?? {}) as Record<string, unknown>;
-  const warnings: string[] = [];
+  const warnings: MoveWarning[] = [];
   const lessons = (Array.isArray(r.lessons) ? r.lessons : []).slice(0, 3).map((l) => {
     const o = (l ?? {}) as Record<string, unknown>;
     const phase = PHASES.includes(o.phase as Phase) ? (o.phase as Phase) : "middlegame";
@@ -164,7 +161,7 @@ export function checkGameReview(raw: unknown, packet: GameReviewPacket): Checked
     if (index === undefined) continue; // a moment we didn't ask about
     let betterMove = str(o.better_move) || null;
     if (betterMove && normalizeSan(betterMove) !== packet.momentBest.get(id)) {
-      warnings.push(`Claude suggested ${betterMove} at a key moment, which isn't the engine's move, so it was removed.`);
+      warnings.push({ code: "momentMoveDropped", san: betterMove });
       betterMove = null;
     }
     keyMoments.push({ id, index, comment: str(o.comment), betterMove });

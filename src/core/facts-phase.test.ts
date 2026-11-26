@@ -28,6 +28,9 @@ describe("position facts", () => {
     // Black knight on e4 attacked by the rook, defended by nobody:
     const g = positionFacts("r1bqkb1r/pppp1ppp/2n5/1B2p3/4n3/5N2/PPPP1PPP/RNBQR1K1 b kq - 1 5");
     expect(g.black.undefended).toContain("knight on e4");
+    // Castled, then the rook left f8: still "castled".
+    const h = positionFacts("r1bqr1k1/pppp1ppp/2n2n2/4p3/4P3/5N2/PPPP1PPP/RNBQR1K1 w - - 0 8");
+    expect(h.black.castling).toBe("castled kingside");
   });
 
   it("finds passed pawns and open files", () => {

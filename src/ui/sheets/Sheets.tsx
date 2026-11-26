@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { backend, type Settings } from "../../backend";
 import { treeFromText } from "../../core/game-tree";
+import { LANGUAGES, type Lang, langOf, useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
 import { Button, Segmented, Sheet, Switch } from "../components/controls";
 
 export function SettingsSheet() {
+  const t = useT();
   const { sheet, openSheet, settings, saveSettings, info, runChecks } = useApp();
   const [draft, setDraft] = useState<Settings | null>(settings);
   useEffect(() => {
@@ -21,11 +23,11 @@ export function SettingsSheet() {
     <Sheet
       open={sheet === "settings"}
       onClose={close}
-      title="Settings"
+      title={t("settings.title")}
       wide
       footer={
         <>
-          <Button onClick={close}>Cancel</Button>
+          <Button onClick={close}>{t("common.cancel")}</Button>
           <Button
             variant="primary"
             onClick={async () => {
@@ -34,40 +36,47 @@ export function SettingsSheet() {
               runChecks();
             }}
           >
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
+      <div className="sheet-section-title">{t("settings.general")}</div>
+      <div className="field">
+        <label>{t("settings.language")}</label>
+        <Segmented<Lang> label={t("settings.language")} value={langOf(draft.language)} onChange={(v) => set("language", v)} options={LANGUAGES} />
+        <p className="hint">{t("settings.languageHint")}</p>
+      </div>
+
       <div className="sheet-section-title">Chess.com</div>
       <div className="field">
-        <label htmlFor="s-user">Username</label>
+        <label htmlFor="s-user">{t("settings.username")}</label>
         <input id="s-user" className="text-input" value={draft.chesscomUsername} onChange={(e) => set("chesscomUsername", e.target.value)} spellCheck={false} />
       </div>
       <div className="field">
-        <label htmlFor="s-mail">Contact email</label>
+        <label htmlFor="s-mail">{t("settings.contact")}</label>
         <input id="s-mail" className="text-input" type="email" value={draft.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} spellCheck={false} />
-        <p className="hint">Chess.com asks apps to include a contact in each request. It's stored only on this computer and sent only to Chess.com.</p>
+        <p className="hint">{t("settings.contactHint")}</p>
       </div>
 
-      <div className="sheet-section-title">Board</div>
+      <div className="sheet-section-title">{t("settings.board")}</div>
       <div className="field">
-        <label>Squares</label>
+        <label>{t("settings.squares")}</label>
         <Segmented
-          label="Board colors"
+          label={t("settings.squares")}
           value={draft.boardTheme as "brown" | "blue" | "green"}
           onChange={(v) => set("boardTheme", v)}
           options={[
-            { value: "brown", label: "Brown" },
-            { value: "blue", label: "Blue-gray" },
-            { value: "green", label: "Green" },
+            { value: "brown", label: t("settings.theme.brown") },
+            { value: "blue", label: t("settings.theme.blue") },
+            { value: "green", label: t("settings.theme.green") },
           ]}
         />
       </div>
       <div className="field">
-        <label>Pieces</label>
+        <label>{t("settings.pieces")}</label>
         <Segmented
-          label="Piece set"
+          label={t("settings.pieces")}
           value={draft.pieceSet as "cburnett" | "merida" | "chessnut"}
           onChange={(v) => set("pieceSet", v)}
           options={[
@@ -78,22 +87,22 @@ export function SettingsSheet() {
         />
       </div>
       <div className="field">
-        <label>Coordinates</label>
-        <Switch checked={draft.showCoordinates} onChange={(v) => set("showCoordinates", v)} label="Show coordinates" />
+        <label>{t("settings.coordinates")}</label>
+        <Switch checked={draft.showCoordinates} onChange={(v) => set("showCoordinates", v)} label={t("settings.coordinates")} />
       </div>
 
-      <div className="sheet-section-title">Engine</div>
+      <div className="sheet-section-title">{t("settings.engine")}</div>
       <div className="field">
-        <label htmlFor="s-lines">Lines shown</label>
+        <label>{t("settings.lines")}</label>
         <Segmented
-          label="Number of engine lines"
+          label={t("settings.lines")}
           value={String(draft.multipv) as "1" | "2" | "3" | "4" | "5"}
           onChange={(v) => set("multipv", Number(v))}
           options={["1", "2", "3", "4", "5"].map((n) => ({ value: n as "1", label: n }))}
         />
       </div>
       <div className="field">
-        <label htmlFor="s-threads">Threads</label>
+        <label htmlFor="s-threads">{t("settings.threads")}</label>
         <input
           id="s-threads"
           className="text-input"
@@ -105,36 +114,52 @@ export function SettingsSheet() {
           value={draft.engineThreads ?? ""}
           onChange={(e) => set("engineThreads", e.target.value ? Number(e.target.value) : null)}
         />
-        <p className="hint">Empty = all CPU cores but one ({info?.defaultThreads}).</p>
+        <p className="hint">{t("settings.threadsHint", { n: info?.defaultThreads ?? "" })}</p>
       </div>
       <div className="field">
-        <label htmlFor="s-hash">Hash (MB)</label>
+        <label htmlFor="s-hash">{t("settings.hash")}</label>
         <input id="s-hash" className="text-input" style={{ width: 90 }} type="number" min={16} max={8192} value={draft.engineHashMb} onChange={(e) => set("engineHashMb", Number(e.target.value) || 256)} />
       </div>
       <div className="field">
-        <label htmlFor="s-engine">Custom engine</label>
-        <input id="s-engine" className="text-input" placeholder="Bundled Stockfish 19" value={draft.enginePath} onChange={(e) => set("enginePath", e.target.value)} spellCheck={false} />
-        <p className="hint">Path to another UCI engine, e.g. /opt/homebrew/bin/stockfish. Leave empty for the bundled one.</p>
+        <label htmlFor="s-engine">{t("settings.customEngine")}</label>
+        <input id="s-engine" className="text-input" placeholder={t("settings.bundledEngine")} value={draft.enginePath} onChange={(e) => set("enginePath", e.target.value)} spellCheck={false} />
+        <p className="hint">{t("settings.customEngineHint")}</p>
+      </div>
+
+      <div className="sheet-section-title">{t("settings.review")}</div>
+      <div className="field">
+        <label>{t("settings.autoAnalyze")}</label>
+        <Switch checked={draft.autoAnalyze} onChange={(v) => set("autoAnalyze", v)} label={t("settings.autoAnalyze")} />
+      </div>
+      <div className="field">
+        <label htmlFor="s-depth">{t("settings.reviewDepth")}</label>
+        <input id="s-depth" className="text-input" style={{ width: 90 }} type="number" min={8} max={30} value={draft.reviewDepth} onChange={(e) => set("reviewDepth", Number(e.target.value) || 16)} />
+      </div>
+      <div className="field">
+        <label htmlFor="s-ms">{t("settings.reviewTime")}</label>
+        <input id="s-ms" className="text-input" style={{ width: 90 }} type="number" min={100} max={10000} step={100} value={draft.reviewMovetimeMs} onChange={(e) => set("reviewMovetimeMs", Number(e.target.value) || 1500)} />
+        <p className="hint">{t("settings.reviewHint")}</p>
       </div>
 
       <div className="sheet-section-title">Claude</div>
       <div className="field">
-        <label htmlFor="s-model">Model</label>
-        <select id="s-model" className="select" style={{ width: 200 }} value={draft.claudeModel} onChange={(e) => set("claudeModel", e.target.value)}>
-          <option value="sonnet">Sonnet (recommended)</option>
-          <option value="haiku">Haiku (fastest, lightest on limits)</option>
-          <option value="opus">Opus (most capable, uses more of your limits)</option>
+        <label htmlFor="s-model">{t("settings.model")}</label>
+        <select id="s-model" className="select" style={{ width: 260 }} value={draft.claudeModel} onChange={(e) => set("claudeModel", e.target.value)}>
+          <option value="sonnet">{t("settings.model.sonnet")}</option>
+          <option value="haiku">{t("settings.model.haiku")}</option>
+          <option value="opus">{t("settings.model.opus")}</option>
         </select>
       </div>
       <div className="field">
-        <label htmlFor="s-claude">Claude Code path</label>
-        <input id="s-claude" className="text-input" placeholder="Found automatically" value={draft.claudePath} onChange={(e) => set("claudePath", e.target.value)} spellCheck={false} />
+        <label htmlFor="s-claude">{t("settings.claudePath")}</label>
+        <input id="s-claude" className="text-input" placeholder={t("settings.claudePathAuto")} value={draft.claudePath} onChange={(e) => set("claudePath", e.target.value)} spellCheck={false} />
       </div>
     </Sheet>
   );
 }
 
 export function ImportSheet() {
+  const t = useT();
   const { sheet, openSheet, setPage } = useApp();
   const load = useAnalysis((s) => s.load);
   const [text, setText] = useState("");
@@ -157,13 +182,13 @@ export function ImportSheet() {
     <Sheet
       open={sheet === "import"}
       onClose={close}
-      title="Import a game or position"
-      description="Paste a PGN (with variations and comments) or a FEN."
+      title={t("import.title")}
+      description={t("import.description")}
       footer={
         <>
-          <Button onClick={close}>Cancel</Button>
+          <Button onClick={close}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={doImport} disabled={!text.trim()}>
-            Import
+            {t("import.button")}
           </Button>
         </>
       }
@@ -181,7 +206,7 @@ export function ImportSheet() {
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) doImport();
         }}
-        aria-label="PGN or FEN"
+        aria-label={t("import.label")}
       />
       {error && <p className="error-text" role="alert">{error}</p>}
     </Sheet>
@@ -189,6 +214,7 @@ export function ImportSheet() {
 }
 
 export function AboutSheet() {
+  const t = useT();
   const { sheet, openSheet, info } = useApp();
   const link = (url: string, label: string) => (
     <button type="button" className="link-btn" onClick={() => backend.openUrl(url)}>
@@ -196,32 +222,28 @@ export function AboutSheet() {
     </button>
   );
   return (
-    <Sheet open={sheet === "about"} onClose={() => openSheet(null)} title="About ChessCoach" footer={<Button onClick={() => openSheet(null)}>Done</Button>}>
+    <Sheet open={sheet === "about"} onClose={() => openSheet(null)} title={t("about.title")} footer={<Button onClick={() => openSheet(null)}>{t("common.done")}</Button>}>
       <div className="about">
-        <p>
-          Version {info?.version}. Free software under the GNU General Public License, version 3 or later. You may share and
-          change it under the terms of that license.
-        </p>
-        <h4>Includes</h4>
+        <p>{t("about.license", { version: info?.version ?? "" })}</p>
+        <h4>{t("about.includes")}</h4>
         <ul>
           <li>
-            <b>Stockfish 19</b>, the chess engine, by the Stockfish developers. GPL-3.0. Source code:{" "}
-            {link("https://github.com/official-stockfish/Stockfish", "github.com/official-stockfish/Stockfish")}
+            <b>Stockfish 19</b> — {t("about.stockfish")} {link("https://github.com/official-stockfish/Stockfish", "github.com/official-stockfish/Stockfish")}
           </li>
           <li>
-            <b>chessground</b> (board) and <b>chessops</b> (chess rules) by the lichess.org team. GPL-3.0.
+            <b>chessground</b>, <b>chessops</b> — {t("about.lichessLibs")}
           </li>
           <li>
-            Piece sets: <b>cburnett</b> by Colin M.L. Burnett (GPLv2+), <b>merida</b> by Armando Hernandez Marroquin (GPLv2+),{" "}
-            <b>chessnut</b> by Alexis Luengas (Apache-2.0), via {link("https://github.com/lichess-org/lila", "lichess")}.
+            {t("about.pieces")} <b>cburnett</b> (Colin M.L. Burnett, GPLv2+), <b>merida</b> (Armando Hernandez Marroquin, GPLv2+),{" "}
+            <b>chessnut</b> (Alexis Luengas, Apache-2.0) — {link("https://github.com/lichess-org/lila", "lichess")}
           </li>
           <li>
-            Opening names: {link("https://github.com/lichess-org/chess-openings", "lichess-org/chess-openings")} (CC0).
+            {t("about.openings")} {link("https://github.com/lichess-org/chess-openings", "lichess-org/chess-openings")} (CC0)
           </li>
-          <li>Win-chance formula and game phases follow Lichess (scalachess, MIT).</li>
-          <li>Explanations by Claude, through Claude Code on your own Claude plan.</li>
+          <li>{t("about.formulas")}</li>
+          <li>{t("about.claude")}</li>
         </ul>
-        {info && <p className="small secondary selectable">Data folder: {info.dataDir}</p>}
+        {info && <p className="small secondary selectable">{t("about.dataFolder", { path: info.dataDir })}</p>}
       </div>
     </Sheet>
   );

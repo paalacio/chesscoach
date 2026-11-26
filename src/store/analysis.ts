@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import { backend, type BackendError, toBackendError } from "../backend";
+import { currentLang } from "../i18n";
 import { moveLabel, playUci, START_FEN, turnOf } from "../core/chess";
 import { buildPacket, buildPrompt, type MoveContext, type RequestKind } from "../core/context-packet";
 import { linesDepth, mergeInfo } from "../core/engine-lines";
@@ -293,7 +294,7 @@ export const useAnalysis = create<AnalysisState>((set, get) => {
         // 2. Build the context packet and the prompt.
         const history = T.pathTo(s.tree, n.id).map((x) => ({ fen: x.fen, san: x.san }));
         const packet = buildPacket({ fen: n.fen, lines, history, move });
-        const prompt = buildPrompt(kind, packet, move);
+        const prompt = buildPrompt(kind, packet, move, currentLang());
         set({ job: { key, kind, nodeId: n.id, status: "asking" } });
         requestAnalysis(); // let live analysis resume while Claude thinks
 

@@ -6,7 +6,14 @@ import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { platform as osPlatform, version as osVersion } from "@tauri-apps/plugin-os";
 import type { EngineEvent } from "../core/types";
-import { type Backend, type ContextMenuItem, type Platform, toBackendError } from "./types";
+import {
+  type Backend,
+  type ContextMenuItem,
+  type Platform,
+  type ReviewEvent,
+  type SyncProgress,
+  toBackendError,
+} from "./types";
 
 async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
   try {
@@ -41,6 +48,17 @@ export function createTauriBackend(): Backend {
     claudeCallsToday: () => call("claude_calls_today"),
 
     chesscomArchives: () => call("chesscom_archives"),
+
+    gamesSync: () => call("games_sync"),
+    onSyncProgress: (cb) => listen<SyncProgress>("sync:progress", (e) => cb(e.payload)),
+    gamesList: () => call("games_list"),
+    gameGet: (id) => call("game_get", { id }),
+    gameSaveReview: (id, summary, cards) => call("game_save_review", { id, summary, cards }),
+    reviewStatus: () => call("review_status"),
+    reviewSetPaused: (paused) => call("review_set_paused", { paused }),
+    reviewPrioritize: (id) => call("review_prioritize", { id }),
+    reviewReanalyze: (id) => call("review_reanalyze", { id }),
+    onReviewEvent: (cb) => listen<ReviewEvent>("review:event", (e) => cb(e.payload)),
 
     openUrl: (url) => openUrl(url),
     onMenu: (cb) => listen<string>("menu", (e) => cb(e.payload)),

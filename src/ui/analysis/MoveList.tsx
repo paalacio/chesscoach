@@ -4,6 +4,7 @@
 import { Fragment, useEffect, useRef } from "react";
 import { backend } from "../../backend";
 import * as T from "../../core/game-tree";
+import { tNow, useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
 import { useToast } from "../../store/toast";
 import { copyText } from "../components/controls";
@@ -45,14 +46,14 @@ function useMoveMenu() {
     const node = tree.nodes[id];
     goto(id);
     const choice = await backend.showContextMenu([
-      { id: "explain", label: `Explain ${node.san}` },
-      { id: "plan", label: "Plan for this position" },
+      { id: "explain", label: tNow("menu.explainMove", { move: node.san ?? "" }) },
+      { id: "plan", label: tNow("coach.planButton") },
       "separator",
-      { id: "promote", label: "Promote variation", enabled: !T.isMainline(tree, id) },
-      { id: "delete", label: "Delete from here" },
+      { id: "promote", label: tNow("menu.promote"), enabled: !T.isMainline(tree, id) },
+      { id: "delete", label: tNow("menu.deleteFromHere") },
       "separator",
-      { id: "copy-fen", label: "Copy FEN" },
-      { id: "repertoire", label: "Add to repertoire (coming soon)", enabled: false },
+      { id: "copy-fen", label: tNow("menu.copyFen") },
+      { id: "repertoire", label: tNow("menu.addToRepertoire"), enabled: false },
     ]);
     if (choice === "explain") explain("moveExplanation");
     else if (choice === "plan") explain("positionPlan");
@@ -60,7 +61,7 @@ function useMoveMenu() {
     else if (choice === "delete") remove(id);
     else if (choice === "copy-fen") {
       await copyText(node.fen);
-      toast("Copied FEN");
+      toast(tNow("toast.copiedFen"));
     }
   };
 }
@@ -114,18 +115,19 @@ function Variation({ tree, startId, current, onMenu }: { tree: T.GameTree; start
 }
 
 export function MoveList() {
+  const t = useT();
   const { tree, current } = useAnalysis();
   const onMenu = useMoveMenu();
   const rows = buildRows(tree);
   const rootComment = tree.nodes[T.ROOT].children.length === 0;
 
   return (
-    <section className="panel moves-panel" aria-label="Moves">
+    <section className="panel moves-panel" aria-label={t("moves.title")}>
       <div className="panel-header">
-        <span className="panel-title">Moves</span>
+        <span className="panel-title">{t("moves.title")}</span>
       </div>
       <div className="move-list tabular selectable">
-        {rootComment && <p className="secondary small">Make a move on the board, or paste a game (File → Import).</p>}
+        {rootComment && <p className="secondary small">{t("moves.empty")}</p>}
         {rows.map((row, i) =>
           row.type === "pair" ? (
             <div className="move-row" key={i}>

@@ -1,5 +1,5 @@
 {
-  "_note": "Real answers from `claude -p` (Sonnet, Nov 2026) for the Ruy Lopez position after 5...Be7, recorded with the app's prompts. Used by the browser mock backend.",
+  "_note": "Real answers from `claude -p` (Sonnet, Nov 2026), recorded with the app's prompts. moveExplanation/positionPlan: Ruy Lopez after 5...Be7. gameReview/gameReviewPt: the third mock game (English / Brazilian Portuguese). Used by the browser mock backend.",
   "moveExplanation": {
     "summary": "5...Be7 is a good, solid move. It's the main Closed Ruy Lopez move, and the engine sees the position as about equal after it.",
     "ideas": [
@@ -53,5 +53,125 @@
   "hello": {
     "greeting": "Hi! Ready to study some chess?",
     "tip": "In the opening, develop your knights and bishops before moving the same piece twice."
+  },
+  "gameReview": {
+    "url": "https://www.chess.com/game/live/mock-4",
+    "answer": {
+      "summary": "You played a solid Queen's Gambit opening and won by resignation. The middle of the game was messy. You gave away a pawn with 15.b4, but your opponent's blunder 22...g5 swung the game to you. You missed the cleanest follow-up with 23.Qxb7, but your opponent erred again and you converted the win well.",
+      "lessons": [
+        {
+          "title": "Check hanging pieces before pushing pawns",
+          "explanation": "With 15.b4 you let your opponent take a pawn and drop your knight-capture idea. 15.Qxe4 simply won the knight back first. Always ask what is attacked before making a side move.",
+          "phase": "middlegame",
+          "concept": "hanging-piece"
+        },
+        {
+          "title": "Look for the strongest capture, not the greediest",
+          "explanation": "After 22...g5 you were winning. 23.Rxa8 kept everything protected and kept the pressure on. 23.Qxb7 won a bishop but let your opponent back into the game. When ahead, choose the safest strong move.",
+          "phase": "middlegame",
+          "concept": "tactics"
+        },
+        {
+          "title": "Trade rooks and queens when ahead",
+          "explanation": "Once you were up material, you traded pieces and kept your king safe. Your opponent resigned after the queen trade on d6. This simple technique makes wins easier.",
+          "phase": "endgame",
+          "concept": "trade"
+        }
+      ],
+      "key_moments": [
+        {
+          "id": 1,
+          "comment": "15.b4 pushed a pawn when your knight on e4 had just been exchanged. Your opponent could take it with 15...Bxb4, and you lost the pawn without compensation. Recapturing first was cleaner.",
+          "better_move": "Qxe4"
+        },
+        {
+          "id": 2,
+          "comment": "Your opponent moved the queen to h5 and gave up some of the advantage. Bringing the knight to c5 was more active and kept the pressure on.",
+          "better_move": "Nc5"
+        },
+        {
+          "id": 3,
+          "comment": "22...g5 was a big blunder that loosened the king and left the bishop on b7 and the knight on d7 hanging. It turned a roughly equal game into one that was close to winning for you.",
+          "better_move": "Nc5"
+        },
+        {
+          "id": 4,
+          "comment": "23.Qxb7 won a bishop, but it was not the cleanest move. Taking on a8 first kept the pressure on and avoided counterplay. You were still much better.",
+          "better_move": "Rxa8"
+        },
+        {
+          "id": 5,
+          "comment": "23...Qg6 was another blunder that left you up material and winning. Your opponent could have put up more resistance with 23...Nc5.",
+          "better_move": "Nc5"
+        }
+      ],
+      "concepts": [
+        "hanging-piece",
+        "tactics",
+        "trade",
+        "king-safety",
+        "piece-activity"
+      ]
+    }
+  },
+  "gameReviewPt": {
+    "url": "https://www.chess.com/game/live/mock-4",
+    "answer": {
+      "summary": "Você teve uma boa abertura, mas errou com 15.b4? e ficou em desvantagem por um tempo. Seu oponente devolveu a vantagem com 22...g5?? e 23...Qg6??, e você converteu o final com segurança até a desistência dele.",
+      "lessons": [
+        {
+          "title": "Cuidado ao empurrar peões com peças soltas",
+          "explanation": "Com 15.b4? você deixou a posição frouxa e acabou perdendo material. Antes de avançar um peão, veja se ele deixa algo sem defesa. Era melhor 15.Qxe4.",
+          "phase": "middlegame",
+          "concept": "hanging-piece"
+        },
+        {
+          "title": "Priorize a melhor captura ou troca",
+          "explanation": "No lance 23, 23.Qxb7?? jogou fora parte da vantagem. 23.Rxa8 era mais forte e mantinha o controle. Examine todas as capturas antes de escolher.",
+          "phase": "middlegame",
+          "concept": "tactics"
+        },
+        {
+          "title": "Continue pressionando e espere os erros",
+          "explanation": "Seu oponente cometeu erros graves com 22...g5?? e 23...Qg6??. Você se manteve ativo e aproveitou, depois converteu o final com calma.",
+          "phase": "endgame",
+          "concept": "initiative"
+        }
+      ],
+      "key_moments": [
+        {
+          "id": 1,
+          "comment": "15.b4? deixou você pior, de cerca de 50% para 38%. Capturar o cavalo com a dama era melhor e mantinha a posição equilibrada.",
+          "better_move": "Qxe4"
+        },
+        {
+          "id": 2,
+          "comment": "18...Qh5?! deu ao oponente uma posição menos boa. 18...Nc5 desenvolvia o cavalo e mantinha mais pressão.",
+          "better_move": "Nc5"
+        },
+        {
+          "id": 3,
+          "comment": "22...g5?? foi um erro grave e enfraqueceu o rei do oponente. Você passou a ter grande vantagem.",
+          "better_move": "Nc5"
+        },
+        {
+          "id": 4,
+          "comment": "23.Qxb7?? permitiu ao oponente recuperar chances. Tomar a torre com 23.Rxa8 era mais forte.",
+          "better_move": "Rxa8"
+        },
+        {
+          "id": 5,
+          "comment": "23...Qg6?? foi outro erro grave e devolveu a vantagem a você. 23...Nc5 era a defesa mais resistente.",
+          "better_move": "Nc5"
+        }
+      ],
+      "concepts": [
+        "tactics",
+        "hanging-piece",
+        "initiative",
+        "piece-activity",
+        "endgame-technique"
+      ]
+    }
   }
 }

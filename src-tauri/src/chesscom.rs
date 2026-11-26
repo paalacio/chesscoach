@@ -28,6 +28,32 @@ pub enum ChessComError {
     BadResponse(String),
 }
 
+impl ChessComError {
+    /// Short name for the frontend, which shows a translated message.
+    pub fn kind(&self) -> &'static str {
+        match self {
+            ChessComError::MissingUsername => "missingUsername",
+            ChessComError::MissingContact => "missingContact",
+            ChessComError::InvalidUsername(_) => "invalidUsername",
+            ChessComError::PlayerNotFound(_) => "playerNotFound",
+            ChessComError::RateLimited => "rateLimited",
+            ChessComError::Http(_) => "http",
+            ChessComError::Network(_) => "network",
+            ChessComError::BadResponse(_) => "badResponse",
+        }
+    }
+
+    /// The value inside the error (username, status code, technical message).
+    pub fn detail(&self) -> Option<String> {
+        match self {
+            ChessComError::InvalidUsername(s) | ChessComError::PlayerNotFound(s) => Some(s.clone()),
+            ChessComError::Network(s) | ChessComError::BadResponse(s) => Some(s.clone()),
+            ChessComError::Http(code) => Some(code.to_string()),
+            _ => None,
+        }
+    }
+}
+
 /// Builds the User-Agent from the user's own Settings, e.g.
 /// `ChessCoach/0.1.0 (username: someone; contact: someone@example.com)`.
 pub fn user_agent(app_version: &str, username: &str, contact: &str) -> Result<String, ChessComError> {

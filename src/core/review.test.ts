@@ -1,11 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
+import pgn from "../../src-tauri/tests/fixtures/chesscom/game.pgn?raw";
 import { type GameAnalysis, judgementGlyph, movesFromPgn, reviewGame, summarize, trainingCards } from "./review";
 
 // The Chess.com-style fixture game used by the Rust tests:
 // 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Nxe4 10.Rxe4 d5 11.Rxe5
-const pgn = fs.readFileSync(path.join(__dirname, "../../src-tauri/tests/fixtures/chesscom/game.pgn"), "utf8");
 const { startFen, moves } = movesFromPgn(pgn);
 
 /** Scores (centipawns, White's view) for each of the 22 positions: equal until 9...Nxe4?? drops a piece. */
@@ -25,6 +23,21 @@ function analysis(): GameAnalysis {
     }),
   };
 }
+
+import { gameAccuracy } from "./review";
+
+describe("Lichess game accuracy", () => {
+  it("is 100 for a game without any drop", () => {
+    expect(gameAccuracy([50, 52, 51, 53, 52, 54], true)).toEqual({ white: 100, black: 100 });
+  });
+  it("punishes a single big blunder much more than a plain average would", () => {
+    // White plays fine, Black's 3rd move drops 40 points.
+    const wins = [50, 50, 50, 50, 50, 50, 90, 90, 90, 90, 90, 90];
+    const acc = gameAccuracy(wins, true);
+    expect(acc.white).toBe(100);
+    expect(acc.black).toBeLessThan(60);
+  });
+});
 
 describe("game review", () => {
   it("reads the game's moves from the PGN", () => {
@@ -50,7 +63,8 @@ describe("game review", () => {
   it("computes accuracy per side and phase", () => {
     const r = reviewGame(startFen, moves, analysis(), "white");
     expect(r.accuracy.white.overall).toBeGreaterThan(95);
-    expect(r.accuracy.black.overall).toBeLessThan(r.accuracy.white.overall as number);
+    // One blunder pulls the harmonic mean down hard (Lichess method).
+    expect(r.accuracy.black.overall).toBeLessThan(85);
     // A short game that never left the opening by Lichess's rules.
     expect(r.moves.every((m) => m.phase === "opening")).toBe(true);
     expect(r.accuracy.white.middlegame).toBeNull();

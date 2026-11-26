@@ -75,9 +75,10 @@ pub fn run() {
         .setup(|app| {
             let state = init_state(app)?;
             let review = state.review.clone();
+            let language = state.settings.lock().unwrap().language.clone();
             app.manage(state);
             review.spawn(app.handle().clone());
-            app.set_menu(menu::build(app.handle())?)?;
+            app.set_menu(menu::build(app.handle(), &language)?)?;
             Ok(())
         })
         .on_menu_event(|app, event| menu::forward_events(app, event))

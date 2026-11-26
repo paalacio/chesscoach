@@ -9,10 +9,12 @@ import { pathTo } from "../../core/game-tree";
 import { openingOfLine } from "../../core/openings";
 import { phaseOfLine } from "../../core/phase";
 import { formatScore } from "../../core/winprob";
+import { useT } from "../../i18n";
 import { needsPromotion, useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
 import { Board } from "../board/Board";
 import { EvalBar, type PromotionRole, PromotionPicker } from "../board/BoardExtras";
+import { phaseLabel } from "../components/coach";
 import { IconButton } from "../components/controls";
 import { useAccentColor, useReducedMotion } from "../hooks";
 import { CoachPanel } from "./CoachPanel";
@@ -21,10 +23,10 @@ import { MoveList } from "./MoveList";
 import { parseUci } from "chessops/util";
 
 const PROMO_LETTER: Record<PromotionRole, string> = { queen: "q", rook: "r", bishop: "b", knight: "n" };
-const EVAL_BAR_SPACE = 22; // eval bar width + gap, px
+export const EVAL_BAR_SPACE = 22; // eval bar width + gap, px
 
 /** Measures the free space and returns the largest board size that fits (a multiple of 8). */
-function useBoardSize(ref: React.RefObject<HTMLDivElement | null>) {
+export function useBoardSize(ref: React.RefObject<HTMLDivElement | null>) {
   const [size, setSize] = useState(480);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -49,6 +51,7 @@ export function useOpeningAndPhase() {
 }
 
 export function AnalysisPage() {
+  const t = useT();
   const a = useAnalysis();
   const settings = useApp((s) => s.settings);
   const inspectorOpen = useApp((s) => s.inspectorOpen);
@@ -112,7 +115,7 @@ export function AnalysisPage() {
           <div className="board-and-bar" style={{ height: size }}>
             <EvalBar
               winWhite={top ? top.winWhite : null}
-              label={top ? formatScore(top.scoreWhite) : "No evaluation yet"}
+              label={top ? formatScore(top.scoreWhite) : t("board.noEval")}
               orientation={a.orientation}
               height={size}
             />
@@ -149,11 +152,11 @@ export function AnalysisPage() {
               )}
               {a.preview && (
                 <div className="preview-banner">
-                  <span>Previewing engine line</span>
+                  <span>{t("preview.title")}</span>
                   <button type="button" className="btn small primary" onClick={a.playPreview}>
-                    Play these moves
+                    {t("preview.play")}
                   </button>
-                  <button type="button" className="icon-btn" aria-label="Stop previewing" onClick={() => a.setPreview(null)}>
+                  <button type="button" className="icon-btn" aria-label={t("preview.stop")} onClick={() => a.setPreview(null)}>
                     <X />
                   </button>
                 </div>
@@ -163,37 +166,37 @@ export function AnalysisPage() {
         </div>
 
         <div className="board-caption" style={{ width: size + EVAL_BAR_SPACE }}>
-          <span className={`badge phase-${phase}`} title="Game phase (Lichess-style detection)">
-            {phase[0].toUpperCase() + phase.slice(1)}
+          <span className={`badge phase-${phase}`} title={t("phase.title")}>
+            {phaseLabel(t, phase)}
           </span>
           <span className="opening-name" title={opening.opening ? `${opening.opening.eco} ${opening.opening.name}` : undefined}>
             {opening.opening ? (
               <>
                 <span className="eco">{opening.opening.eco}</span> {opening.opening.name}
-                {!opening.inBook && node.ply > 0 && <span className="secondary"> · out of book</span>}
+                {!opening.inBook && node.ply > 0 && <span className="secondary"> · {t("opening.outOfBook")}</span>}
               </>
             ) : (
-              <span className="secondary">{node.ply === 0 ? "Starting position" : "Unnamed position"}</span>
+              <span className="secondary">{node.ply === 0 ? t("opening.start") : t("opening.unnamed")}</span>
             )}
           </span>
           <span className="nav-buttons">
-            <IconButton label="First move (↑)" onClick={a.first} disabled={node.parent === null}>
+            <IconButton label={t("nav.first")} onClick={a.first} disabled={node.parent === null}>
               <ChevronFirst />
             </IconButton>
-            <IconButton label="Previous move (←)" onClick={a.prev} disabled={node.parent === null}>
+            <IconButton label={t("nav.prev")} onClick={a.prev} disabled={node.parent === null}>
               <ChevronLeft />
             </IconButton>
-            <IconButton label="Next move (→)" onClick={a.next} disabled={node.children.length === 0}>
+            <IconButton label={t("nav.next")} onClick={a.next} disabled={node.children.length === 0}>
               <ChevronRight />
             </IconButton>
-            <IconButton label="Last move (↓)" onClick={a.last} disabled={node.children.length === 0}>
+            <IconButton label={t("nav.last")} onClick={a.last} disabled={node.children.length === 0}>
               <ChevronLast />
             </IconButton>
           </span>
         </div>
       </div>
 
-      <aside className="inspector" data-open={inspectorOpen} aria-label="Inspector" aria-hidden={!inspectorOpen}>
+      <aside className="inspector" data-open={inspectorOpen} aria-label={t("inspector.title")} aria-hidden={!inspectorOpen}>
         <EnginePanel />
         <div className="inspector-split">
           <div className="inspector-scroll coach-scroll">

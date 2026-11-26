@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { type AppInfo, backend, type Settings, type SetupCheck, toBackendError } from "../backend";
 
-export type Page = "analysis" | "games" | "explorer" | "repertoire" | "train" | "insights" | "setup";
+export type Page = "analysis" | "games" | "review" | "explorer" | "repertoire" | "train" | "insights" | "setup";
 
 interface AppState {
   ready: boolean;
@@ -52,7 +52,7 @@ export const useApp = create<AppState>((set, get) => ({
       set({ checks: await backend.setupChecks() });
     } catch (e) {
       const err = toBackendError(e);
-      set({ checks: [{ id: "app", label: "ChessCoach", status: "error", detail: err.message, fix: null }] });
+      set({ checks: [{ id: "app", label: "ChessCoach", status: "error", detail: err.message, fix: null, params: {} }] });
     } finally {
       set({ checking: false });
     }

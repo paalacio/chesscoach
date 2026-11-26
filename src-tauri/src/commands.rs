@@ -13,19 +13,23 @@ use crate::engine::{self, AnalyzeOptions, EngineEvent, EngineStatus};
 use crate::settings::{self, Settings};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-/// Errors as the frontend sees them: `{ kind, message }`.
+/// Errors as the frontend sees them: `{ kind, message, detail }`. The frontend
+/// shows a translated message for known kinds (filled in with `detail`) and
+/// falls back to the English `message`.
 #[derive(Debug, Serialize)]
 pub struct CmdError {
     kind: String,
     message: String,
+    detail: Option<String>,
 }
 
 impl CmdError {
     fn new(kind: &str, message: impl Into<String>) -> Self {
-        Self { kind: kind.into(), message: message.into() }
+        Self { kind: kind.into(), message: message.into(), detail: None }
     }
 }
 
@@ -36,12 +40,12 @@ impl From<String> for CmdError {
 }
 impl From<ClaudeError> for CmdError {
     fn from(e: ClaudeError) -> Self {
-        Self::new(e.kind(), e.to_string())
+        Self { kind: e.kind().into(), message: e.to_string(), detail: e.detail() }
     }
 }
 impl From<ChessComError> for CmdError {
     fn from(e: ChessComError) -> Self {
-        Self::new("chesscom", e.to_string())
+        Self { kind: e.kind().into(), message: e.to_string(), detail: e.detail() }
     }
 }
 impl From<rusqlite::Error> for CmdError {
@@ -79,9 +83,17 @@ pub async fn get_settings(state: State<'_, AppState>) -> CmdResult<Settings> {
 }
 
 #[tauri::command]
-pub async fn save_settings(state: State<'_, AppState>, settings: Settings) -> CmdResult<Settings> {
+pub async fn save_settings(app: AppHandle, state: State<'_, AppState>, settings: Settings) -> CmdResult<Settings> {
     settings::save(&state.settings_path, &settings)?;
     let old = std::mem::replace(&mut *state.settings.lock().unwrap(), settings.clone());
+    if old.language != settings.language {
+        // Rebuild the native menu bar in the new language.
+        let menu = crate::menu::build(&app, &settings.language).map_err(|e| e.to_string())?;
+        app.set_menu(menu).map_err(|e| e.to_string())?;
+    }
+    if old.auto_analyze != settings.auto_analyze {
+        state.review.set_paused(!settings.auto_analyze);
+    }
     state.claude.set_custom_path(Some(settings.claude_path.clone()));
     // Engine settings changed: stop it; it restarts with the new ones when next needed.
     if old.engine_path != settings.engine_path
@@ -161,8 +173,11 @@ pub struct AskReply {
 
 #[tauri::command]
 pub async fn claude_ask(state: State<'_, AppState>, request: AskRequest) -> CmdResult<AskReply> {
-    let model = state.settings.lock().unwrap().claude_model.clone();
-    let key = claude::cache_key(request.kind, &request.fen, request.move_played.as_deref(), &model);
+    let (model, language) = {
+        let s = state.settings.lock().unwrap();
+        (s.claude_model.clone(), s.language.clone())
+    };
+    let key = claude::cache_key(request.kind, &request.fen, request.move_played.as_deref(), &model, &language);
 
     if !request.force {
         let cached = db::cache_get(&state.db.lock().unwrap(), &key)?;
@@ -228,12 +243,16 @@ pub async fn chesscom_archives(state: State<'_, AppState>) -> CmdResult<Vec<Arch
 #[derive(Serialize, Clone, Copy, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CheckStatus {
-    Ok,
+    #[serde(rename = "ok")]
+    Pass,
     Warning,
-    Error,
+    #[serde(rename = "error")]
+    Fail,
     Info,
 }
 
+/// One line of the setup screen. The frontend shows a translated sentence for
+/// `id` + `status` filled in with `params`; `detail`/`fix` are English fallbacks.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SetupCheck {
@@ -242,10 +261,27 @@ pub struct SetupCheck {
     status: CheckStatus,
     detail: String,
     fix: Option<String>,
+    params: BTreeMap<&'static str, String>,
+}
+
+fn check(id: &'static str, label: &'static str, status: CheckStatus, detail: impl Into<String>) -> SetupCheck {
+    SetupCheck { id, label, status, detail: detail.into(), fix: None, params: BTreeMap::new() }
+}
+
+impl SetupCheck {
+    fn fix(mut self, fix: impl Into<String>) -> Self {
+        self.fix = Some(fix.into());
+        self
+    }
+    fn param(mut self, k: &'static str, v: impl ToString) -> Self {
+        self.params.insert(k, v.to_string());
+        self
+    }
 }
 
 #[tauri::command]
 pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
+    use CheckStatus::*;
     let state = app.state::<AppState>();
     let s = state.settings.lock().unwrap().clone();
     let mut checks = Vec::new();
@@ -254,138 +290,89 @@ pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
     let app2 = app.clone();
     let engine = tauri::async_runtime::spawn_blocking(move || start_engine(&app2)).await.map_err(|e| e.to_string())?;
     checks.push(match engine {
-        Ok(st) => SetupCheck {
-            id: "engine",
-            label: "Chess engine",
-            status: CheckStatus::Ok,
-            detail: format!(
-                "{} is ready ({} threads, {} MB hash)",
-                st.name.unwrap_or_default(),
-                st.threads,
-                st.hash_mb
-            ),
-            fix: None,
-        },
-        Err(e) => SetupCheck {
-            id: "engine",
-            label: "Chess engine",
-            status: CheckStatus::Error,
-            detail: e,
-            fix: Some("Reinstall ChessCoach, or choose a Stockfish binary under Settings → Engine.".into()),
-        },
+        Ok(st) => {
+            let name = st.name.unwrap_or_default();
+            check("engine", "Chess engine", Pass, format!("{name} is ready ({} threads, {} MB hash)", st.threads, st.hash_mb))
+                .param("name", name)
+                .param("threads", st.threads)
+                .param("hash", st.hash_mb)
+        }
+        Err(e) => check("engine", "Chess engine", Fail, e.clone())
+            .fix("Reinstall ChessCoach, or choose a Stockfish binary under Settings → Engine.")
+            .param("error", e),
     });
 
     // 2. Claude Code installed
-    let install_fix = if cfg!(windows) {
-        "Install Claude Code: open PowerShell and run  irm https://claude.ai/install.ps1 | iex  then restart ChessCoach."
+    let install_cmd = if cfg!(windows) {
+        "irm https://claude.ai/install.ps1 | iex"
     } else {
-        "Install Claude Code: open Terminal and run  curl -fsSL https://claude.ai/install.sh | bash  then restart ChessCoach."
+        "curl -fsSL https://claude.ai/install.sh | bash"
     };
     let version = state.claude.version().await;
     let installed = version.is_ok();
     checks.push(match version {
-        Ok(v) => SetupCheck {
-            id: "claude",
-            label: "Claude Code",
-            status: CheckStatus::Ok,
-            detail: format!("Found {v} at {}", state.claude.binary().map(|p| p.display().to_string()).unwrap_or_default()),
-            fix: None,
-        },
-        Err(e) => SetupCheck {
-            id: "claude",
-            label: "Claude Code",
-            status: CheckStatus::Error,
-            detail: e.to_string(),
-            fix: Some(format!("{install_fix} If it's installed somewhere unusual, set its path in Settings → Claude.")),
-        },
+        Ok(v) => {
+            let path = state.claude.binary().map(|p| p.display().to_string()).unwrap_or_default();
+            check("claude", "Claude Code", Pass, format!("Found {v} at {path}")).param("version", v).param("path", path)
+        }
+        Err(e) => check("claude", "Claude Code", Fail, e.to_string())
+            .fix(format!(
+                "Install Claude Code: open {}  {install_cmd}  then restart ChessCoach. If it's installed somewhere unusual, set its path in Settings → Claude.",
+                if cfg!(windows) { "PowerShell and run" } else { "Terminal and run" }
+            ))
+            .param("command", install_cmd)
+            .param("terminal", if cfg!(windows) { "PowerShell" } else { "Terminal" }),
     });
 
     // 3. Claude Code logged in with a subscription
     let login_fix = "Open a terminal, run  claude  and log in with your Claude account (Pro or Max). Then click Check again.";
     checks.push(if !installed {
-        SetupCheck {
-            id: "claudeLogin",
-            label: "Claude login",
-            status: CheckStatus::Info,
-            detail: "Checked once Claude Code is installed.".into(),
-            fix: None,
-        }
+        check("claudeLogin", "Claude login", Info, "Checked once Claude Code is installed.")
     } else {
         match state.claude.auth_status().await {
-            Ok(a) if a.uses_subscription() => SetupCheck {
-                id: "claudeLogin",
-                label: "Claude login",
-                status: CheckStatus::Ok,
-                detail: format!(
-                    "Logged in with a Claude subscription{}",
-                    a.subscription_type.map(|t| format!(" ({t})")).unwrap_or_default()
-                ),
-                fix: None,
-            },
-            Ok(a) if a.logged_in => SetupCheck {
-                id: "claudeLogin",
-                label: "Claude login",
-                status: CheckStatus::Warning,
-                detail: format!(
-                    "Logged in with {}, not a Claude subscription. Calls may be billed to that account.",
-                    a.auth_method.unwrap_or_else(|| "another method".into())
-                ),
-                fix: Some(login_fix.into()),
-            },
-            Ok(_) => SetupCheck {
-                id: "claudeLogin",
-                label: "Claude login",
-                status: CheckStatus::Error,
-                detail: "Claude Code is not logged in.".into(),
-                fix: Some(login_fix.into()),
-            },
-            Err(e) => SetupCheck {
-                id: "claudeLogin",
-                label: "Claude login",
-                status: CheckStatus::Error,
-                detail: e.to_string(),
-                fix: Some(login_fix.into()),
-            },
+            Ok(a) if a.uses_subscription() => {
+                let plan = a.subscription_type.unwrap_or_default();
+                check("claudeLogin", "Claude login", Pass, format!("Logged in with a Claude subscription ({plan})")).param("plan", plan)
+            }
+            Ok(a) if a.logged_in => {
+                let method = a.auth_method.unwrap_or_else(|| "another method".into());
+                check(
+                    "claudeLogin",
+                    "Claude login",
+                    Warning,
+                    format!("Logged in with {method}, not a Claude subscription. Calls may be billed to that account."),
+                )
+                .fix(login_fix)
+                .param("method", method)
+            }
+            Ok(_) => check("claudeLogin", "Claude login", Fail, "Claude Code is not logged in.").fix(login_fix),
+            Err(e) => check("claudeLogin", "Claude login", Fail, e.to_string()).fix(login_fix).param("error", e.to_string()),
         }
     });
 
     // 4. Chess.com details for imports
-    let missing: Vec<&str> = [
-        (s.chesscom_username.trim().is_empty(), "username"),
-        (s.contact_email.trim().is_empty(), "contact email"),
-    ]
-    .into_iter()
-    .filter_map(|(m, name)| m.then_some(name))
-    .collect();
-    checks.push(if missing.is_empty() {
-        SetupCheck {
-            id: "chesscom",
-            label: "Chess.com",
-            status: CheckStatus::Ok,
-            detail: format!("Importing games for {}", s.chesscom_username),
-            fix: None,
-        }
+    let no_user = s.chesscom_username.trim().is_empty();
+    let no_contact = s.contact_email.trim().is_empty();
+    checks.push(if !no_user && !no_contact {
+        check("chesscom", "Chess.com", Pass, format!("Importing games for {}", s.chesscom_username)).param("user", &s.chesscom_username)
     } else {
-        SetupCheck {
-            id: "chesscom",
-            label: "Chess.com",
-            status: CheckStatus::Warning,
-            detail: format!("Missing your Chess.com {}.", missing.join(" and ")),
-            fix: Some(
-                "Add them under Settings → Chess.com. The contact email is only sent to Chess.com, which asks apps to identify themselves."
-                    .into(),
-            ),
-        }
+        let missing = match (no_user, no_contact) {
+            (true, true) => "both",
+            (true, false) => "username",
+            _ => "contact",
+        };
+        check("chesscom", "Chess.com", Warning, format!("Missing your Chess.com {missing}."))
+            .fix("Add them under Settings → Chess.com. The contact email is only sent to Chess.com, which asks apps to identify themselves.")
+            .param("missing", missing)
     });
 
     // 5. Lichess token (needed later for the opening explorer)
-    checks.push(SetupCheck {
-        id: "lichess",
-        label: "Lichess explorer",
-        status: CheckStatus::Info,
-        detail: "Needed for the opening explorer, which arrives in a later version.".into(),
-        fix: None,
-    });
+    checks.push(check(
+        "lichess",
+        "Lichess explorer",
+        Info,
+        "Needed for the opening explorer, which arrives in a later version.",
+    ));
 
     Ok(checks)
 }

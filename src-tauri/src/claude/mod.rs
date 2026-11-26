@@ -58,10 +58,11 @@ impl RequestKind {
     }
 }
 
-/// The cache key for an answer: hash of everything that would change it.
-pub fn cache_key(kind: RequestKind, fen: &str, move_played: Option<&str>, model: &str) -> String {
+/// The cache key for an answer: hash of everything that would change it
+/// (including the app language, since Claude answers in it).
+pub fn cache_key(kind: RequestKind, fen: &str, move_played: Option<&str>, model: &str, language: &str) -> String {
     let mut h = Sha256::new();
-    for part in [kind.as_str(), fen, move_played.unwrap_or("-"), model, &PROMPT_VERSION.to_string()] {
+    for part in [kind.as_str(), fen, move_played.unwrap_or("-"), model, language, &PROMPT_VERSION.to_string()] {
         h.update(part.as_bytes());
         h.update([0u8]); // separator, so "ab"+"c" != "a"+"bc"
     }
@@ -264,12 +265,13 @@ mod tests {
     #[test]
     fn cache_key_changes_with_every_input() {
         let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
-        let base = cache_key(RequestKind::PositionPlan, fen, None, "sonnet");
-        assert_eq!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet"), "stable");
+        let base = cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en");
+        assert_eq!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "en"), "stable");
         assert_eq!(base.len(), 64);
-        assert_ne!(base, cache_key(RequestKind::MoveExplanation, fen, None, "sonnet"));
-        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, Some("e2e4"), "sonnet"));
-        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "opus"));
+        assert_ne!(base, cache_key(RequestKind::MoveExplanation, fen, None, "sonnet", "en"));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, Some("e2e4"), "sonnet", "en"));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "opus", "en"));
+        assert_ne!(base, cache_key(RequestKind::PositionPlan, fen, None, "sonnet", "pt"));
     }
 
     #[test]

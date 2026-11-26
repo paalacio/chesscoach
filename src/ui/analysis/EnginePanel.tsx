@@ -4,6 +4,7 @@ import { Cpu } from "lucide-react";
 import { formatMoves } from "../../core/chess";
 import { linesDepth } from "../../core/engine-lines";
 import { formatScore } from "../../core/winprob";
+import { useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
 import { Switch } from "../components/controls";
@@ -22,6 +23,7 @@ function formatNodes(nodes: number | null): string {
 }
 
 export function EnginePanel() {
+  const t = useT();
   const { engineOn, engineName, engineError, lines, linesFen, current, tree, preview } = useAnalysis();
   const setEngine = useAnalysis((s) => s.setEngine);
   const setPreview = useAnalysis((s) => s.setPreview);
@@ -34,9 +36,9 @@ export function EnginePanel() {
   const thinking = engineOn && (!fresh || lines.length === 0);
 
   return (
-    <section className="panel engine-panel" aria-label="Engine">
+    <section className="panel engine-panel" aria-label={t("engine.title")}>
       <div className="panel-header">
-        <Switch checked={engineOn} onChange={setEngine} label="Engine on or off" disabled={!!engineError && !engineName} />
+        <Switch checked={engineOn} onChange={setEngine} label={t("engine.toggle")} disabled={!!engineError && !engineName} />
         <span className="engine-name">
           <Cpu aria-hidden />
           {engineName ?? "Stockfish"}
@@ -44,11 +46,11 @@ export function EnginePanel() {
         <span className="right engine-stats tabular">
           {engineOn && depth > 0 && fresh && (
             <>
-              <span title="Search depth">depth {depth}</span>
+              <span title={t("engine.depthTitle")}>{t("engine.depth", { depth })}</span>
               {top?.nps ? <span title={formatNodes(top.nodes)}>{formatNps(top.nps)}</span> : null}
             </>
           )}
-          {thinking && <span className="spinner small" aria-label="Analysing" />}
+          {thinking && <span className="spinner small" aria-label={t("engine.analysing")} />}
         </span>
       </div>
 
@@ -57,13 +59,13 @@ export function EnginePanel() {
           <span>
             {engineError}{" "}
             <button type="button" className="link-btn" onClick={() => setPage("setup")}>
-              Open setup
+              {t("common.openSetup")}
             </button>
           </span>
         </div>
       ) : (
         <div className={`engine-lines ${engineOn ? "" : "stale"}`} role="list">
-          {!engineOn && <p className="secondary small engine-off">Engine is off. Press Space to start it.</p>}
+          {!engineOn && <p className="secondary small engine-off">{t("engine.off")}</p>}
           {(fresh ? lines : []).map((line, i) => (
             <div key={line.multipv} className={`engine-line ${preview?.line === i ? "previewing" : ""}`} role="listitem">
               <span className={`score tabular ${line.scoreWhite.value >= 0 ? "pos" : "neg"}`}>{formatScore(line.scoreWhite)}</span>
@@ -82,7 +84,7 @@ export function EnginePanel() {
                         setPreview({ line: i, plies: k + 1 });
                         playPreview();
                       }}
-                      title="Click to preview, double-click to play"
+                      title={t("engine.pvTitle")}
                     >
                       {text}
                     </button>

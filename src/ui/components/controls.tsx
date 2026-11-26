@@ -120,7 +120,7 @@ export function Sheet({
 export const Kbd = ({ children }: { children: ReactNode }) => <kbd className="kbd">{children}</kbd>;
 
 export const Spinner = ({ small }: { small?: boolean }) => (
-  <span className={`spinner ${small ? "small" : ""}`} role="status" aria-label="Loading" />
+  <span className={`spinner ${small ? "small" : ""}`} role="status" />
 );
 
 /** Copies text; falls back to a hidden textarea when the Clipboard API isn't allowed. */

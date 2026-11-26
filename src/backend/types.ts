@@ -4,7 +4,8 @@
 // These types mirror the Rust structs in src-tauri/src (serde camelCase).
 
 import type { RequestKind } from "../core/context-packet";
-import type { EngineEvent } from "../core/types";
+import type { GameAnalysis, ReviewSummary, TrainingCard } from "../core/review";
+import type { Color, EngineEvent } from "../core/types";
 
 export type Platform = "mac" | "windows" | "linux";
 
@@ -21,6 +22,12 @@ export interface Settings {
   pieceSet: string;
   showCoordinates: boolean;
   setupComplete: boolean;
+  reviewDepth: number;
+  reviewMovetimeMs: number;
+  reviewThreads: number | null;
+  autoAnalyze: boolean;
+  /** "en" | "pt" */
+  language: string;
 }
 
 export interface AppInfo {
@@ -52,8 +59,10 @@ export interface SetupCheck {
   id: string;
   label: string;
   status: CheckStatus;
+  /** English fallbacks; the UI shows a translated text built from id + status + params. */
   detail: string;
   fix: string | null;
+  params: Record<string, string>;
 }
 
 export interface AskRequest {
@@ -77,11 +86,16 @@ export interface Archive {
   url: string;
 }
 
-/** Errors from the backend: `kind` is e.g. "notLoggedIn", "usageLimit", "chesscom". */
+/**
+ * Errors from the backend: `kind` is e.g. "notLoggedIn", "usageLimit",
+ * "missingContact"; `detail` holds the value inside (a username, a limit message).
+ * The UI shows a translated text for known kinds (see i18n "error.*").
+ */
 export class BackendError extends Error {
   constructor(
     public kind: string,
     message: string,
+    public detail: string | null = null,
   ) {
     super(message);
   }
@@ -90,11 +104,71 @@ export class BackendError extends Error {
 export function toBackendError(e: unknown): BackendError {
   if (e instanceof BackendError) return e;
   if (e && typeof e === "object" && "message" in e) {
-    const o = e as { kind?: string; message: string };
-    return new BackendError(o.kind ?? "error", String(o.message));
+    const o = e as { kind?: string; message: string; detail?: string | null };
+    return new BackendError(o.kind ?? "error", String(o.message), o.detail ?? null);
   }
   return new BackendError("error", String(e));
 }
+
+// ---------- games (Phase 2) ----------
+
+export type AnalysisStatus = "pending" | "running" | "done" | "error";
+
+export interface GameSummary {
+  id: number;
+  url: string;
+  white: string;
+  black: string;
+  whiteElo: number | null;
+  blackElo: number | null;
+  myColor: Color;
+  result: "1-0" | "0-1" | "1/2-1/2";
+  myResult: "win" | "loss" | "draw";
+  termination: string | null;
+  timeClass: string | null;
+  timeControl: string | null;
+  /** Unix seconds. */
+  endTime: number | null;
+  eco: string | null;
+  opening: string | null;
+  plyCount: number;
+  analysisStatus: AnalysisStatus;
+  reviewSummary: ReviewSummary | null;
+}
+
+export interface GameDetail extends GameSummary {
+  pgn: string;
+  analysis: GameAnalysis | null;
+  analysisError: string | null;
+}
+
+export interface SyncProgress {
+  archive: string;
+  index: number;
+  total: number;
+  newGames: number;
+}
+
+export interface SyncReport {
+  months: number;
+  fetched: number;
+  newGames: number;
+  totalGames: number;
+}
+
+export interface WorkerStatus {
+  paused: boolean;
+  currentGame: number | null;
+  ply: number;
+  plies: number;
+  pending: number;
+}
+
+export type ReviewEvent =
+  | { type: "progress"; gameId: number; ply: number; plies: number; pending: number }
+  | { type: "gameDone"; gameId: number; pending: number }
+  | { type: "gameError"; gameId: number; message: string }
+  | { type: "status"; status: WorkerStatus };
 
 export type ContextMenuItem = { id: string; label: string; enabled?: boolean } | "separator";
 
@@ -118,6 +192,18 @@ export interface Backend {
   claudeCallsToday(): Promise<number>;
 
   chesscomArchives(): Promise<Archive[]>;
+
+  gamesSync(): Promise<SyncReport>;
+  onSyncProgress(cb: (p: SyncProgress) => void): Promise<() => void>;
+  gamesList(): Promise<GameSummary[]>;
+  gameGet(id: number): Promise<GameDetail>;
+  /** Saves the review summary (for the list) and training cards; returns new cards. */
+  gameSaveReview(id: number, summary: ReviewSummary, cards: TrainingCard[]): Promise<number>;
+  reviewStatus(): Promise<WorkerStatus>;
+  reviewSetPaused(paused: boolean): Promise<void>;
+  reviewPrioritize(id: number): Promise<void>;
+  reviewReanalyze(id: number): Promise<void>;
+  onReviewEvent(cb: (ev: ReviewEvent) => void): Promise<() => void>;
 
   openUrl(url: string): Promise<void>;
   /** Native menu bar clicks (menu item ids, see src-tauri/src/menu.rs). */

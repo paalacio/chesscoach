@@ -22,10 +22,16 @@ export interface PositionPlan {
   concepts: string[];
 }
 
+/** A move Claude named that was removed (the UI turns the code into a sentence). */
+export interface MoveWarning {
+  code: "betterMoveDropped" | "candidateDropped" | "momentMoveDropped";
+  san: string;
+}
+
 export interface Checked<T> {
   data: T;
-  /** Readable notes about moves that were dropped. */
-  warnings: string[];
+  /** Moves that were dropped because they aren't legal or not the engine's. */
+  warnings: MoveWarning[];
   /** Moves mentioned in the text that aren't legal or in the engine lines (normalized SAN). */
   flagged: string[];
 }
@@ -68,7 +74,7 @@ const strList = (v: unknown, max: number): string[] =>
 
 export function checkMoveExplanation(raw: unknown, allowed: AllowedMoves): Checked<MoveExplanation> {
   const r = (raw ?? {}) as Record<string, unknown>;
-  const warnings: string[] = [];
+  const warnings: MoveWarning[] = [];
   let better: MoveExplanation["better_move"] = null;
   const bm = r.better_move as Record<string, unknown> | null | undefined;
   if (bm && str(bm.san)) {
@@ -76,7 +82,7 @@ export function checkMoveExplanation(raw: unknown, allowed: AllowedMoves): Check
     if (allowed.legalBefore.has(san) && allowed.engineFirstBefore.has(san)) {
       better = { san: str(bm.san), why: str(bm.why) };
     } else {
-      warnings.push(`Claude suggested ${str(bm.san)}, which isn't one of the engine's top moves, so it was removed.`);
+      warnings.push({ code: "betterMoveDropped", san: str(bm.san) });
     }
   }
   const data: MoveExplanation = {
@@ -95,7 +101,7 @@ export function checkMoveExplanation(raw: unknown, allowed: AllowedMoves): Check
 
 export function checkPositionPlan(raw: unknown, allowed: AllowedMoves): Checked<PositionPlan> {
   const r = (raw ?? {}) as Record<string, unknown>;
-  const warnings: string[] = [];
+  const warnings: MoveWarning[] = [];
   const candidates: PositionPlan["candidate_moves"] = [];
   const list = Array.isArray(r.candidate_moves) ? r.candidate_moves : [];
   for (const c of list.slice(0, 3)) {
@@ -104,7 +110,7 @@ export function checkPositionPlan(raw: unknown, allowed: AllowedMoves): Checked<
     if (san && allowed.legalNow.has(san) && allowed.engineFirstNow.has(san)) {
       candidates.push({ san: str(cand.san), idea: str(cand.idea) });
     } else if (san) {
-      warnings.push(`Claude listed ${str(cand.san)}, which isn't one of the engine's lines, so it was removed.`);
+      warnings.push({ code: "candidateDropped", san: str(cand.san) });
     }
   }
   const data: PositionPlan = {

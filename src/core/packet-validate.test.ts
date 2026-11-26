@@ -148,7 +148,7 @@ describe("validating Claude's answers", () => {
       packet.allowed,
     );
     expect(bad.data.better_move).toBeNull();
-    expect(bad.warnings[0]).toContain("Qe7");
+    expect(bad.warnings[0]).toEqual({ code: "betterMoveDropped", san: "Qe7" });
   });
 
   it("drops candidate moves that aren't engine lines and limits list sizes", () => {

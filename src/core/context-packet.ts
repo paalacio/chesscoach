@@ -10,7 +10,7 @@ import { phaseOfLine } from "./phase";
 import type { Color, EngineLine, Phase } from "./types";
 import { classifyMove, describeWin, winFor } from "./winprob";
 
-export type RequestKind = "hello" | "moveExplanation" | "positionPlan";
+export type RequestKind = "hello" | "moveExplanation" | "positionPlan" | "gameReview";
 
 export const RATING_BAND = "800-1200 (Chess.com rapid)";
 
@@ -162,8 +162,15 @@ export function buildPacket(input: PacketInput): Packet {
   return { text: out.join("\n"), allowed, phase };
 }
 
+/** The line telling Claude which language to write in (moves stay in English SAN). */
+export function languageInstruction(language: "en" | "pt"): string {
+  return language === "pt"
+    ? "Write every text field in Brazilian Portuguese (português do Brasil). Keep chess moves in standard English SAN exactly as written in this packet (e.g. Nf3, O-O). Concept tags stay in English, from the list in your instructions."
+    : "Write in English.";
+}
+
 /** The full user message for a request kind. */
-export function buildPrompt(kind: RequestKind, packet: Packet, move?: MoveContext | null): string {
+export function buildPrompt(kind: RequestKind, packet: Packet, move?: MoveContext | null, language: "en" | "pt" = "en"): string {
   const header =
     kind === "moveExplanation" && move
       ? [
@@ -180,6 +187,7 @@ export function buildPrompt(kind: RequestKind, packet: Packet, move?: MoveContex
   return [
     ...header,
     "Only mention moves that appear in this packet. Use the game phase to choose what to focus on.",
+    languageInstruction(language),
     "",
     packet.text,
   ].join("\n");

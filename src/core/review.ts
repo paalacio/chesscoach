@@ -95,7 +95,46 @@ const KEY_MOMENT_MIN_DROP = 7.5;
 const MAX_KEY_MOMENTS = 5;
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
-const mean = (xs: number[]) => (xs.length ? round1(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
+const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+
+function standardDeviation(xs: number[]): number {
+  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
+  return Math.sqrt(xs.reduce((a, x) => a + (x - m) ** 2, 0) / xs.length);
+}
+
+/**
+ * Lichess's game accuracy (lila AccuracyPercent.gameAccuracy, read Nov 2026):
+ * for each side, the average of
+ *  - a mean of the per-move accuracies weighted by how volatile the game was
+ *    around each move (standard deviation of win% in a sliding window), and
+ *  - their harmonic mean (which punishes a few very bad moves strongly).
+ * `wins` is White's win% for each position; the first move is White's if `firstIsWhite`.
+ */
+export function gameAccuracy(wins: number[], firstIsWhite: boolean): Record<Color, number | null> {
+  const n = wins.length;
+  const windowSize = clamp(Math.floor((n - 1) / 10), 2, 8);
+  const windows: number[][] = [];
+  for (let i = 0; i < Math.min(windowSize, n) - 2; i++) windows.push(wins.slice(0, windowSize));
+  if (n < windowSize) windows.push(wins.slice());
+  for (let i = 0; i + windowSize <= n; i++) windows.push(wins.slice(i, i + windowSize));
+  const weights = windows.map((w) => clamp(standardDeviation(w), 0.5, 12));
+
+  const per: Record<Color, { acc: number; w: number }[]> = { white: [], black: [] };
+  for (let i = 0; i + 1 < n && i < weights.length; i++) {
+    const color: Color = (i % 2 === 0) === firstIsWhite ? "white" : "black";
+    const before = color === "white" ? wins[i] : 100 - wins[i];
+    const after = color === "white" ? wins[i + 1] : 100 - wins[i + 1];
+    per[color].push({ acc: moveAccuracy(before, after), w: weights[i] });
+  }
+  const result = (xs: { acc: number; w: number }[]) => {
+    if (xs.length === 0) return null;
+    const weighted = xs.reduce((a, x) => a + x.acc * x.w, 0) / xs.reduce((a, x) => a + x.w, 0);
+    // 1/0 is Infinity, so a 0% move pulls the harmonic mean to 0, as in Lichess.
+    const harmonic = xs.length / xs.reduce((a, x) => a + 1 / x.acc, 0);
+    return round1((weighted + harmonic) / 2);
+  };
+  return { white: result(per.white), black: result(per.black) };
+}
 
 export function reviewGame(startFen: string, moves: GameMove[], analysis: GameAnalysis, myColor: Color): GameReview {
   const evals = analysis.evals;
@@ -135,19 +174,28 @@ export function reviewGame(startFen: string, moves: GameMove[], analysis: GameAn
     };
   });
 
+  // Accuracy like Lichess: for the whole game, and for the positions of each phase.
+  const firstIsWhite = turnOf(startFen) === "white";
+  const overall = gameAccuracy(winCurve, firstIsWhite);
+  const perPhase = {} as Record<Phase, Record<Color, number | null>>;
+  for (const phase of ["opening", "middlegame", "endgame"] as Phase[]) {
+    // Lichess's slice: positions in the phase, plus the one just before it starts.
+    const idx = winCurve.map((_, i) => i).filter((i) => phaseAt(i, division) === phase || phaseAt(i + 1, division) === phase);
+    const slice = idx.map((i) => winCurve[i]);
+    perPhase[phase] =
+      slice.length >= 2 ? gameAccuracy(slice, turnOf(fens[idx[0]]) === "white") : { white: null, black: null };
+  }
   const accuracy = {} as Record<Color, PhaseAccuracy>;
   const counts = {} as Record<Color, Record<Judgement, number>>;
   for (const color of ["white", "black"] as Color[]) {
-    const mine = reviewed.filter((m) => m.color === color);
-    const byPhase = (p: Phase) => mean(mine.filter((m) => m.phase === p).map((m) => m.accuracy));
     accuracy[color] = {
-      opening: byPhase("opening"),
-      middlegame: byPhase("middlegame"),
-      endgame: byPhase("endgame"),
-      overall: mean(mine.map((m) => m.accuracy)),
+      opening: perPhase.opening[color],
+      middlegame: perPhase.middlegame[color],
+      endgame: perPhase.endgame[color],
+      overall: overall[color],
     };
     counts[color] = { inaccuracy: 0, mistake: 0, blunder: 0 };
-    for (const m of mine) if (m.judgement) counts[color][m.judgement]++;
+    for (const m of reviewed) if (m.color === color && m.judgement) counts[color][m.judgement]++;
   }
 
   // Key moments: the biggest drops in the mover's win chance, shown in game order.

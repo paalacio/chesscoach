@@ -1,0 +1,316 @@
+/* Games list, game review, eval graph. */
+
+/* ---------- toolbar bits ---------- */
+.toolbar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-left: -8px;
+}
+.worker-status {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- games list ---------- */
+.games-page {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.games-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 0.5px solid var(--separator);
+}
+.games-callout {
+  margin: 10px 20px 0;
+}
+.games-table {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 12px 20px;
+}
+.games-row {
+  display: grid;
+  grid-template-columns: 110px minmax(160px, 1.2fr) 90px minmax(180px, 2fr) 110px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  text-align: left;
+  font-size: var(--fs-body);
+  color: var(--text);
+}
+.games-row:not(.head):nth-child(even) {
+  background: var(--bg-subtle);
+}
+.games-row:not(.head):hover {
+  background: var(--bg-hover);
+}
+.games-row:not(.head):active {
+  background: var(--bg-selected);
+}
+.games-row.head {
+  min-height: 28px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-2);
+  position: sticky;
+  top: -6px;
+  background: var(--bg-content);
+  z-index: 1;
+}
+.games-row .num {
+  text-align: right;
+}
+.games-row .opp {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.opp-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opening-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+.eco {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.analysing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+}
+
+.color-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.color-dot.white {
+  background: #fafafa;
+}
+.color-dot.black {
+  background: #2b2b2b;
+}
+
+.badge.result.win {
+  background: color-mix(in srgb, var(--green) 18%, transparent);
+  color: color-mix(in srgb, var(--green) 75%, var(--text));
+}
+.badge.result.loss {
+  background: color-mix(in srgb, var(--red) 15%, transparent);
+  color: color-mix(in srgb, var(--red) 80%, var(--text));
+}
+
+.glyph {
+  font-weight: 700;
+  margin-left: 1px;
+}
+.glyph.inaccuracy {
+  color: color-mix(in srgb, var(--yellow) 75%, var(--text));
+}
+.glyph.mistake {
+  color: var(--orange);
+}
+.glyph.blunder {
+  color: var(--red);
+}
+.move.current .glyph {
+  color: inherit;
+}
+
+/* ---------- eval graph ---------- */
+.eval-graph {
+  height: 92px;
+  margin-top: 4px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 0 0.5px var(--separator);
+  user-select: none;
+}
+.eval-graph.pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: default;
+  background: var(--bg-subtle);
+  color: var(--text-2);
+  font-size: var(--fs-medium);
+}
+.eval-graph svg {
+  display: block;
+}
+.eg-dark {
+  fill: #3a3a3c;
+}
+.eg-light {
+  fill: #ececec;
+}
+.eg-line {
+  fill: none;
+  stroke: #9a9a9a;
+  stroke-width: 1;
+}
+.eg-mid {
+  stroke: color-mix(in srgb, var(--accent) 60%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.eg-divider {
+  stroke: rgba(128, 128, 128, 0.7);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.eg-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  fill: #8e8e93;
+}
+.eg-dot {
+  stroke: #fff;
+  stroke-width: 1.2;
+}
+.eg-dot.blunder {
+  fill: var(--red);
+}
+.eg-dot.mistake {
+  fill: var(--orange);
+}
+.eg-dot.inaccuracy,
+.eg-dot.swing {
+  fill: var(--yellow);
+}
+.eg-cursor {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* ---------- review inspector ---------- */
+.review .board-column {
+  gap: 8px;
+}
+.game-header .players {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.game-header p {
+  margin-top: 3px;
+}
+.left-book .faint {
+  color: var(--text-3);
+}
+
+.accuracy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-medium);
+}
+.accuracy-table th,
+.accuracy-table td {
+  padding: 4px 4px;
+  text-align: right;
+  font-weight: 400;
+}
+.accuracy-table thead th {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.accuracy-table tbody th {
+  text-align: left;
+  font-weight: 600;
+}
+.accuracy-table tbody tr + tr {
+  border-top: 0.5px solid var(--separator);
+}
+.accuracy-table td.overall {
+  font-weight: 700;
+}
+.accuracy-table td.counts {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.key-moments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.key-moments li {
+  padding: 6px 8px;
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+}
+.key-moments li.active {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.key-moments .moment {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  text-align: left;
+}
+.moment-move {
+  font-weight: 650;
+}
+.moment-drop {
+  margin-left: auto;
+  color: var(--text-2);
+}
+.moment-comment {
+  margin-top: 4px;
+  font-size: var(--fs-medium);
+  line-height: 1.45;
+}
+
+.lessons {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lesson-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lessons p {
+  margin: 3px 0 4px;
+  line-height: 1.45;
+}
