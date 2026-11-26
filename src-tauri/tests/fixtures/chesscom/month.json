@@ -1,0 +1,87 @@
+{
+ "games": [
+  {
+   "url": "https://www.chess.com/game/live/100000000001",
+   "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.11.20\"]\n[Round \"-\"]\n[White \"someone\"]\n[Black \"rival_player\"]\n[Result \"1-0\"]\n[CurrentPosition \"r1bq1rk1/2p1bppp/p1np4/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 b - - 0 10\"]\n[Timezone \"UTC\"]\n[ECO \"C84\"]\n[ECOUrl \"https://www.chess.com/openings/Ruy-Lopez-Opening-Morphy-Defense-Closed-Variation\"]\n[UTCDate \"2026.11.20\"]\n[UTCTime \"18:02:11\"]\n[WhiteElo \"1104\"]\n[BlackElo \"1087\"]\n[TimeControl \"600\"]\n[Termination \"someone won by resignation\"]\n[StartTime \"18:02:11\"]\n[EndDate \"2026.11.20\"]\n[EndTime \"18:15:40\"]\n[Link \"https://www.chess.com/game/live/100000000001\"]\n\n1. e4 {[%clk 0:09:58.5]} 1... e5 {[%clk 0:09:57.1]} 2. Nf3 {[%clk 0:09:55.2]} 2... Nc6 {[%clk 0:09:54]} 3. Bb5 {[%clk 0:09:50.3]} 3... a6 {[%clk 0:09:49.9]} 4. Ba4 {[%clk 0:09:47]} 4... Nf6 {[%clk 0:09:45.6]} 5. O-O {[%clk 0:09:44.1]} 5... Be7 {[%clk 0:09:40.2]} 6. Re1 {[%clk 0:09:38]} 6... b5 {[%clk 0:09:31.8]} 7. Bb3 {[%clk 0:09:30.4]} 7... d6 {[%clk 0:09:22.5]} 8. c3 {[%clk 0:09:25.7]} 8... O-O {[%clk 0:09:18.3]} 9. h3 {[%clk 0:09:20.2]} 9... Nxe4 {[%clk 0:09:02.1]} 10. Rxe4 {[%clk 0:09:12.9]} 10... d5 {[%clk 0:08:55.6]} 11. Rxe5 {[%clk 0:09:01]} 1-0\n",
+   "time_control": "600",
+   "end_time": 1795284940,
+   "rated": true,
+   "tcn": "x",
+   "uuid": "u1",
+   "initial_setup": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+   "fen": "x",
+   "time_class": "rapid",
+   "rules": "chess",
+   "white": {
+    "rating": 1104,
+    "result": "win",
+    "@id": "https://api.chess.com/pub/player/someone",
+    "username": "someone",
+    "uuid": "a"
+   },
+   "black": {
+    "rating": 1087,
+    "result": "resigned",
+    "@id": "https://api.chess.com/pub/player/rival_player",
+    "username": "rival_player",
+    "uuid": "b"
+   },
+   "eco": "https://www.chess.com/openings/Ruy-Lopez-Opening-Morphy-Defense-Closed-Variation"
+  },
+  {
+   "url": "https://www.chess.com/game/live/100000000002",
+   "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.11.21\"]\n[White \"rival_two\"]\n[Black \"someone\"]\n[Result \"1-0\"]\n[ECO \"C50\"]\n[ECOUrl \"https://www.chess.com/openings/Italian-Game\"]\n[WhiteElo \"1160\"]\n[BlackElo \"1098\"]\n[TimeControl \"600\"]\n[Termination \"rival_two won by checkmate\"]\n\n1. e4 {[%clk 0:09:59]} 1... e5 {[%clk 0:09:58]} 2. Bc4 {[%clk 0:09:57]} 2... Nc6 {[%clk 0:09:55]} 3. Qh5 {[%clk 0:09:54]} 3... Nf6 {[%clk 0:09:50]} 4. Qxf7# {[%clk 0:09:52]} 1-0\n",
+   "time_control": "600",
+   "end_time": 1795371000,
+   "rated": true,
+   "time_class": "rapid",
+   "rules": "chess",
+   "white": {
+    "rating": 1160,
+    "result": "win",
+    "username": "rival_two"
+   },
+   "black": {
+    "rating": 1098,
+    "result": "checkmated",
+    "username": "someone"
+   }
+  },
+  {
+   "url": "https://www.chess.com/game/live/100000000003",
+   "pgn": "[Variant \"Chess960\"]\n\n1. e4 *",
+   "time_control": "600",
+   "end_time": 1795372000,
+   "time_class": "rapid",
+   "rules": "chess960",
+   "white": {
+    "rating": 1100,
+    "result": "win",
+    "username": "someone"
+   },
+   "black": {
+    "rating": 1100,
+    "result": "resigned",
+    "username": "x"
+   }
+  },
+  {
+   "url": "https://www.chess.com/game/live/100000000004",
+   "pgn": "1. d4 d5 *",
+   "time_control": "600",
+   "end_time": 1795373000,
+   "time_class": "rapid",
+   "rules": "chess",
+   "white": {
+    "rating": 1100,
+    "result": "win",
+    "username": "other_a"
+   },
+   "black": {
+    "rating": 1100,
+    "result": "resigned",
+    "username": "other_b"
+   }
+  }
+ ]
+}

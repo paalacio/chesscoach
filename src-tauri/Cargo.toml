@@ -30,6 +30,9 @@ rusqlite = { version = "=0.43.0", features = ["bundled"] }
 rusqlite_migration = "=2.9.0"
 sha2 = "=0.11.2"
 hex = "=0.4.3"
+# Chess rules and PGN reading on the Rust side (used by game import and batch analysis).
+shakmaty = "=0.30.3"
+pgn-reader = "=0.29.2"
 
 [target.'cfg(unix)'.dependencies]
 libc = "=0.2.191"

@@ -7,6 +7,8 @@ mod commands;
 mod menu;
 pub mod db;
 pub mod engine;
+pub mod games;
+pub mod pgn;
 pub mod settings;
 
 use std::path::PathBuf;

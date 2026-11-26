@@ -29,6 +29,64 @@ pub fn migrations() -> Migrations<'static> {
             );
             CREATE INDEX claude_calls_at ON claude_calls(at);",
         ),
+        // 2: imported games, which monthly archives were fetched, and training
+        //    cards made from the user's mistakes (the trainer arrives in Phase 4).
+        M::up(
+            "CREATE TABLE games (
+                id              INTEGER PRIMARY KEY,
+                source          TEXT NOT NULL DEFAULT 'chesscom',
+                url             TEXT NOT NULL,          -- unique id of the game at the source
+                username        TEXT NOT NULL,          -- the user's account (lowercase)
+                archive         TEXT NOT NULL,          -- 'YYYY/MM'
+                pgn             TEXT NOT NULL,
+                white           TEXT NOT NULL,
+                black           TEXT NOT NULL,
+                white_elo       INTEGER,
+                black_elo       INTEGER,
+                my_color        TEXT NOT NULL,          -- 'white' | 'black'
+                result          TEXT NOT NULL,          -- '1-0' | '0-1' | '1/2-1/2'
+                my_result       TEXT NOT NULL,          -- 'win' | 'loss' | 'draw'
+                termination     TEXT,
+                time_class      TEXT,
+                time_control    TEXT,
+                end_time        INTEGER,                -- unix seconds
+                eco             TEXT,
+                opening         TEXT,
+                ply_count       INTEGER NOT NULL DEFAULT 0,
+                analysis_status TEXT NOT NULL DEFAULT 'pending', -- pending | running | done | error
+                analysis_json   TEXT,                   -- engine evaluation of every position
+                analysis_error  TEXT,
+                review_summary  TEXT,                   -- accuracy etc., computed by the frontend
+                imported_at     INTEGER NOT NULL,
+                UNIQUE (source, url)
+            );
+            CREATE INDEX games_user_time ON games(username, end_time DESC);
+            CREATE INDEX games_status ON games(analysis_status);
+
+            CREATE TABLE sync_archives (
+                username   TEXT NOT NULL,
+                archive    TEXT NOT NULL,
+                etag       TEXT,
+                fetched_at INTEGER NOT NULL,
+                PRIMARY KEY (username, archive)
+            );
+
+            CREATE TABLE training_cards (
+                id          INTEGER PRIMARY KEY,
+                game_id     INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                ply         INTEGER NOT NULL,
+                fen         TEXT NOT NULL,              -- position where it was the user's move
+                played_uci  TEXT NOT NULL,
+                played_san  TEXT NOT NULL,
+                best_uci    TEXT NOT NULL,
+                best_san    TEXT NOT NULL,
+                judgement   TEXT NOT NULL,              -- 'mistake' | 'blunder'
+                win_before  REAL NOT NULL,
+                win_after   REAL NOT NULL,
+                created_at  INTEGER NOT NULL,
+                UNIQUE (game_id, ply)
+            );",
+        ),
     ])
 }
 
@@ -51,7 +109,7 @@ fn prepare(conn: &mut Connection) -> Result<(), String> {
     migrations().to_latest(conn).map_err(|e| format!("Database migration failed: {e}"))
 }
 
-fn now() -> i64 {
+pub fn now() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
@@ -99,6 +157,11 @@ pub fn calls_today(conn: &Connection) -> rusqlite::Result<i64> {
     )
 }
 
+/// Number of migrations (the schema version a fresh database ends up at).
+pub fn migrations_count() -> i64 {
+    2
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -115,7 +178,7 @@ mod tests {
         drop(open(&path).unwrap());
         let conn = open(&path).unwrap();
         let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0)).unwrap();
-        assert_eq!(version, 1);
+        assert_eq!(version, migrations_count());
     }
 
     #[test]
