@@ -1,5 +1,109 @@
 # Progress log
 
+## Phase 4 (26 Nov 2026): repertoire builder, trainer, portable data
+
+**Status:** built and tested on this Mac, committed and pushed; CI: see the line below. **Not tried in
+the real window yet:**
+- building a repertoire with the real Lichess explorer and Stockfish;
+- the save and open dialogs;
+- backup and restore.
+
+The pieces underneath were checked for real (see "How it was checked").
+
+### What's new
+- **Repertoire** (sidebar). You can have several repertoires. The wizard makes one for Black and one per
+  first move as White (you play both the Ruy Lopez and the Queen's Gambit, so: "White · 1.e4",
+  "White · 1.d4" and "Black").
+  - The board shows **your move** as a green arrow and the **opponent replies** you're ready for as
+    lighter arrows. The panel lists the replies with how often players at your level choose them.
+  - **Change a move:** play another move on the board and click "Use … instead". To add a reply the
+    opponent might play, play it and click "Add it". "Add the moves on the board" adds a whole line.
+  - **Notes:** each position has a note field. "Why …? Ask Claude" saves Claude's one-line reason.
+  - **Fill in from here:** builds the rest of a line automatically.
+  - **Where your games left it:** your recent games, each with the first move that left the repertoire,
+    either yours or the opponent's. Click one to open it on the board. After a Chess.com sync, the Games
+    page says how many new games left your repertoire.
+  - **Export PGN / Import PGN**, and Delete (asks with a second click).
+- **The wizard** ("New repertoire"):
+  1. **Your games:** what you play and face, and your score, from your Chess.com games.
+  2. **Your style:** solid / balanced / sharp, how much theory, attacking or not, and the openings you
+     want to keep.
+  3. **Claude's options:** 2–3 options per situation (for example "Black against 1.e4"), with pros and
+     cons, theory load, plans, why each fits you, and the explorer numbers at your level.
+  4. **Build:** the app builds each repertoire from your choices. This takes a few minutes with real
+     Lichess data, and you can keep using the app meanwhile.
+- **Train** (sidebar, or the Train menu: ⌘⇧L / ⌘⇧R):
+  - **Learn new lines:** the app shows a line with an arrow on each new move. Then you play it again
+    from the start without help, and only that second pass counts. Default: 10 new moves per day, with
+    a "Keep learning" button past that.
+  - **Review due:** moves that are due again. The app plays the line that leads there, then waits for
+    your move, and carries on along the line while more moves are due.
+  - **My mistakes:** positions where you went wrong in reviewed games. Any move about as good as
+    Stockfish's counts as right.
+  - **The app plays the opponent's moves,** choosing more often the replies that are played more.
+  - **A wrong answer** shows the right move as a green arrow and yours as a red one, with a one-line
+    reason if one is saved ("Why? Ask Claude" asks for one), and the card comes back three cards later.
+  - **Daily goal and streak** are a quiet line at the top: "Today: 12 of 20 cards · 4-day streak".
+- **Your data** (Settings):
+  - export and import the training cards with their history (JSON);
+  - back up and restore everything (a SQLite file). Restoring first saves a copy of the current data.
+  
+  The formats are described in `docs/data-formats.md`.
+
+### How it was checked
+- **Tests:** Rust 60 (+6 live checks run by hand), Vitest 89, Playwright 46 (23 tests × WebKit/Chromium).
+  All pass.
+- **Real Claude:** the proposal request was sent to the `claude` CLI with the app's exact settings, for
+  White and Black, in English and Portuguese. Each took 30–50 s.
+  - The answers respected your openings: Ruy Lopez lines against 1...e5, the QGD against 1...d5,
+    Sicilian lines against 1.e4, King's Indian lines against 1.d4, and a King's Indian setup against
+    1.c4/1.Nf3.
+  - Every move in every option passed the app's check. A test keeps it that way.
+  - These answers are now the mock-mode examples.
+- **Real Lichess:** 217 positions of master games were recorded along your openings. Mock mode builds
+  its three example repertoires from them, so the numbers in the screenshots are real.
+- **Backup and restore** were tested on real SQLite files: back up, change data, restore, refuse a file
+  that isn't ChessCoach's.
+- **Screenshots:** `screenshots/phase-4/` (repertoire, wizard in English and Portuguese, trainer, data
+  settings; light and dark, Mac and Windows look).
+
+### Decisions (and why)
+- **Slots follow your openings,** not the London from the spec's example:
+  - as White: against 1...e5, the Sicilian, the French and the Caro-Kann (1.e4), and against 1...d5
+    and 1...Nf6 (1.d4);
+  - as Black: against 1.e4, against 1.d4, and against 1.c4/1.Nf3.
+- **One move of yours per position** in each repertoire, as the spec says. That's why there are
+  separate White repertoires for 1.e4 and 1.d4.
+- **Opponent replies** are kept if at least **5%** of players at your level choose them (the spec's
+  default). I added a second limit: the whole line must come up in at least **1%** of your games.
+  Without it a 12-move repertoire grows to thousands of positions; with it, it stays at most around 100
+  lines. Both numbers are in Settings → Repertoire.
+- **Your moves outside Claude's line:** the move masters play most, if Stockfish says it's about as good
+  as its own best (within 3 win-% points). Otherwise Stockfish's move. The panel shows where each move
+  came from ("chosen line", "theory", "Stockfish", "yours").
+- **Building stops at 600 positions** (about 5 minutes against Lichess) and says so; "Continue
+  building" goes on. If Lichess says "too many requests", building waits a minute and continues. If
+  Lichess can't be reached, it stops and keeps what was built.
+- **Without a Lichess token,** opponent replies come from master games; the wizard says so.
+- **Scheduling** uses FSRS-7 from ts-fsrs 6 (released this month):
+  - right on the first try = "Good", wrong = "Again";
+  - a new move answered right comes back in about 5 days, a wrong one within minutes (and three cards
+    later in the same session);
+  - if you change a repertoire move, its card starts over.
+- **"Why" reasons** never cost a Claude request on their own: a saved one shows at once, and "Ask Claude"
+  is a click. They're shared with the analysis board's Explain, which uses the same cached request.
+
+### Click-through checklist (Phase 4, real app: `pnpm tauri dev`)
+- [ ] Repertoire → the wizard opens. Type your openings, Ask Claude (about a minute per side), pick
+      options, then Build. Watch "Building: … positions"; it takes a few minutes. Try Stop once.
+- [ ] On the Repertoire page, step through a line, add a note, and click "Why …? Ask Claude".
+- [ ] Play a different move on the board and click "Use … instead". Click "Fill in from here".
+- [ ] Train → Learn new lines (a lesson), Review due (tomorrow, once cards are due), and My mistakes
+      (after a sync and analysis).
+- [ ] Export PGN, then open the file in Lichess (Study → Import PGN): the line tree should match.
+- [ ] Settings → Your data: Export training cards; Back up…; then Restore… the backup.
+
+
 ## Phase 3 (26 Nov 2026): opening explorer
 
 **Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
@@ -247,5 +351,10 @@ Tests: Rust 35 (+4 live, run by hand), Vitest 36, Playwright 14. All pass.
   I left it for the Phase 5 polish as planned.
 - The Chess.com fixture is hand-made in the documented shape. Once the contact is set, I'll replace it
   with a recorded real response.
-- The JSON schema for the repertoire proposal comes with Phase 4.
+- Phase 4 left out, for later if you want them:
+  - renaming a repertoire (names come from the wizard);
+  - "Add to repertoire" on a move's right-click menu (the Repertoire page's "Add the moves on the board"
+    does the same);
+  - showing "left your repertoire" on the game review page (it's on the Repertoire page and after a
+    sync).
 - The Windows Credential Manager code for the Lichess token compiles in CI but hasn't been run on Windows.

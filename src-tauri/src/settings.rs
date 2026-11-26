@@ -37,6 +37,16 @@ pub struct Settings {
     /// Lichess explorer filters for "games at my level".
     pub explorer_ratings: Vec<u32>,
     pub explorer_speeds: Vec<String>,
+    /// Repertoire builder: include an opponent reply if at least this % of games
+    /// at the user's level choose it...
+    pub rep_min_share: f64,
+    /// ...and if the whole line comes up in at least this % of the user's games.
+    pub rep_min_reach: f64,
+    /// Build lines this many moves deep (full moves).
+    pub rep_depth: u32,
+    /// Trainer: new moves to learn per day, and the daily goal (cards reviewed).
+    pub new_cards_per_day: u32,
+    pub daily_goal: u32,
 }
 
 impl Default for Settings {
@@ -61,6 +71,11 @@ impl Default for Settings {
             language: "en".into(),
             explorer_ratings: vec![1000, 1200, 1400, 1600],
             explorer_speeds: vec!["blitz".into(), "rapid".into()],
+            rep_min_share: 5.0,
+            rep_min_reach: 1.0,
+            rep_depth: 12,
+            new_cards_per_day: 10,
+            daily_goal: 20,
         }
     }
 }

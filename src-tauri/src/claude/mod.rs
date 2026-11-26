@@ -40,6 +40,8 @@ pub enum RequestKind {
     BestMoves,
     /// "Explain this opening": plans, structure, traps, typical mistakes.
     OpeningOverview,
+    /// The repertoire wizard: 2-3 candidate openings per slot.
+    RepertoireProposal,
 }
 
 impl RequestKind {
@@ -51,6 +53,7 @@ impl RequestKind {
             RequestKind::GameReview => "gameReview",
             RequestKind::BestMoves => "bestMoves",
             RequestKind::OpeningOverview => "openingOverview",
+            RequestKind::RepertoireProposal => "repertoireProposal",
         }
     }
 
@@ -62,6 +65,16 @@ impl RequestKind {
             RequestKind::GameReview => include_str!("../../prompts/schemas/game_review.json"),
             RequestKind::BestMoves => include_str!("../../prompts/schemas/best_moves.json"),
             RequestKind::OpeningOverview => include_str!("../../prompts/schemas/opening_overview.json"),
+            RequestKind::RepertoireProposal => include_str!("../../prompts/schemas/repertoire_proposal.json"),
+        }
+    }
+
+    /// How long to wait for an answer. The repertoire proposal is a long answer
+    /// (several openings for several slots), so it gets more time.
+    pub fn timeout(self) -> Duration {
+        match self {
+            RequestKind::RepertoireProposal => Duration::from_secs(240),
+            _ => TIMEOUT,
         }
     }
 }
@@ -227,7 +240,7 @@ impl ClaudeService for CliClaude {
         tokio::pin!(wait);
         let output = tokio::select! {
             out = &mut wait => out.map_err(|e| ClaudeError::Failed(e.to_string()))?,
-            _ = tokio::time::sleep(TIMEOUT) => return Err(ClaudeError::Timeout(TIMEOUT.as_secs())),
+            _ = tokio::time::sleep(req.kind.timeout()) => return Err(ClaudeError::Timeout(req.kind.timeout().as_secs())),
             _ = self.cancel_signal.notified() => {
                 interrupt(pid);
                 // Give the CLI up to 3 s to exit cleanly before it gets killed.
@@ -284,7 +297,7 @@ mod tests {
 
     #[test]
     fn every_schema_is_valid_json_with_required_fields() {
-        for kind in [RequestKind::Hello, RequestKind::MoveExplanation, RequestKind::PositionPlan, RequestKind::GameReview, RequestKind::BestMoves, RequestKind::OpeningOverview] {
+        for kind in [RequestKind::Hello, RequestKind::MoveExplanation, RequestKind::PositionPlan, RequestKind::GameReview, RequestKind::BestMoves, RequestKind::OpeningOverview, RequestKind::RepertoireProposal] {
             let v: Value = serde_json::from_str(kind.schema()).expect(kind.as_str());
             assert_eq!(v["type"], "object");
             assert!(v["required"].as_array().is_some_and(|r| !r.is_empty()));

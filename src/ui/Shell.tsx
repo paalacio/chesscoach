@@ -20,6 +20,7 @@ import {
   Sparkles,
   Stethoscope,
   Swords,
+  WandSparkles,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { backend } from "../backend";
@@ -28,6 +29,7 @@ import { treeFromPgn } from "../core/game-tree";
 import { useAnalysis } from "../store/analysis";
 import { useGames } from "../store/games";
 import { type Page, useApp } from "../store/app";
+import { useRepertoireBoard, useRepertoire } from "../store/repertoire";
 import { runAction } from "./actions";
 import { useOpeningAndPhase } from "./analysis/AnalysisPage";
 import { IconButton, Kbd, shortcut, Spinner } from "./components/controls";
@@ -98,9 +100,11 @@ export function Toolbar() {
   const t = useT();
   const page = useApp((s) => s.page);
   const inspectorOpen = useApp((s) => s.inspectorOpen);
+  const repBoard = useRepertoireBoard() && page === "repertoire";
+  const board = page === "analysis" || page === "explorer" || repBoard;
   const title =
-    page === "analysis" || page === "explorer" ? (
-      <AnalysisTitle page={page} />
+    page === "analysis" || page === "explorer" || repBoard ? (
+      <AnalysisTitle page={page as "analysis" | "explorer" | "repertoire"} />
     ) : page === "review" ? (
       <ReviewTitle />
     ) : page === "games" ? (
@@ -114,10 +118,19 @@ export function Toolbar() {
     <header className="toolbar" data-tauri-drag-region>
       {title}
       <div className="toolbar-spacer" data-tauri-drag-region />
-      {(page === "analysis" || page === "explorer") && <AnalysisTools />}
+      {board && <AnalysisTools />}
+      {repBoard && (
+        <div className="toolbar-group">
+          <span className="toolbar-divider" />
+          <button type="button" className="icon-btn" onClick={() => useRepertoire.getState().openWizard(true)} title={t("rep.newTitle")}>
+            <WandSparkles />
+            <span className="label">{t("rep.new")}</span>
+          </button>
+        </div>
+      )}
       {page === "games" && <GamesTools />}
       {page === "review" && <ReviewTools />}
-      {(page === "analysis" || page === "review" || page === "explorer") && (
+      {(board || page === "review") && (
         <div className="toolbar-group">
           <span className="toolbar-divider" />
           <IconButton label={t("toolbar.inspector")} pressed={inspectorOpen} onClick={() => runAction("toggle-inspector")}>
@@ -227,14 +240,16 @@ function ReviewTools() {
   );
 }
 
-function AnalysisTitle({ page }: { page: "analysis" | "explorer" }) {
+function AnalysisTitle({ page }: { page: "analysis" | "explorer" | "repertoire" }) {
   const t = useT();
   const { opening } = useOpeningAndPhase();
+  const repName = useRepertoire((s) => (s.selected != null ? s.reps[s.selected]?.name : null));
+  const openingText = opening.opening ? `${opening.opening.eco} · ${opening.opening.name}` : null;
   return (
     <div className="toolbar-title" data-tauri-drag-region>
-      <h1 data-tauri-drag-region>{t(page === "explorer" ? "page.explorer" : "page.analysis")}</h1>
+      <h1 data-tauri-drag-region>{t(`page.${page}`)}</h1>
       <span className="subtitle" data-tauri-drag-region>
-        {opening.opening ? `${opening.opening.eco} · ${opening.opening.name}` : t("toolbar.freeAnalysis")}
+        {page === "repertoire" ? [repName, openingText].filter(Boolean).join(" · ") : (openingText ?? t("toolbar.freeAnalysis"))}
       </span>
     </div>
   );

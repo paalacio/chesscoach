@@ -19,6 +19,9 @@ import { phaseLabel } from "../components/coach";
 import { IconButton } from "../components/controls";
 import { useAccentColor, useReducedMotion } from "../hooks";
 import { ExplorerPanel } from "../explorer/ExplorerPanel";
+import { RepertoirePanel } from "../repertoire/RepertoirePanel";
+import { nodeAt } from "../../core/repertoire";
+import { useRepertoire } from "../../store/repertoire";
 import { CoachPanel } from "./CoachPanel";
 import { EnginePanel } from "./EnginePanel";
 import { MoveList } from "./MoveList";
@@ -52,8 +55,11 @@ export function useOpeningAndPhase() {
   }, [tree, current]);
 }
 
-/** `mode="explorer"` shows the opening explorer in the inspector instead of the Coach. */
-export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explorer" }) {
+/**
+ * `mode="explorer"` shows the opening explorer in the inspector instead of the Coach;
+ * `mode="repertoire"` shows the repertoire (and its moves as arrows on the board).
+ */
+export function AnalysisPage({ mode = "analysis", visible = true }: { mode?: "analysis" | "explorer" | "repertoire"; visible?: boolean }) {
   const t = useT();
   const a = useAnalysis();
   const settings = useApp((s) => s.settings);
@@ -64,6 +70,7 @@ export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explo
   const reduceMotion = useReducedMotion();
   const [promotion, setPromotion] = useState<{ orig: string; dest: string } | null>(null);
   const { opening, phase } = useOpeningAndPhase();
+  const rep = useRepertoire((s) => (s.selected != null ? s.reps[s.selected] : null));
 
   const node = a.tree.nodes[a.current];
 
@@ -92,8 +99,18 @@ export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explo
   const top = fresh ? a.lines[0] : (a.evalCache[node.fen]?.[0] ?? null);
   // Arrows: the best move, plus lighter ones for moves that are about as good.
   const shownLines = fresh ? a.lines : (a.evalCache[node.fen] ?? []);
-  const shapes: DrawShape[] =
-    a.engineOn && !a.preview
+  const repNode = mode === "repertoire" && rep ? nodeAt(rep, node.fen) : null;
+  // While another page is shown the board has no size, and arrows can't be drawn.
+  const shapes: DrawShape[] = !visible
+    ? []
+    : repNode
+    ? // Repertoire: your move as a solid green arrow, the opponent replies lighter.
+      (repNode.mine ? [repNode.mine] : repNode.replies).map((m) => ({
+        orig: m.uci.slice(0, 2) as DrawShape["orig"],
+        dest: m.uci.slice(2, 4) as DrawShape["orig"],
+        brush: m.mine ? "rep" : "repAlt",
+      }))
+    : a.engineOn && !a.preview
       ? goodLines(shownLines, turnOf(node.fen))
           .filter((l) => l.pvUci[0])
           .map((l, i) => ({
@@ -145,7 +162,7 @@ export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explo
                 onMove={onMove}
                 autoShapes={shapes}
                 coordinates={settings?.showCoordinates ?? true}
-                size={size}
+                size={visible ? size : 0}
                 accent={accent}
                 reduceMotion={reduceMotion}
               />
@@ -210,7 +227,9 @@ export function AnalysisPage({ mode = "analysis" }: { mode?: "analysis" | "explo
       <aside className="inspector" data-open={inspectorOpen} aria-label={t("inspector.title")} aria-hidden={!inspectorOpen}>
         <EnginePanel />
         <div className="inspector-split">
-          <div className="inspector-scroll coach-scroll">{mode === "explorer" ? <ExplorerPanel /> : <CoachPanel />}</div>
+          <div className="inspector-scroll coach-scroll">
+            {mode === "explorer" ? <ExplorerPanel /> : mode === "repertoire" ? <RepertoirePanel /> : <CoachPanel />}
+          </div>
           <div className="inspector-scroll moves-scroll">
             <MoveList />
           </div>

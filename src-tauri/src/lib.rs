@@ -13,6 +13,7 @@ pub mod pgn;
 pub mod review;
 pub mod secrets;
 pub mod settings;
+pub mod study;
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -82,6 +83,8 @@ pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_opener::init())
+        // Save/open dialogs, used from Rust only (exports, imports, backups).
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let state = init_state(app)?;
             let review = state.review.clone();
@@ -116,6 +119,24 @@ pub fn run() {
             commands::lichess_token_save,
             commands::lichess_token_clear,
             commands::explorer_query,
+            commands::repertoire_list,
+            commands::repertoire_create,
+            commands::repertoire_get,
+            commands::repertoire_save_moves,
+            commands::repertoire_update,
+            commands::repertoire_delete,
+            commands::repertoire_set_note,
+            commands::srs_list,
+            commands::srs_record,
+            commands::srs_review_days,
+            commands::srs_export,
+            commands::srs_import,
+            commands::mistake_cards,
+            commands::recent_game_moves,
+            commands::file_save_text,
+            commands::file_open_text,
+            commands::db_backup,
+            commands::db_restore,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the ChessCoach app");

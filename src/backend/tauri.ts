@@ -65,6 +65,27 @@ export function createTauriBackend(): Backend {
     lichessTokenClear: () => call("lichess_token_clear"),
     explorerQuery: (source, fen, color) => call("explorer_query", { source, fen, color: color ?? null }),
 
+    repertoireList: () => call("repertoire_list"),
+    repertoireCreate: (name, color, meta) => call("repertoire_create", { name, color, meta }),
+    repertoireGet: (id) => call("repertoire_get", { id }),
+    repertoireSaveMoves: (id, moves) => call("repertoire_save_moves", { id, moves }),
+    repertoireUpdate: (id, name, meta) => call("repertoire_update", { id, name, meta }),
+    repertoireDelete: (id) => call("repertoire_delete", { id }),
+    repertoireSetNote: (id, epd, note, why) => call("repertoire_set_note", { id, epd, note, why }),
+    srsList: () => call("srs_list"),
+    srsRecord: (card, review) => call("srs_record", { card, review }),
+    srsReviewDays: () => call("srs_review_days"),
+    srsExport: () => call("srs_export"),
+    srsImport: (data) => call("srs_import", { data }),
+    mistakeCards: () => call("mistake_cards"),
+    recentGameMoves: (limit, maxPly) => call("recent_game_moves", { limit: limit ?? null, maxPly: maxPly ?? null }),
+
+    fileSaveText: (defaultName, filterName, extension, contents) =>
+      call("file_save_text", { defaultName, filterName, extension, contents }),
+    fileOpenText: (filterName, extensions) => call("file_open_text", { filterName, extensions }),
+    dbBackup: () => call("db_backup"),
+    dbRestore: () => call("db_restore"),
+
     openUrl: (url) => openUrl(url),
     onMenu: (cb) => listen<string>("menu", (e) => cb(e.payload)),
     async showContextMenu(items: ContextMenuItem[]) {

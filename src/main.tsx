@@ -8,11 +8,13 @@ import "./styles/board.css";
 import "./styles/pieces.css";
 import "./styles/analysis.css";
 import "./styles/games.css";
+import "./styles/study.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { backend } from "./backend";
+import { useTrainer } from "./store/trainer";
 
 // Platform styling hooks (see styles/tokens.css):
 // data-platform: "mac" | "windows" | "linux"
@@ -23,6 +25,9 @@ root.dataset.platform = backend.platform;
 const windowsBuild = Number(backend.osVersion.split(".")[2] ?? 0);
 const windows11 = backend.platform === "windows" && windowsBuild >= 22000;
 root.dataset.vibrancy = !backend.isMock && (backend.platform === "mac" || windows11) ? "on" : "off";
+
+// Mock mode only: the browser tests read the trainer's expected move from here.
+if (backend.isMock) Object.assign(window, { __trainer: useTrainer });
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

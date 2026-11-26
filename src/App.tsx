@@ -5,18 +5,23 @@ import { useAnalysis } from "./store/analysis";
 import { useApp } from "./store/app";
 import { useExplorer } from "./store/explorer";
 import { useGames } from "./store/games";
+import { useRepertoire, useRepertoireBoard } from "./store/repertoire";
 import { useToast } from "./store/toast";
 import { installShortcuts, runAction } from "./ui/actions";
 import { AnalysisPage } from "./ui/analysis/AnalysisPage";
 import { GamesPage } from "./ui/games/GamesPage";
 import { ReviewPage } from "./ui/games/ReviewPage";
 import { PlaceholderPage } from "./ui/pages/OtherPages";
+import { RepertoireWizard } from "./ui/repertoire/RepertoireWizard";
+import { TrainerPage } from "./ui/train/TrainerPage";
 import { SetupPage } from "./ui/pages/SetupPage";
 import { Sidebar, Toolbar } from "./ui/Shell";
 import { AboutSheet, ImportSheet, SettingsSheet } from "./ui/sheets/Sheets";
 
 export default function App() {
   const { ready, page, init, settings } = useApp();
+  const repBoard = useRepertoireBoard();
+  const repReady = useRepertoire((s) => s.ready);
   const toast = useToast((s) => s.message);
 
   useEffect(() => {
@@ -24,6 +29,7 @@ export default function App() {
     useAnalysis.getState().init();
     useGames.getState().init();
     useExplorer.getState().init();
+    void useRepertoire.getState().init();
     const offKeys = installShortcuts(backend.isMock);
     let offMenu: (() => void) | undefined;
     backend.onMenu(runAction).then((off) => (offMenu = off));
@@ -46,6 +52,7 @@ export default function App() {
   }, [lang]);
 
   if (!ready) return <div className="app" />;
+  const boardShown = page === "analysis" || page === "explorer" || (page === "repertoire" && repBoard);
 
   return (
     <div className="app">
@@ -53,15 +60,16 @@ export default function App() {
       <main className="main">
         <Toolbar />
         <div className="page">
-          {/* The analysis page stays mounted so the board doesn't reset. */}
-          {/* The analysis board stays mounted (it's shared by Analysis and Explorer). */}
-          <div style={{ display: page === "analysis" || page === "explorer" ? "contents" : "none" }}>
-            <AnalysisPage mode={page === "explorer" ? "explorer" : "analysis"} />
+          {/* The analysis board stays mounted (it's shared by Analysis, Explorer and Repertoire). */}
+          <div style={{ display: boardShown ? "contents" : "none" }}>
+            <AnalysisPage mode={page === "explorer" ? "explorer" : page === "repertoire" ? "repertoire" : "analysis"} visible={boardShown} />
           </div>
+          {page === "repertoire" && repReady && !repBoard && <RepertoireWizard />}
+          {page === "train" && <TrainerPage />}
           {page === "setup" && <SetupPage />}
           {page === "games" && <GamesPage />}
           {page === "review" && <ReviewPage />}
-          {(page === "repertoire" || page === "train" || page === "insights") && <PlaceholderPage page={page} />}
+          {page === "insights" && <PlaceholderPage page={page} />}
         </div>
       </main>
       <SettingsSheet />

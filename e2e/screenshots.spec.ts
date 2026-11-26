@@ -66,9 +66,8 @@ for (const scheme of ["light", "dark"] as const) {
 
     test("games", async ({ page, browserName }) => {
       await openApp(page, query(browserName));
-      await page.getByRole("button", { name: "Games" }).click();
-      await page.getByRole("button", { name: "Check connection" }).click();
-      await expect(page.getByRole("alert").or(page.locator(".callout.error"))).toBeVisible();
+      await page.getByRole("button", { name: "Games", exact: true }).click();
+      await expect(page.locator(".games-row:not(.head)").first()).toBeVisible();
       await shot(page, "games", browserName);
     });
   });

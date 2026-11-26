@@ -44,6 +44,9 @@ importers:
       react-dom:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
+      ts-fsrs:
+        specifier: 6.0.1
+        version: 6.0.1
       zustand:
         specifier: 5.1.0
         version: 5.1.0(@types/react@19.3.3)(react@19.3.1)
@@ -126,6 +129,10 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1 || 2.0.0-beta.2
       '@emnapi/runtime': ^1.7.1 || 2.0.0-beta.2
+
+  '@open-spaced-repetition/srs-kit@1.0.1':
+    resolution: {integrity: sha512-3lByXcLQjnsfoovEQabKLrGQVmjEDjbJMF7f8/d8Zeak/kqCSLtPBKrmYdT8ZxDTqBIZ37lYBbKRcStse57a5Q==}
+    engines: {node: '>=20.0.0'}
 
   '@oxc-project/types@0.156.0':
     resolution: {integrity: sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw==}
@@ -917,6 +924,10 @@ packages:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
 
+  ts-fsrs@6.0.1:
+    resolution: {integrity: sha512-0p24HPUDf1THvanl/pyq2p0jfst111BKl9lB9p7NiByHhwkEPtNOkBUd6YV2jxiucI8cD/X9DnrQs1PbcrOFmQ==}
+    engines: {node: '>=24.0.0'}
+
   tslib@2.9.1:
     resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
 
@@ -1109,6 +1120,8 @@ snapshots:
       '@emnapi/runtime': 2.0.0-beta.2
       '@tybys/wasm-util': 0.10.5
     optional: true
+
+  '@open-spaced-repetition/srs-kit@1.0.1': {}
 
   '@oxc-project/types@0.156.0': {}
 
@@ -1742,6 +1755,10 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
+
+  ts-fsrs@6.0.1:
+    dependencies:
+      '@open-spaced-repetition/srs-kit': 1.0.1
 
   tslib@2.9.1: {}
 

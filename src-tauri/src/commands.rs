@@ -165,6 +165,9 @@ pub struct AskRequest {
     /// Skip the cache and ask again.
     #[serde(default)]
     force: bool,
+    /// Only look in the cache; never start a Claude request ("notCached" if it isn't there).
+    #[serde(default)]
+    cache_only: bool,
 }
 
 #[derive(Serialize)]
@@ -191,6 +194,10 @@ pub async fn claude_ask(state: State<'_, AppState>, request: AskRequest) -> CmdR
             let calls_today = db::calls_today(&state.db.lock().unwrap())?;
             return Ok(AskReply { data, cached: true, calls_today, model });
         }
+    }
+
+    if request.cache_only {
+        return Err(CmdError::new("notCached", "No saved answer for this yet."));
     }
 
     let result = state
@@ -504,4 +511,227 @@ pub async fn explorer_query(
     let token = state.token.get().ok().flatten();
     let ua = format!("ChessCoach/{} (+https://github.com/paalacio/chesscoach)", state.app_version);
     Ok(lichess::query(&state.db, &state.explorer_backoff, &state.http, lichess::EXPLORER_BASE, &ua, token.as_deref(), &src, &fen).await)
+}
+
+// ---------- repertoire & trainer (Phase 4) ----------
+
+use crate::study::{self, GameMoves, MistakeCard, RepMove, RepertoireData, RepertoireInfo, SrsCard, SrsReview};
+
+#[tauri::command]
+pub async fn repertoire_list(state: State<'_, AppState>) -> CmdResult<Vec<RepertoireInfo>> {
+    Ok(study::list_repertoires(&state.db.lock().unwrap())?)
+}
+
+#[tauri::command]
+pub async fn repertoire_create(state: State<'_, AppState>, name: String, color: String, meta: Value) -> CmdResult<i64> {
+    if color != "white" && color != "black" {
+        return Err(CmdError::new("error", "The colour must be white or black."));
+    }
+    Ok(study::create_repertoire(&state.db.lock().unwrap(), &name, &color, &meta)?)
+}
+
+#[tauri::command]
+pub async fn repertoire_get(state: State<'_, AppState>, id: i64) -> CmdResult<RepertoireData> {
+    study::get_repertoire(&state.db.lock().unwrap(), id)?
+        .ok_or_else(|| CmdError::new("notFound", "That repertoire doesn't exist any more."))
+}
+
+#[tauri::command]
+pub async fn repertoire_save_moves(state: State<'_, AppState>, id: i64, moves: Vec<RepMove>) -> CmdResult<()> {
+    Ok(study::save_moves(&state.db.lock().unwrap(), id, &moves)?)
+}
+
+#[tauri::command]
+pub async fn repertoire_update(state: State<'_, AppState>, id: i64, name: Option<String>, meta: Option<Value>) -> CmdResult<()> {
+    Ok(study::update_repertoire(&state.db.lock().unwrap(), id, name.as_deref(), meta.as_ref())?)
+}
+
+#[tauri::command]
+pub async fn repertoire_delete(state: State<'_, AppState>, id: i64) -> CmdResult<()> {
+    Ok(study::delete_repertoire(&state.db.lock().unwrap(), id)?)
+}
+
+#[tauri::command]
+pub async fn repertoire_set_note(
+    state: State<'_, AppState>,
+    id: i64,
+    epd: String,
+    note: Option<String>,
+    why: Option<String>,
+) -> CmdResult<()> {
+    Ok(study::set_note(&state.db.lock().unwrap(), id, &epd, note.as_deref(), why.as_deref())?)
+}
+
+#[tauri::command]
+pub async fn srs_list(state: State<'_, AppState>) -> CmdResult<Vec<SrsCard>> {
+    Ok(study::srs_list(&state.db.lock().unwrap())?)
+}
+
+#[tauri::command]
+pub async fn srs_record(state: State<'_, AppState>, card: SrsCard, review: SrsReview) -> CmdResult<()> {
+    Ok(study::srs_record(&state.db.lock().unwrap(), &card, &review)?)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReviewDay {
+    /// Local date, "2026-11-26".
+    day: String,
+    /// Reviews that day.
+    count: i64,
+    /// Cards reviewed for the first time that day (new moves learned).
+    new_cards: i64,
+}
+
+/// Reviews per day over the last year (for the daily goal and the streak).
+#[tauri::command]
+pub async fn srs_review_days(state: State<'_, AppState>) -> CmdResult<Vec<ReviewDay>> {
+    let days = study::srs_review_days(&state.db.lock().unwrap(), 400)?;
+    Ok(days.into_iter().map(|(day, count, new_cards)| ReviewDay { day, count, new_cards }).collect())
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SrsData {
+    cards: Vec<SrsCard>,
+    reviews: Vec<SrsReview>,
+}
+
+#[tauri::command]
+pub async fn srs_export(state: State<'_, AppState>) -> CmdResult<SrsData> {
+    let conn = state.db.lock().unwrap();
+    Ok(SrsData { cards: study::srs_list(&conn)?, reviews: study::srs_reviews_all(&conn)? })
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportCounts {
+    cards: usize,
+    reviews: usize,
+}
+
+#[tauri::command]
+pub async fn srs_import(state: State<'_, AppState>, data: SrsData) -> CmdResult<ImportCounts> {
+    let (cards, reviews) = study::srs_import(&state.db.lock().unwrap(), &data.cards, &data.reviews)?;
+    Ok(ImportCounts { cards, reviews })
+}
+
+#[tauri::command]
+pub async fn mistake_cards(state: State<'_, AppState>) -> CmdResult<Vec<MistakeCard>> {
+    Ok(study::mistake_cards(&state.db.lock().unwrap())?)
+}
+
+/// The first `max_ply` moves of the most recent games (default: 50 games, 40 half-moves).
+#[tauri::command]
+pub async fn recent_game_moves(state: State<'_, AppState>, limit: Option<i64>, max_ply: Option<i64>) -> CmdResult<Vec<GameMoves>> {
+    Ok(study::recent_game_moves(&state.db.lock().unwrap(), limit.unwrap_or(50), max_ply.unwrap_or(40))?)
+}
+
+// ---------- files: exports, imports, backups ----------
+//
+// The save/open dialogs are shown from Rust, so the web page never handles
+// file paths itself: it only gets back the name of the file that was written.
+
+use tauri_plugin_dialog::DialogExt;
+
+/// Runs a blocking dialog off the async runtime's threads.
+async fn pick_path<F>(f: F) -> CmdResult<Option<std::path::PathBuf>>
+where
+    F: FnOnce() -> Option<tauri_plugin_dialog::FilePath> + Send + 'static,
+{
+    let picked = tauri::async_runtime::spawn_blocking(f).await.map_err(|e| e.to_string())?;
+    match picked {
+        None => Ok(None),
+        Some(p) => Ok(Some(p.into_path().map_err(|e| e.to_string())?)),
+    }
+}
+
+/// Asks where to save, then writes `contents` there. Returns the file name, or None if cancelled.
+#[tauri::command]
+pub async fn file_save_text(
+    app: AppHandle,
+    default_name: String,
+    filter_name: String,
+    extension: String,
+    contents: String,
+) -> CmdResult<Option<String>> {
+    let Some(path) = pick_path(move || {
+        app.dialog().file().set_file_name(default_name).add_filter(filter_name, &[extension.as_str()]).blocking_save_file()
+    })
+    .await?
+    else {
+        return Ok(None);
+    };
+    std::fs::write(&path, contents).map_err(|e| format!("Could not write {}: {e}", path.display()))?;
+    Ok(Some(file_name(&path)))
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenedFile {
+    name: String,
+    contents: String,
+}
+
+/// Asks for a file to open and returns its text, or None if cancelled.
+#[tauri::command]
+pub async fn file_open_text(app: AppHandle, filter_name: String, extensions: Vec<String>) -> CmdResult<Option<OpenedFile>> {
+    let Some(path) = pick_path(move || {
+        let exts: Vec<&str> = extensions.iter().map(String::as_str).collect();
+        app.dialog().file().add_filter(filter_name, &exts).blocking_pick_file()
+    })
+    .await?
+    else {
+        return Ok(None);
+    };
+    // Repertoire PGNs and training exports are small; refuse anything huge.
+    let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+    if size > 50 * 1024 * 1024 {
+        return Err(CmdError::new("error", "That file is too big (over 50 MB)."));
+    }
+    let contents = std::fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
+    Ok(Some(OpenedFile { name: file_name(&path), contents }))
+}
+
+fn file_name(path: &std::path::Path) -> String {
+    path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+}
+
+/// Saves a copy of the whole database (games, analysis, repertoires, cards, cache).
+#[tauri::command]
+pub async fn db_backup(app: AppHandle, state: State<'_, AppState>) -> CmdResult<Option<String>> {
+    let name = format!("ChessCoach backup {}.sqlite", today());
+    let Some(path) =
+        pick_path(move || app.dialog().file().set_file_name(name).add_filter("SQLite", &["sqlite", "db"]).blocking_save_file())
+            .await?
+    else {
+        return Ok(None);
+    };
+    study::backup_to(&state.db.lock().unwrap(), &path)?;
+    Ok(Some(file_name(&path)))
+}
+
+/// Replaces everything with a backup. The current data is first saved in the app's
+/// data folder ("before-restore-<time>.sqlite"), so a wrong restore can be undone.
+#[tauri::command]
+pub async fn db_restore(app: AppHandle, state: State<'_, AppState>) -> CmdResult<Option<String>> {
+    let Some(path) = pick_path(move || app.dialog().file().add_filter("SQLite", &["sqlite", "db"]).blocking_pick_file()).await?
+    else {
+        return Ok(None);
+    };
+    // The background analysis must not write while the database is swapped.
+    let was_paused = state.review.status().paused;
+    state.review.set_paused(true);
+    let safety = state.data_dir.join(format!("before-restore-{}.sqlite", db::now()));
+    let result = study::restore_from(&mut state.db.lock().unwrap(), &path, &safety);
+    state.review.set_paused(was_paused);
+    result.map_err(|m| CmdError::new("restoreFailed", m))?;
+    Ok(Some(file_name(&path)))
+}
+
+/// Today's local date as "YYYY-MM-DD" (from SQLite, which knows the local time zone).
+fn today() -> String {
+    rusqlite::Connection::open_in_memory()
+        .and_then(|c| c.query_row("SELECT date('now', 'localtime')", [], |r| r.get(0)))
+        .unwrap_or_else(|_| "today".into())
 }

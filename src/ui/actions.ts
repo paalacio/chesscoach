@@ -6,6 +6,8 @@ import { tNow } from "../i18n";
 import { useAnalysis } from "../store/analysis";
 import { type Page, useApp } from "../store/app";
 import { useGames } from "../store/games";
+import { useRepertoire } from "../store/repertoire";
+import { type TrainMode, useTrainer } from "../store/trainer";
 import { useToast } from "../store/toast";
 import { copyText } from "./components/controls";
 
@@ -56,6 +58,16 @@ for (const page of ["analysis", "games", "explorer", "repertoire", "train", "ins
   ACTIONS[`page:${page}`] = () => useApp.getState().setPage(page);
 }
 
+// Train menu: open the trainer and start a mode.
+for (const mode of ["learn", "review", "mistakes"] as TrainMode[]) {
+  ACTIONS[`train-${mode}`] = async () => {
+    useApp.getState().setPage("train");
+    const tr = useTrainer.getState();
+    if (!tr.loaded) await tr.load();
+    useTrainer.getState().start(mode);
+  };
+}
+
 export function runAction(id: string) {
   ACTIONS[id]?.();
 }
@@ -87,7 +99,9 @@ export function installShortcuts(handleModified: boolean): () => void {
       return;
     }
     if (typing(e) || e.altKey) return;
-    const onAnalysis = app.page === "analysis" || app.page === "explorer";
+    const rep = useRepertoire.getState();
+    const repBoard = app.page === "repertoire" && rep.ready && rep.list.length > 0 && !rep.wizardOpen;
+    const onAnalysis = app.page === "analysis" || app.page === "explorer" || repBoard;
     const keys: Record<string, string> = {
       ArrowLeft: "prev",
       ArrowRight: "next",

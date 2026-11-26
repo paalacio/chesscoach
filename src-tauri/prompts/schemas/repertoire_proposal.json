@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "1-2 sentences: the overall idea of these choices for this player"
+    },
+    "slots": {
+      "type": "array",
+      "description": "One entry per SLOT in the packet, same order, using the slot id exactly as written there",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slot": { "type": "string" },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "description": "The opening's usual English name, e.g. \"Sicilian Defence: Najdorf Variation\"" },
+                "moves": {
+                  "type": "string",
+                  "description": "The main line from the starting position in SAN with move numbers, starting with the slot's moves and ending with the player's own move, 4-8 moves long"
+                },
+                "style": { "type": "string", "enum": ["solid", "balanced", "sharp"] },
+                "theory": { "type": "string", "enum": ["low", "medium", "high"], "description": "How much theory the player must learn" },
+                "pros": { "type": "array", "maxItems": 3, "items": { "type": "string" } },
+                "cons": { "type": "array", "maxItems": 3, "items": { "type": "string" } },
+                "plans": { "type": "array", "maxItems": 3, "items": { "type": "string" }, "description": "The player's typical plans, short" },
+                "why_for_you": { "type": "string", "description": "One sentence: how this fits the player's answers and games" }
+              },
+              "required": ["name", "moves", "style", "theory", "pros", "cons", "plans", "why_for_you"]
+            }
+          }
+        },
+        "required": ["slot", "options"]
+      }
+    }
+  },
+  "required": ["summary", "slots"]
+}

@@ -101,6 +101,7 @@ export function GamesPage() {
           {errorText(t, syncError)}
         </div>
       )}
+      <RepertoireNews />
 
       <div className="games-table" role="table" aria-label={t("page.games")}>
         <div className="games-row head" role="row">
@@ -152,6 +153,35 @@ export function GamesPage() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** After a sync: "3 of your 5 new games left your repertoire. See where" */
+function RepertoireNews() {
+  const t = useT();
+  const news = useGames((s) => s.repertoireNews);
+  const dismiss = useGames((s) => s.dismissRepertoireNews);
+  const setPage = useApp((s) => s.setPage);
+  if (!news) return null;
+  return (
+    <div className="callout info games-callout" role="status">
+      <span>
+        {t("games.leftRepertoire", { count: news.left, games: news.games })}{" "}
+        <button
+          type="button"
+          className="link-btn"
+          onClick={() => {
+            dismiss();
+            setPage("repertoire");
+          }}
+        >
+          {t("games.seeWhere")}
+        </button>{" "}
+        <button type="button" className="link-btn" onClick={dismiss}>
+          {t("games.dismiss")}
+        </button>
+      </span>
     </div>
   );
 }

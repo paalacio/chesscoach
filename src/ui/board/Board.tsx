@@ -19,7 +19,7 @@ export interface BoardProps {
   onMove: (orig: string, dest: string) => void;
   autoShapes: DrawShape[];
   coordinates: boolean;
-  /** Board size in px; the board is redrawn when it changes. */
+  /** Board size in px; the board is redrawn when it changes. 0 = hidden. */
   size: number;
   accent: string;
   reduceMotion: boolean;
@@ -36,6 +36,9 @@ function brushes(accent: string) {
     engine: { key: "e", color: accent, opacity: 0.85, lineWidth: 11 },
     // Moves about as good as the best one: same color, lighter and thinner.
     engineAlt: { key: "a", color: accent, opacity: 0.4, lineWidth: 8 },
+    // Repertoire: your move, and the opponent replies you've prepared.
+    rep: { key: "m", color: "#2f9e44", opacity: 0.9, lineWidth: 11 },
+    repAlt: { key: "n", color: "#2f9e44", opacity: 0.4, lineWidth: 8 },
   };
 }
 
@@ -79,13 +82,15 @@ export function Board(props: BoardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Measure again when the size changes (or the board becomes visible: size 0 → real size),
+  // before the arrows are drawn below; chessground remembers the old measurements.
+  useEffect(() => {
+    if (props.size > 0) api.current?.redrawAll();
+  }, [props.size, props.coordinates]);
+
   useEffect(() => {
     api.current?.set(config());
   });
-
-  useEffect(() => {
-    api.current?.redrawAll();
-  }, [props.size, props.coordinates]);
 
   return <div ref={el} className="cg-host" style={{ width: "100%", height: "100%" }} />;
 }

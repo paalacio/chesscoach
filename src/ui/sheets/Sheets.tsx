@@ -7,6 +7,7 @@ import { LANGUAGES, type Lang, langOf, useT } from "../../i18n";
 import { useAnalysis } from "../../store/analysis";
 import { useApp } from "../../store/app";
 import { useExplorer } from "../../store/explorer";
+import { backupDatabase, exportTraining, importTraining, restoreDatabase } from "../../store/data";
 import { Button, Segmented, Sheet, Switch } from "../components/controls";
 
 export function SettingsSheet() {
@@ -144,6 +145,34 @@ export function SettingsSheet() {
         <p className="hint">{t("settings.reviewHint")}</p>
       </div>
 
+      <div className="sheet-section-title">{t("settings.repertoire")}</div>
+      <div className="field">
+        <label htmlFor="s-share">{t("settings.repMinShare")}</label>
+        <input id="s-share" className="text-input" style={{ width: 90 }} type="number" min={1} max={50} step={0.5} value={draft.repMinShare} onChange={(e) => set("repMinShare", Number(e.target.value) || 5)} />
+        <p className="hint">{t("settings.repMinShareHint")}</p>
+      </div>
+      <div className="field">
+        <label htmlFor="s-reach">{t("settings.repMinReach")}</label>
+        <input id="s-reach" className="text-input" style={{ width: 90 }} type="number" min={0.1} max={20} step={0.1} value={draft.repMinReach} onChange={(e) => set("repMinReach", Number(e.target.value) || 1)} />
+        <p className="hint">{t("settings.repMinReachHint")}</p>
+      </div>
+      <div className="field">
+        <label htmlFor="s-depth-rep">{t("settings.repDepth")}</label>
+        <input id="s-depth-rep" className="text-input" style={{ width: 90 }} type="number" min={4} max={20} value={draft.repDepth} onChange={(e) => set("repDepth", Number(e.target.value) || 12)} />
+      </div>
+
+      <div className="sheet-section-title">{t("settings.training")}</div>
+      <div className="field">
+        <label htmlFor="s-new">{t("settings.newPerDay")}</label>
+        <input id="s-new" className="text-input" style={{ width: 90 }} type="number" min={1} max={100} value={draft.newCardsPerDay} onChange={(e) => set("newCardsPerDay", Number(e.target.value) || 10)} />
+      </div>
+      <div className="field">
+        <label htmlFor="s-goal">{t("settings.dailyGoal")}</label>
+        <input id="s-goal" className="text-input" style={{ width: 90 }} type="number" min={1} max={500} value={draft.dailyGoal} onChange={(e) => set("dailyGoal", Number(e.target.value) || 20)} />
+      </div>
+
+      <DataSection />
+
       <div className="sheet-section-title">Claude</div>
       <div className="field">
         <label htmlFor="s-model">{t("settings.model")}</label>
@@ -158,6 +187,46 @@ export function SettingsSheet() {
         <input id="s-claude" className="text-input" placeholder={t("settings.claudePathAuto")} value={draft.claudePath} onChange={(e) => set("claudePath", e.target.value)} spellCheck={false} />
       </div>
     </Sheet>
+  );
+}
+
+/** Exports, imports and backups. These act at once (not with the Save button). */
+function DataSection() {
+  const t = useT();
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const timer = setTimeout(() => setArmed(false), 4000);
+    return () => clearTimeout(timer);
+  }, [armed]);
+  return (
+    <>
+      <div className="sheet-section-title">{t("settings.data")}</div>
+      <div className="field">
+        <label>{t("settings.trainingData")}</label>
+        <div className="token-row">
+          <Button size="small" onClick={exportTraining}>
+            {t("settings.exportTraining")}
+          </Button>
+          <Button size="small" onClick={importTraining}>
+            {t("settings.importTraining")}
+          </Button>
+        </div>
+        <p className="hint">{t("settings.trainingDataHint")}</p>
+      </div>
+      <div className="field">
+        <label>{t("settings.backup")}</label>
+        <div className="token-row">
+          <Button size="small" onClick={backupDatabase}>
+            {t("settings.backupNow")}
+          </Button>
+          <Button size="small" className={armed ? "danger" : ""} onClick={() => (armed ? (setArmed(false), void restoreDatabase()) : setArmed(true))}>
+            {armed ? t("settings.restoreConfirm") : t("settings.restore")}
+          </Button>
+        </div>
+        <p className="hint">{t("settings.backupHint")}</p>
+      </div>
+    </>
   );
 }
 

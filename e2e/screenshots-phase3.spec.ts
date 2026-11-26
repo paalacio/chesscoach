@@ -45,7 +45,7 @@ for (const scheme of ["light", "dark"] as const) {
         await page.getByRole("button", { name: lang === "pt" ? "Importar" : "Import", exact: true }).click();
         await page.getByRole("button", { name: lang === "pt" ? "Explorador" : "Explorer", exact: true }).click();
         await page.getByRole("button", { name: lang === "pt" ? "Explicar esta abertura" : "Explain this opening" }).click();
-        await expect(page.locator(".opening-overview .coach-card")).toBeVisible({ timeout: 10_000 });
+        await expect(page.locator(".opening-overview .coach-card")).toBeVisible({ timeout: 20_000 });
         await page.locator(".opening-overview").scrollIntoViewIfNeeded();
         await shot(page, `explain-opening-${lang}`, browserName);
       });

@@ -24,10 +24,6 @@ fn item<R: Runtime>(app: &AppHandle<R>, id: &str, text: &str, accel: Option<&str
     MenuItem::with_id(app, id, text, true, accel)
 }
 
-fn disabled<R: Runtime>(app: &AppHandle<R>, id: &str, text: &str) -> tauri::Result<MenuItem<R>> {
-    MenuItem::with_id(app, id, text, false, None::<&str>)
-}
-
 pub fn build<R: Runtime>(app: &AppHandle<R>, language: &str) -> tauri::Result<Menu<R>> {
     let l = L(language == "pt");
     let sep = || PredefinedMenuItem::separator(app);
@@ -125,9 +121,9 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, language: &str) -> tauri::Result<Me
         l.t("Train", "Treinar"),
         true,
         &[
-            &disabled(app, "train-learn", l.t("Learn New Lines (coming soon)", "Aprender linhas novas (em breve)"))?,
-            &disabled(app, "train-review", l.t("Review Due (coming soon)", "Revisões pendentes (em breve)"))?,
-            &disabled(app, "train-mistakes", l.t("My Mistakes (coming soon)", "Meus erros (em breve)"))?,
+            &item(app, "train-learn", l.t("Learn New Lines", "Aprender linhas novas"), Some("CmdOrCtrl+Shift+L"))?,
+            &item(app, "train-review", l.t("Review Due", "Revisões pendentes"), Some("CmdOrCtrl+Shift+R"))?,
+            &item(app, "train-mistakes", l.t("My Mistakes", "Meus erros"), None)?,
         ],
     )?;
 

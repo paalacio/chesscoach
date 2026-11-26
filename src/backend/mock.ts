@@ -17,6 +17,7 @@ import claudeFixtures from "./fixtures/claude.json";
 import engineFixtures from "./fixtures/engine.json";
 import explorerFixture from "./fixtures/explorer.json";
 import gamesFixture from "./fixtures/games.json";
+import { bookExplorer, mockStudy } from "./mock-study";
 import {
   type AnalysisStatus,
   type AnalyzeOptions,
@@ -70,6 +71,11 @@ const DEFAULT_SETTINGS: Settings = {
   language: params.get("lang") === "pt" ? "pt" : "en",
   explorerRatings: [1000, 1200, 1400, 1600],
   explorerSpeeds: ["blitz", "rapid"],
+  repMinShare: 5,
+  repMinReach: 1,
+  repDepth: 12,
+  newCardsPerDay: 10,
+  dailyGoal: 20,
 };
 
 const SETTINGS_KEY = "chesscoach.mock.settings";
@@ -306,6 +312,7 @@ export function createMockBackend(): Backend {
     async claudeAsk(r: AskRequest): Promise<AskReply> {
       const key = `${r.kind}|${r.fen}|${r.movePlayed}`;
       if (answered.has(key) && !r.force) return { data: pick(r), cached: true, callsToday: calls, model: settings.claudeModel };
+      if (r.cacheOnly) throw new BackendError("notCached", "No saved answer for this yet.");
       await new Promise<void>((resolve, reject) => {
         const t = setTimeout(resolve, r.kind === "hello" ? 700 : 1600);
         cancel = () => {
@@ -341,6 +348,7 @@ export function createMockBackend(): Backend {
 
     ...mockGames(() => settings),
     ...mockExplorer(() => settings),
+    ...mockStudy(),
 
     openUrl: async (url) => {
       window.open(url, "_blank", "noopener");
@@ -489,6 +497,13 @@ function pick(r: AskRequest): unknown {
       concepts: ["development", "center"],
     };
   }
+  if (r.kind === "repertoireProposal") {
+    // Real recorded answers (for the owner's openings, both first moves as White).
+    const black = r.fen === "repertoire:black";
+    const pt = r.prompt.includes("Brazilian Portuguese");
+    const key = `repertoireProposal${black ? "Black" : "White"}${pt ? "Pt" : ""}`;
+    return fx[key] ?? { summary: "Sample proposal from the mock backend.", slots: [] };
+  }
   if (r.kind === "bestMoves") {
     if (epdOf(r.fen) === epdOf(RUY_AFTER)) return r.prompt.includes("Brazilian Portuguese") ? fx.bestMovesPt : fx.bestMoves;
     // Generic: one entry per candidate listed in the prompt ("1. 6.Re1: ...").
@@ -590,7 +605,7 @@ function mockExplorer(getSettings: () => Settings) {
       token = false;
     },
     async explorerQuery(source: ExplorerSource, fen: string, color?: "white" | "black"): Promise<ExplorerReply> {
-      await delay(250);
+      await delay(80);
       const none = { result: null, cached: false, stale: false, errorKind: null, errorDetail: null };
       if (source === "mine") {
         index ??= buildIndex();
@@ -599,7 +614,9 @@ function mockExplorer(getSettings: () => Settings) {
         );
         return { ...none, result: { ...total(moves), moves, opening: null } };
       }
-      const base = masters[epdOf(fen)];
+      // Real recorded answers where we have them; elsewhere made-up numbers from the opening list.
+      const book = bookExplorer(fen);
+      const base = masters[epdOf(fen)] ?? (book.moves.length ? book : undefined);
       if (source === "masters") return base ? { ...none, result: base, cached: true } : { ...none, result: { white: 0, draws: 0, black: 0, moves: [], opening: null } };
       if (!token) return { ...none, errorKind: "lichessNeedsToken" };
       if (!base) return { ...none, result: { white: 0, draws: 0, black: 0, moves: [], opening: null } };

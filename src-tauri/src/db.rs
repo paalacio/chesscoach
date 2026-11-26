@@ -105,6 +105,53 @@ pub fn migrations() -> Migrations<'static> {
             );
             CREATE INDEX game_positions_epd ON game_positions(epd);",
         ),
+        // 4: repertoires (moves keyed by position, so transpositions merge), the trainer's
+        //    spaced-repetition cards and their review history.
+        M::up(
+            "CREATE TABLE repertoires (
+                id         INTEGER PRIMARY KEY,
+                name       TEXT NOT NULL,
+                color      TEXT NOT NULL,               -- 'white' | 'black': the side the user plays
+                meta_json  TEXT NOT NULL DEFAULT '{}',  -- chosen lines, build settings (written by the UI)
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+            CREATE TABLE repertoire_moves (
+                rep_id INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+                epd    TEXT NOT NULL,                   -- position before the move (FEN without counters)
+                fen    TEXT NOT NULL,                   -- a full FEN of that position
+                uci    TEXT NOT NULL,
+                san    TEXT NOT NULL,
+                mine   INTEGER NOT NULL,                -- 1 = the user's move (one per position), 0 = opponent reply
+                share  REAL,                            -- opponent replies: % of games at the user's level
+                source TEXT NOT NULL,                   -- claude | theory | engine | explorer | user | pgn
+                PRIMARY KEY (rep_id, epd, uci)
+            );
+            CREATE TABLE repertoire_notes (
+                rep_id INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+                epd    TEXT NOT NULL,
+                note   TEXT NOT NULL DEFAULT '',        -- the user's own note
+                why    TEXT,                            -- Claude's one-line reason for the user's move
+                PRIMARY KEY (rep_id, epd)
+            );
+            CREATE TABLE srs_cards (
+                id         TEXT PRIMARY KEY,            -- 'rep:<repertoire id>:<epd>' | 'mistake:<training card id>'
+                kind       TEXT NOT NULL,               -- 'repertoire' | 'mistake'
+                answer     TEXT NOT NULL,               -- the move (UCI) the card was learned with
+                card_json  TEXT NOT NULL,               -- the ts-fsrs card
+                due        INTEGER NOT NULL,            -- unix seconds (copy of the card's dueAt)
+                updated_at INTEGER NOT NULL
+            );
+            CREATE INDEX srs_cards_due ON srs_cards(due);
+            CREATE TABLE srs_reviews (
+                id          INTEGER PRIMARY KEY,
+                card_id     TEXT NOT NULL,
+                rating      INTEGER NOT NULL,           -- 1 again, 2 hard, 3 good, 4 easy
+                reviewed_at INTEGER NOT NULL,           -- unix seconds
+                log_json    TEXT NOT NULL               -- the ts-fsrs review log
+            );
+            CREATE INDEX srs_reviews_at ON srs_reviews(reviewed_at);",
+        ),
     ])
 }
 
@@ -177,7 +224,7 @@ pub fn calls_today(conn: &Connection) -> rusqlite::Result<i64> {
 
 /// Number of migrations (the schema version a fresh database ends up at).
 pub fn migrations_count() -> i64 {
-    3
+    4
 }
 
 #[cfg(test)]

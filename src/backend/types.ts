@@ -4,6 +4,9 @@
 // These types mirror the Rust structs in src-tauri/src (serde camelCase).
 
 import type { RequestKind } from "../core/context-packet";
+import type { GameLine, RepertoireMeta, RepMove, RepNote } from "../core/repertoire";
+import type { StoredCard, StoredReview } from "../core/srs";
+import type { MistakeInfo } from "../core/trainer";
 import type { GameAnalysis, ReviewSummary, TrainingCard } from "../core/review";
 import type { Color, EngineEvent } from "../core/types";
 
@@ -31,6 +34,14 @@ export interface Settings {
   /** Lichess explorer filters: rating groups (1000 = 1000-1199, ...) and speeds. */
   explorerRatings: number[];
   explorerSpeeds: string[];
+  /** Repertoire builder: min % of games for an opponent reply, min % of your games for a line. */
+  repMinShare: number;
+  repMinReach: number;
+  /** Lines are built this many (full) moves deep. */
+  repDepth: number;
+  /** Trainer: new moves per day, and the daily goal (cards). */
+  newCardsPerDay: number;
+  dailyGoal: number;
 }
 
 export interface AppInfo {
@@ -76,6 +87,8 @@ export interface AskRequest {
   movePlayed: string | null;
   prompt: string;
   force?: boolean;
+  /** Only return a saved answer; never start a request (error kind "notCached"). */
+  cacheOnly?: boolean;
 }
 
 export interface AskReply {
@@ -207,6 +220,38 @@ export interface ExplorerReply {
   errorDetail: string | null;
 }
 
+// ---------- repertoire & trainer (Phase 4) ----------
+
+export interface RepertoireInfo {
+  id: number;
+  name: string;
+  color: Color;
+  meta: RepertoireMeta;
+  moveCount: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface RepertoireData {
+  info: RepertoireInfo;
+  moves: RepMove[];
+  notes: RepNote[];
+}
+
+export interface ReviewDay {
+  /** Local date, "2026-11-26". */
+  day: string;
+  count: number;
+  /** Cards reviewed for the first time that day (new moves learned). */
+  newCards: number;
+}
+
+/** Trainer cards and their review history (the training export file holds this). */
+export interface SrsData {
+  cards: StoredCard[];
+  reviews: StoredReview[];
+}
+
 export type ContextMenuItem = { id: string; label: string; enabled?: boolean } | "separator";
 
 export interface Backend {
@@ -247,6 +292,34 @@ export interface Backend {
   lichessTokenClear(): Promise<void>;
   /** `color` is for "mine": the user's games with that colour. */
   explorerQuery(source: ExplorerSource, fen: string, color?: Color): Promise<ExplorerReply>;
+
+  repertoireList(): Promise<RepertoireInfo[]>;
+  repertoireCreate(name: string, color: Color, meta: RepertoireMeta): Promise<number>;
+  repertoireGet(id: number): Promise<RepertoireData>;
+  /** Replaces all the moves of a repertoire. */
+  repertoireSaveMoves(id: number, moves: RepMove[]): Promise<void>;
+  repertoireUpdate(id: number, name: string | null, meta: RepertoireMeta | null): Promise<void>;
+  repertoireDelete(id: number): Promise<void>;
+  /** null leaves that field as it is. */
+  repertoireSetNote(id: number, epd: string, note: string | null, why: string | null): Promise<void>;
+  srsList(): Promise<StoredCard[]>;
+  srsRecord(card: StoredCard, review: StoredReview): Promise<void>;
+  srsReviewDays(): Promise<ReviewDay[]>;
+  srsExport(): Promise<SrsData>;
+  srsImport(data: SrsData): Promise<{ cards: number; reviews: number }>;
+  /** "Find the better move" cards from reviewed games. */
+  mistakeCards(): Promise<MistakeInfo[]>;
+  /** The first moves of the most recent games (for the repertoire report). */
+  recentGameMoves(limit?: number, maxPly?: number): Promise<GameLine[]>;
+
+  /** Asks where to save, writes the text; resolves with the file name, or null if cancelled. */
+  fileSaveText(defaultName: string, filterName: string, extension: string, contents: string): Promise<string | null>;
+  /** Asks for a file and reads it; null if cancelled. */
+  fileOpenText(filterName: string, extensions: string[]): Promise<{ name: string; contents: string } | null>;
+  /** Saves a copy of the whole database; resolves with the file name, or null if cancelled. */
+  dbBackup(): Promise<string | null>;
+  /** Replaces all data with a backup (the app reloads afterwards). */
+  dbRestore(): Promise<string | null>;
 
   openUrl(url: string): Promise<void>;
   /** Native menu bar clicks (menu item ids, see src-tauri/src/menu.rs). */

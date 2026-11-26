@@ -28,7 +28,8 @@ Rust from Homebrew's `rustup` is keg-only. If `cargo` isn't found, run:
 | Regenerate data | `pnpm openings` (opening names), `node scripts/fetch-pieces.mjs`, `node scripts/record-engine-fixture.mjs`, `node scripts/make-mock-games.mjs` (made-up games + real engine analysis for mock mode), `node scripts/make-icon.mjs` |
 | Phase 2 screenshots | `SCREENSHOT_PHASE=phase-2 pnpm exec playwright test e2e/screenshots-phase2.spec.ts` |
 | Phase 3 screenshots | `pnpm exec playwright test e2e/screenshots-phase3.spec.ts` → `screenshots/phase-3/` |
-| Re-record the Lichess masters fixture (real network, no token) | `node scripts/record-explorer-fixture.mjs` |
+| Phase 4 screenshots | `pnpm exec playwright test e2e/screenshots-phase4.spec.ts` → `screenshots/phase-4/` |
+| Re-record the Lichess masters fixture (real network, no token, ~220 requests) | `node scripts/record-explorer-fixture.mjs` |
 
 CI: `.github/workflows/build.yml` runs all tests on macOS, then builds macOS (Apple Silicon) and Windows
 installers with `tauri-apps/tauri-action@v1` and uploads them as workflow artifacts.
@@ -51,14 +52,24 @@ src/                      React + TS frontend
                           key moments, where the game left the opening, training cards, list summary
     game-review-packet.ts the one-call-per-game Claude review (summary, 3 lessons, key-moment comments) + check
     explorer.ts           explorer rows (share, W/D/L %), "Explain this opening" prompt + answer check
+    repertoire.ts         repertoire = flat list of moves keyed by EPD (transpositions merge); walk/reach, edits,
+                          pathTo, weighted replies, PGN export/import, where a game left the repertoire
+    repertoire-build.ts   automatic build from seed lines via a BuildOracle (explorer + engine), minShare/minReach
+    repertoire-proposal.ts wizard slots, the Claude proposal prompt, checking Claude's lines (legal, in the slot)
+    srs.ts                ts-fsrs 6 wrapper (FSRS-7 pinned; dates revived from JSON), streak, training file format
+    trainer.ts            trainer cards (repertoire + mistakes), due/new counts, lessons ("learn new lines")
   backend/                One `Backend` interface: tauri.ts (real, invoke/listen) and mock.ts (fixtures)
     fixtures/             Real recorded Stockfish lines and Claude answers for mock mode
   store/                  Zustand stores: app (pages, settings, sheets), analysis (tree, engine, Claude),
                           games (list, sync, background-analysis status, open game review),
-                          explorer (source, replies per position+filters, move evals, opening overview)
+                          explorer (source, replies per position+filters, move evals, opening overview),
+                          repertoire (load/edit/save, build with the live oracle, PGN, deviations), wizard,
+                          trainer (sessions: learn / review / mistakes), why (Claude "why this move", cached),
+                          data (training export/import, DB backup/restore)
   i18n/                   en.ts / pt.ts (Brazilian Portuguese) dictionaries, useT() / tNow(); pt.ts is typed
                           with en's keys, so a missing translation fails the typecheck
-  ui/                     Thin React components; styles in src/styles (tokens.css = design tokens)
+  ui/                     Thin React components; styles in src/styles (tokens.css = design tokens);
+                          ui/repertoire (panel + wizard), ui/train (trainer page)
 src-tauri/                Rust: everything touching processes, network, disk, secrets
   src/engine/             Stockfish UCI manager (+ uci.rs parser and SearchTracker for stale output)
   src/claude/             ClaudeService trait + CliClaude (`claude -p`), output parsing, binary lookup
@@ -69,12 +80,14 @@ src-tauri/                Rust: everything touching processes, network, disk, se
   src/lichess.rs          Lichess opening explorer (explorer.lichess.org): masters / lichess, 30-day SQLite
                           cache, stale fallback, one request at a time, 60 s wait after a 429
   src/secrets.rs          Lichess token in the OS keychain (keyring-core + Apple / Windows native stores)
+  src/study.rs            repertoires, SRS cards + reviews, mistake cards, games' opening moves, DB backup/restore
   src/db.rs               SQLite + migrations (append-only!), Claude answer cache, calls-today log
   src/settings.rs         settings.json in the app config dir; dev builds fill blanks from .env.local
   src/commands.rs         Tauri commands called by src/backend/tauri.ts
   src/menu.rs             native menu bar (en/pt, rebuilt on language change); ids handled in src/ui/actions.ts
   prompts/                coach system prompt + JSON schemas (embedded with include_str!)
-e2e/                      Playwright tests against mock mode
+e2e/                      Playwright tests against mock mode (mock exposes window.__trainer for the trainer tests)
+docs/data-formats.md      repertoire PGN conventions, training JSON format, SQLite backup
 ```
 
 Data flow for "Explain": `store/analysis.ts explain()` → fixed-depth engine eval of the position (and the
@@ -94,6 +107,15 @@ Explorer flow: the Explorer page is `AnalysisPage mode="explorer"` with `ui/expl
 One-off engine searches are serialized by `queued()` in `store/analysis.ts`. "Explain this opening" sends
 kind `openingOverview` with the explorer numbers from every source already loaded.
 
+Repertoire flow: wizard (`store/wizard.ts`) → facts from the "mine" explorer → `repertoireProposal` Claude
+request per side (cache fen = `repertoire:<color>`, move = hash of the prompt) → `checkProposal` →
+explorer stats per option → `runBuild` per repertoire: `buildRepertoire` with `liveOracle` (opponent replies:
+Lichess at your level, else masters; your moves: masters theory if Stockfish says it's within
+`AS_GOOD_POINTS`, else Stockfish; a 429 waits a minute, no network stops the build as "incomplete").
+The Repertoire page is `AnalysisPage mode="repertoire"` + `RepertoirePanel`. Trainer: `store/trainer.ts`
+builds cards from repertoires (`rep:<id>:<epd>`) and mistakes (`mistake:<id>`); answers → `answerCard`
+(Good / Again) → `srs_record`. A card whose stored `answer` differs from the repertoire move counts as new.
+
 ## Conventions
 
 - Never put secrets or the owner's email in code, fixtures or commits. Chess.com contact and username
@@ -112,4 +134,7 @@ kind `openingOverview` with the explorer numbers from every source already loade
   strings). Rust sends kinds/params (errors, setup checks) and the UI translates them. Claude answers in
   the app language (`languageInstruction`), moves stay in English SAN, concept tags stay English keys.
 - "About as good" moves: within `AS_GOOD_POINTS` (3) win-% points of the best (`core/engine-lines.ts`).
+- Files (exports, imports, backups) go through Rust commands that show the native dialog themselves
+  (`file_save_text`, `file_open_text`, `db_backup`, `db_restore`); the web page never handles paths.
+- Data formats that leave the app are documented in `docs/data-formats.md`; change both together.
 - Commits: one or a few per phase; git identity for this repo is local (see PROGRESS.md).

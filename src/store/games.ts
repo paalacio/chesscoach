@@ -6,6 +6,8 @@
 // cards for the user's mistakes.
 
 import { create } from "zustand";
+import { deviationOf } from "../core/repertoire";
+import { useRepertoire } from "./repertoire";
 import {
   backend,
   type BackendError,
@@ -50,6 +52,9 @@ interface GamesState {
   syncing: boolean;
   syncProgress: SyncProgress | null;
   syncReport: SyncReport | null;
+  /** After a sync: how many of the new games left a repertoire (null = nothing to say). */
+  repertoireNews: { left: number; games: number } | null;
+  dismissRepertoireNews(): void;
   syncError: BackendError | null;
 
   worker: WorkerStatus | null;
@@ -97,6 +102,8 @@ export const useGames = create<GamesState>((set, get) => ({
   syncing: false,
   syncProgress: null,
   syncReport: null,
+  repertoireNews: null,
+  dismissRepertoireNews: () => set({ repertoireNews: null }),
   syncError: null,
   worker: null,
   open: null,
@@ -152,6 +159,15 @@ export const useGames = create<GamesState>((set, get) => ({
       const report = await backend.gamesSync();
       set({ syncReport: report });
       await get().reload();
+      // Where did the new games leave your repertoires?
+      const rep = useRepertoire.getState();
+      if (report.newGames > 0 && rep.list.length > 0) {
+        const newest = await backend.recentGameMoves(Math.min(report.newGames, 50), 40);
+        const reps = Object.values(rep.reps);
+        const left = newest.map((g) => deviationOf(reps, g)).filter((d) => d && d.kind !== "end").length;
+        if (left > 0) set({ repertoireNews: { left, games: newest.length } });
+        void rep.loadDeviations(); // for the Repertoire page's list
+      }
     } catch (e) {
       set({ syncError: toBackendError(e) });
     } finally {

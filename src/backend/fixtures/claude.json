@@ -318,5 +318,1229 @@
       "pawn-break",
       "king-safety"
     ]
+  },
+  "repertoireProposalWhite": {
+    "summary": "Because you already like the Ruy Lopez and Queen's Gambit, the repertoire is built around classical, principled setups: 1.e4 with the Ruy, and 1.d4 with the Queen's Gambit and Catalan. Against other replies it uses a mix of solid and sharper lines that need only a moderate amount of theory.",
+    "slots": [
+      {
+        "slot": "white_e4_e5",
+        "options": [
+          {
+            "name": "Ruy Lopez: Closed Variation",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Classic main line with clear plans",
+              "Teaches you the center, slow buildup and the d4 break",
+              "Lots of model games to learn from"
+            ],
+            "cons": [
+              "Black has many side lines (Marshall, Breyer, Chigorin)",
+              "Games can be slow and maneuvering"
+            ],
+            "plans": [
+              "Prepare d4 with c3 and h3",
+              "Bring the knight to f1, g3 or e3",
+              "Aim for kingside play once the center is set"
+            ],
+            "why_for_you": "It is the Ruy Lopez you want to keep, in its most instructive form, and it builds good habits for an improving player."
+          },
+          {
+            "name": "Ruy Lopez: Exchange Variation",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Bxc6 dxc6 5.O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Simple, clear plan",
+              "Healthy pawn majority on the kingside",
+              "Little to memorize"
+            ],
+            "cons": [
+              "Gives up the bishop pair",
+              "Black is comfortable if you play too passively"
+            ],
+            "plans": [
+              "Play d4 to open the center",
+              "Use the kingside majority to make a passed pawn",
+              "Trade pieces and head for a good endgame"
+            ],
+            "why_for_you": "It keeps the Ruy Lopez but cuts down the theory, and it gives you a clear endgame plan."
+          },
+          {
+            "name": "Ruy Lopez: Berlin Defence, d3 line",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 4.d3 Bc5 5.c3 O-O 6.O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Avoids the heavy Berlin endgame theory",
+              "Solid, flexible setup",
+              "Easy to remember"
+            ],
+            "cons": [
+              "Less ambitious, so the advantage is small",
+              "Black gets an easy position"
+            ],
+            "plans": [
+              "Play Nbd2 and Nf1 or Nb3",
+              "Prepare d4 at the right moment",
+              "Keep the pieces active and wait for mistakes"
+            ],
+            "why_for_you": "It is a good choice if Black plays the Berlin and you don't want to learn long forcing lines."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_c5",
+        "options": [
+          {
+            "name": "Sicilian Defence: Open Sicilian, Be3 setup",
+            "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3 e5 7.Nb3 Be6 8.f3",
+            "style": "sharp",
+            "theory": "high",
+            "pros": [
+              "Fighting, with attacking chances",
+              "Flexible setup against many Black systems",
+              "Same setup works against several Sicilian lines"
+            ],
+            "cons": [
+              "Black has many ways to deviate",
+              "You need to know the key ideas well"
+            ],
+            "plans": [
+              "Castle queenside and attack on the kingside",
+              "Push g4 and h4 when it is safe",
+              "Watch for tactics on d5 and the d-file"
+            ],
+            "why_for_you": "You like a mix of sharp and solid play, and you know the Sicilian from the Black side, so the pawn structures will feel familiar."
+          },
+          {
+            "name": "Sicilian Defence: Alapin Variation",
+            "moves": "1.e4 c5 2.c3 d5 3.exd5 Qxd5 4.d4 Nf6 5.Nf3",
+            "style": "balanced",
+            "theory": "low",
+            "pros": [
+              "Avoids most Open Sicilian theory",
+              "Builds a strong center",
+              "Easy to learn"
+            ],
+            "cons": [
+              "Black can equalize with accurate play",
+              "Less direct attacking chances"
+            ],
+            "plans": [
+              "Develop quickly with Na3 or Be2 and O-O",
+              "Use the space in the center",
+              "Attack the queen with tempo"
+            ],
+            "why_for_you": "It gives you a safe, easy-to-learn answer with a clear center plan."
+          },
+          {
+            "name": "Sicilian Defence: Closed Variation",
+            "moves": "1.e4 c5 2.Nc3 Nc6 3.g3 g6 4.Bg2 Bg7 5.d3 d6 6.Be3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Little theory",
+              "Keeps a solid position",
+              "Avoids Black's best-known Sicilian systems"
+            ],
+            "cons": [
+              "Less critical, so Black is comfortable",
+              "Can be slow if you do not find a plan"
+            ],
+            "plans": [
+              "Play f4 and Nf3 to build up",
+              "Use the long diagonal and kingside space",
+              "Aim for a later d4 break"
+            ],
+            "why_for_you": "It is a calm option if you want to avoid long theory."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_e6",
+        "options": [
+          {
+            "name": "French Defence: Classical Variation",
+            "moves": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 Be7 5.e5 Nfd7 6.Bxe7 Qxe7 7.f4",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Gains space with a clear plan",
+              "Straightforward development",
+              "Often leads to good attacking chances"
+            ],
+            "cons": [
+              "Black's counterplay with c5 is annoying",
+              "Can become tense if you overextend"
+            ],
+            "plans": [
+              "Develop with Nf3 and Qd2, then castle",
+              "Support the e5 pawn and keep the center closed",
+              "Attack on the kingside"
+            ],
+            "why_for_you": "It fits a mix of solid and sharp play and gives you space and attacking chances."
+          },
+          {
+            "name": "French Defence: Advance Variation",
+            "moves": "1.e4 e6 2.d4 d5 3.e5 c5 4.c3 Nc6 5.Nf3 Qb6 6.a3",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Gives a clear space advantage",
+              "Clear plans",
+              "Popular and easy to understand"
+            ],
+            "cons": [
+              "Black attacks your pawn chain",
+              "Your light-squared bishop can be passive"
+            ],
+            "plans": [
+              "Defend d4 and play Ne2 and Nf4",
+              "Develop the bishop actively, often with b4",
+              "Expand on the queenside"
+            ],
+            "why_for_you": "The pawn structure is easy to understand and you get a lasting space edge."
+          },
+          {
+            "name": "French Defence: Exchange Variation",
+            "moves": "1.e4 e6 2.d4 d5 3.exd5 exd5 4.Nf3 Nf6 5.Bd3 Bd6 6.O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Very little theory",
+              "Symmetrical, clear structure",
+              "Easy development"
+            ],
+            "cons": [
+              "Drawish if Black plays well",
+              "Less winning potential"
+            ],
+            "plans": [
+              "Develop all pieces quickly and castle",
+              "Use the open e-file",
+              "Play for a small edge in the endgame"
+            ],
+            "why_for_you": "It is the lowest-effort option when you want quick, comfortable development."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_c6",
+        "options": [
+          {
+            "name": "Caro-Kann Defence: Advance Variation",
+            "moves": "1.e4 c6 2.d4 d5 3.e5 Bf5 4.Nf3 e6 5.Be2 c5 6.Be3",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Gains space",
+              "Clear pawn structure",
+              "Gives Black less easy equality"
+            ],
+            "cons": [
+              "Black can hit your center with c5",
+              "Must watch your queenside"
+            ],
+            "plans": [
+              "Develop with Nbd2 or Nc3 and castle",
+              "Maintain the d4 pawn and the e5 chain",
+              "Use your space to attack"
+            ],
+            "why_for_you": "The structure is easy to understand and it gives you a space advantage."
+          },
+          {
+            "name": "Caro-Kann Defence: Classical Variation",
+            "moves": "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Bf5 5.Ng3 Bg6 6.h4 h6 7.Nf3",
+            "style": "sharp",
+            "theory": "medium",
+            "pros": [
+              "Aggressive with h4",
+              "Gives practical attacking chances",
+              "Clear ideas"
+            ],
+            "cons": [
+              "Black has solid defensive resources",
+              "Needs some accuracy in the opening"
+            ],
+            "plans": [
+              "Play h5 to harass the bishop",
+              "Develop with Bd3 and trade it off",
+              "Use your lead in development"
+            ],
+            "why_for_you": "It gives you a sharper option with a clear direct plan."
+          },
+          {
+            "name": "Caro-Kann Defence: Exchange Variation",
+            "moves": "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.Bd3 Nc6 5.c3 Nf6 6.Bf4",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Easy to learn",
+              "Natural development",
+              "Healthy structure"
+            ],
+            "cons": [
+              "Black equalizes easily",
+              "Fewer winning chances"
+            ],
+            "plans": [
+              "Play Nf3 and Nbd2, then castle",
+              "Control e5 and e4",
+              "Work with the minority attack idea"
+            ],
+            "why_for_you": "It is a simple option if you want a quiet game without much memorization."
+          }
+        ]
+      },
+      {
+        "slot": "white_d4_d5",
+        "options": [
+          {
+            "name": "Queen's Gambit Declined: Orthodox Variation",
+            "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 h6 7.Bh4",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "The main line and the Queen's Gambit you want",
+              "Clear development and good center",
+              "Teaches key middlegame plans"
+            ],
+            "cons": [
+              "Black has many ways to equalize",
+              "Some positions are slow"
+            ],
+            "plans": [
+              "Develop the bishop and knight quickly",
+              "Castle, then Rc1 and Qc2",
+              "Keep the pressure on d5 and in the center"
+            ],
+            "why_for_you": "It keeps the Queen's Gambit you like, in its principled and instructive main line."
+          },
+          {
+            "name": "Queen's Gambit Declined: Exchange Variation",
+            "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.cxd5 exd5 5.Bg5 Be7 6.e3 c6 7.Bd3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Clear plan",
+              "Easy to understand",
+              "Little to memorize"
+            ],
+            "cons": [
+              "Black has a solid position",
+              "Less ambitious"
+            ],
+            "plans": [
+              "Play the minority attack with b4 and b5",
+              "Develop Nge2, Qc2 and castle",
+              "Pressure c6 and the queenside"
+            ],
+            "why_for_you": "It gives a simple, repeatable plan with the Queen's Gambit and little theory."
+          },
+          {
+            "name": "Queen's Gambit Accepted",
+            "moves": "1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.e3 e6 5.Bxc4 c5 6.O-O",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Easy development",
+              "Open positions with active pieces",
+              "Good chances if Black takes the pawn"
+            ],
+            "cons": [
+              "Black can enter simplified lines",
+              "You need to be careful about regaining the pawn"
+            ],
+            "plans": [
+              "Regain the pawn with Bxc4",
+              "Develop with Nc3 and Qe2",
+              "Fight for the center with d5 or dxc5"
+            ],
+            "why_for_you": "It rewards natural development, which suits you if Black takes the pawn."
+          }
+        ]
+      },
+      {
+        "slot": "white_d4_nf6",
+        "options": [
+          {
+            "name": "King's Indian Defence: Classical Variation",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Classical structure with a strong center",
+              "You know the King's Indian from the Black side",
+              "Clear plans"
+            ],
+            "cons": [
+              "Black has sharp counterplay",
+              "You need to learn key pawn breaks"
+            ],
+            "plans": [
+              "Castle and expand with d5",
+              "Attack on the queenside with c5",
+              "Keep pieces flexible and watch for f5"
+            ],
+            "why_for_you": "It builds on your King's Indian knowledge and gives you a strong center."
+          },
+          {
+            "name": "Catalan Opening",
+            "moves": "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 Be7 5.Nf3 O-O 6.O-O",
+            "style": "solid",
+            "theory": "medium",
+            "pros": [
+              "Fits well with the Queen's Gambit",
+              "Long-term pressure on the queenside",
+              "Safe king"
+            ],
+            "cons": [
+              "Slow, positional play",
+              "Needs patience"
+            ],
+            "plans": [
+              "Use the bishop on the long diagonal",
+              "Play Qc2 and Nbd2 or Nc3",
+              "Pressure d5 and c6"
+            ],
+            "why_for_you": "It pairs naturally with your Queen's Gambit and avoids sharp theory."
+          },
+          {
+            "name": "London System",
+            "moves": "1.d4 Nf6 2.Bf4 d5 3.e3 c5 4.c3 Nc6 5.Nd2 e6 6.Ngf3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Same setup against nearly everything",
+              "Very little theory",
+              "Solid and easy to play"
+            ],
+            "cons": [
+              "Less ambitious",
+              "Black can equalize",
+              "Can be passive"
+            ],
+            "plans": [
+              "Develop with Bd3 and h3",
+              "Castle and play Qe2 or Qb3",
+              "Break with e4 or c4 when ready"
+            ],
+            "why_for_you": "It is the fastest option to learn if you want a reliable setup with few surprises."
+          }
+        ]
+      }
+    ]
+  },
+  "repertoireProposalWhitePt": {
+    "summary": "Um repertório coerente com o que você já gosta: Ruy Lopez contra 1...e5, Gambito da Dama contra 1...d5, e sistemas de teoria moderada contra Siciliana, Francesa, Caro-Kann e as defesas indianas. Todas as linhas são sólidas, com opções mais agudas quando você quiser.",
+    "slots": [
+      {
+        "slot": "white_e4_e5",
+        "options": [
+          {
+            "name": "Ruy Lopez: Variante Fechada",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3",
+            "style": "balanced",
+            "theory": "high",
+            "pros": [
+              "A abertura clássica, rica em ideias estratégicas",
+              "Posições onde entender os planos vale mais que decorar",
+              "Você já gosta de jogar Ruy Lopez"
+            ],
+            "cons": [
+              "Muita teoria se Black escolher variantes específicas",
+              "Jogo lento e manobrista, exige paciência"
+            ],
+            "plans": [
+              "Jogar c3 e d4 para ocupar o centro",
+              "Manobrar o cavalo para g3 via d2-f1",
+              "Atacar o roque com ataque no lado do rei"
+            ],
+            "why_for_you": "É a sua abertura preferida e ensina planos de médio prazo, ótimo para crescer de nível."
+          },
+          {
+            "name": "Ruy Lopez: Variante da Troca",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Bxc6 dxc6 5.O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Estrutura clara e fácil de entender",
+              "Pouca teoria para decorar",
+              "Final de jogo favorável por causa da maioria de peões"
+            ],
+            "cons": [
+              "Black tem o par de bispos",
+              "Menos chances de ataque direto"
+            ],
+            "plans": [
+              "Jogar d4 para abrir o centro",
+              "Aproveitar a maioria de peões no lado do rei",
+              "Trocar damas e ir para um final com plano claro"
+            ],
+            "why_for_you": "Mantém o Ruy Lopez com pouca teoria, bom para começar a aprender rapidamente."
+          },
+          {
+            "name": "Ruy Lopez: Anti-Berlinense",
+            "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 4.d3 Bc5 5.c3 O-O 6.O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Evita a famosa Muralha de Berlim",
+              "Desenvolvimento natural e seguro",
+              "Planos simples e flexíveis"
+            ],
+            "cons": [
+              "Menos ambiciosa que o Ruy Lopez principal",
+              "Black iguala com facilidade se você jogar sem plano"
+            ],
+            "plans": [
+              "Preparar d4 com Re1 e Nbd2",
+              "Manter o bispo de b5 ou trocá-lo no momento certo",
+              "Desenvolver as peças e ganhar espaço no centro"
+            ],
+            "why_for_you": "Opção sólida contra o 3...Nf6, sem muita teoria, dentro do seu Ruy Lopez."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_c5",
+        "options": [
+          {
+            "name": "Siciliana: Variante Alapin",
+            "moves": "1.e4 c5 2.c3 Nf6 3.e5 Nd5 4.d4 cxd4 5.cxd4 d6 6.Nf3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Pouca teoria comparada às Sicilianas abertas",
+              "Centro forte com peões em d4 e e4",
+              "Planos claros e fáceis"
+            ],
+            "cons": [
+              "Black tem várias formas de igualar",
+              "Menos agressiva que a Siciliana aberta"
+            ],
+            "plans": [
+              "Desenvolver rápido com Nf3, Bc4 e O-O",
+              "Manter o controle do centro",
+              "Atacar o peão isolado ou fraquezas de Black"
+            ],
+            "why_for_you": "Evita as linhas teóricas da Siciliana, que você conhece como defensor, e deixa você jogar por princípios."
+          },
+          {
+            "name": "Siciliana: Rossolimo",
+            "moves": "1.e4 c5 2.Nf3 Nc6 3.Bb5 g6 4.Bxc6 dxc6 5.d3 Bg7 6.h3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Fácil de aprender e com ideias parecidas ao Ruy Lopez",
+              "Estrutura sólida",
+              "Tira Black da teoria conhecida"
+            ],
+            "cons": [
+              "Black pode ficar com o par de bispos",
+              "Posições mais tranquilas, sem muito ataque"
+            ],
+            "plans": [
+              "Desenvolver com Nbd2, Nc4 ou c3",
+              "Jogar no lado do rei com h3 e g4 em alguns casos",
+              "Aproveitar a estrutura de peões de Black"
+            ],
+            "why_for_you": "Combina com o seu gosto pelo Ruy Lopez e exige pouca teoria."
+          },
+          {
+            "name": "Siciliana Aberta: Ataque Inglês",
+            "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3",
+            "style": "sharp",
+            "theory": "high",
+            "pros": [
+              "Ataque forte e direto",
+              "Linha principal, muito jogada",
+              "Boas chances táticas"
+            ],
+            "cons": [
+              "Muita teoria",
+              "Black também ataca e as posições são afiadas"
+            ],
+            "plans": [
+              "Jogar f3, Qd2 e O-O-O",
+              "Avançar os peões g e h contra o rei de Black",
+              "Usar o centro e as peças ativas"
+            ],
+            "why_for_you": "Se quiser o lado afiado do seu estilo, é a opção com mais ação, mas pede mais estudo."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_e6",
+        "options": [
+          {
+            "name": "Francesa: Variante do Avanço",
+            "moves": "1.e4 e6 2.d4 d5 3.e5 c5 4.c3 Nc6 5.Nf3",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Ganha espaço e deixa planos claros",
+              "Teoria moderada",
+              "Boas chances de ataque no lado do rei"
+            ],
+            "cons": [
+              "Black pressiona d4 e o centro",
+              "O bispo de c1 pode ficar preso"
+            ],
+            "plans": [
+              "Defender d4 e desenvolver com Be2 e O-O",
+              "Atacar no lado do rei com Nh4 ou f4",
+              "Jogar com o espaço e manter o centro"
+            ],
+            "why_for_you": "Dá uma estrutura fácil de entender e equilibra solidez e ataque."
+          },
+          {
+            "name": "Francesa: Variante da Troca",
+            "moves": "1.e4 e6 2.d4 d5 3.exd5 exd5 4.Nf3 Nf6 5.Bd3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Quase sem teoria",
+              "Posição simétrica e simples",
+              "Fácil de jogar com desenvolvimento natural"
+            ],
+            "cons": [
+              "Pode ficar empatada e sem graça",
+              "Menos chances de vencer à força"
+            ],
+            "plans": [
+              "Desenvolver rápido e fazer O-O",
+              "Pressionar na coluna e e jogar Re1",
+              "Procurar um erro de Black em posição simples"
+            ],
+            "why_for_you": "Ótima para aprender rápido sem se perder em teoria."
+          },
+          {
+            "name": "Francesa: Variante Tarrasch",
+            "moves": "1.e4 e6 2.d4 d5 3.Nd2 Nf6 4.e5 Nfd7 5.Bd3 c5 6.c3 Nc6 7.Ne2",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Sólida e flexível",
+              "Evita a cravada Bb4",
+              "Boa para jogar por princípios"
+            ],
+            "cons": [
+              "Black tem várias alternativas",
+              "Exige conhecer os planos"
+            ],
+            "plans": [
+              "Defender o centro e jogar f4 depois",
+              "Desenvolver com Nf3 e O-O",
+              "Atacar no lado do rei"
+            ],
+            "why_for_you": "Alternativa sólida e com jogo claro, com teoria média."
+          }
+        ]
+      },
+      {
+        "slot": "white_e4_c6",
+        "options": [
+          {
+            "name": "Caro-Kann: Variante do Avanço",
+            "moves": "1.e4 c6 2.d4 d5 3.e5 Bf5 4.Nf3 e6 5.Be2",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Ganha espaço e jogo claro",
+              "Teoria moderada",
+              "Boa para atacar no lado do rei"
+            ],
+            "cons": [
+              "O bispo de Black sai antes dos peões",
+              "Black pode pressionar o centro com c5"
+            ],
+            "plans": [
+              "Desenvolver com O-O e c3",
+              "Jogar Nbd2 e depois Nb3 ou Nf1",
+              "Manter o espaço e atacar no lado do rei"
+            ],
+            "why_for_you": "É fácil de entender e combina com seu gosto por posições equilibradas."
+          },
+          {
+            "name": "Caro-Kann: Ataque Panov",
+            "moves": "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4 Nf6 5.Nc3 e6 6.Nf3",
+            "style": "sharp",
+            "theory": "medium",
+            "pros": [
+              "Jogo ativo e aberto",
+              "Posições parecidas com o Gambito da Dama",
+              "Boas chances de iniciativa"
+            ],
+            "cons": [
+              "Peão isolado em alguns desvios",
+              "Black tem boas formas de igualar"
+            ],
+            "plans": [
+              "Desenvolver rápido e fazer O-O",
+              "Pressionar o centro e a coluna d",
+              "Usar a iniciativa para atacar"
+            ],
+            "why_for_you": "Ligada à estrutura do Gambito da Dama, que você já gosta."
+          }
+        ]
+      },
+      {
+        "slot": "white_d4_d5",
+        "options": [
+          {
+            "name": "Gambito da Dama Recusado: Variante Principal",
+            "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3",
+            "style": "solid",
+            "theory": "medium",
+            "pros": [
+              "Abertura clássica e confiável",
+              "Boa para aprender estrutura de peões",
+              "Você já quer jogá-la"
+            ],
+            "cons": [
+              "Black pode igualar com jogo correto",
+              "Exige paciência"
+            ],
+            "plans": [
+              "Desenvolver todas as peças e fazer O-O",
+              "Jogar Qc2 e Rd1 ou c5 no momento certo",
+              "Usar a pressão no centro e as colunas c e d"
+            ],
+            "why_for_you": "É o Gambito da Dama que você prefere, com teoria moderada e planos claros."
+          },
+          {
+            "name": "Gambito da Dama Recusado: Variante da Troca",
+            "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.cxd5 exd5 5.Bg5 Be7 6.e3",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Estrutura clara e fácil de entender",
+              "Pouca teoria",
+              "Plano de ataque de minoria bem conhecido"
+            ],
+            "cons": [
+              "Pode ficar simétrica",
+              "Menos tática"
+            ],
+            "plans": [
+              "Ataque de minoria no lado da dama com b4 e b5",
+              "Desenvolver com Bd3, Nge2 ou Nf3",
+              "Pressionar a peça fraca em c6 ou d5"
+            ],
+            "why_for_you": "Ótima para evoluir com pouco estudo, com um plano estratégico definido."
+          },
+          {
+            "name": "Gambito da Dama Aceito",
+            "moves": "1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.e3 e6 5.Bxc4 c5 6.O-O",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Desenvolvimento rápido e natural",
+              "Jogo ativo",
+              "Boas chances de recuperar o peão sem problemas"
+            ],
+            "cons": [
+              "Black tem várias formas de igualar",
+              "Precisa recuperar o peão com cuidado"
+            ],
+            "plans": [
+              "Recuperar o peão e desenvolver rápido",
+              "Jogar Qe2, Rd1 ou Nc3",
+              "Aproveitar a atividade das peças"
+            ],
+            "why_for_you": "Oferece jogo mais aberto, ainda dentro do Gambito da Dama."
+          }
+        ]
+      },
+      {
+        "slot": "white_d4_nf6",
+        "options": [
+          {
+            "name": "Sistema Clássico contra a Índia do Rei",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Centro forte e muito espaço",
+              "Planos claros contra a Índia do Rei",
+              "Você já conhece a estrutura como Black"
+            ],
+            "cons": [
+              "Black pode contra-atacar com e5 ou c5",
+              "Exige conhecer bem os planos"
+            ],
+            "plans": [
+              "Fazer O-O e jogar d5 ou Be3",
+              "Ganhar espaço no lado da dama",
+              "Defender o rei e atacar com c5"
+            ],
+            "why_for_you": "Você já gosta da Índia do Rei, então conhecer o lado oposto ajuda a entender melhor a estrutura."
+          },
+          {
+            "name": "Sistema Londres",
+            "moves": "1.d4 Nf6 2.Bf4 d5 3.e3 c5 4.c3 Nc6 5.Nd2",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Muito pouca teoria",
+              "Posição sólida e fácil de jogar",
+              "Serve contra quase tudo"
+            ],
+            "cons": [
+              "Menos ambiciosa",
+              "Black pode jogar bem contra o plano previsível"
+            ],
+            "plans": [
+              "Desenvolver com Ngf3, Bd3 e O-O",
+              "Jogar Qb3 ou Ne5 para pressionar",
+              "Manter a estrutura e atacar no lado do rei"
+            ],
+            "why_for_you": "Se quiser reduzir o estudo contra defesas indianas, é a opção mais simples."
+          },
+          {
+            "name": "Abertura Catalã",
+            "moves": "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 Be7 5.Nf3 O-O 6.O-O",
+            "style": "solid",
+            "theory": "medium",
+            "pros": [
+              "Pressão duradoura com o bispo em g2",
+              "Posição sólida e flexível",
+              "Combina com o Gambito da Dama"
+            ],
+            "cons": [
+              "Exige paciência",
+              "Black pode igualar com jogo preciso"
+            ],
+            "plans": [
+              "Pressionar a ala da dama com Qc2 e Nbd2",
+              "Abrir o centro com Qc2 e Rd1",
+              "Usar o bispo na grande diagonal"
+            ],
+            "why_for_you": "Tem o sabor do Gambito da Dama, com sistema sólido e ideias estratégicas."
+          }
+        ]
+      }
+    ]
+  },
+  "repertoireProposalBlack": {
+    "summary": "Since you already play the Sicilian and the King's Indian, I've kept both. The King's Indian setup also covers 1.c4 and 1.Nf3, so you learn fewer new ideas.",
+    "slots": [
+      {
+        "slot": "black_e4",
+        "options": [
+          {
+            "name": "Sicilian Defence: Accelerated Dragon",
+            "moves": "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 g6 5.Nc3 Bg7",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "The same g6 and Bg7 setup as your King's Indian",
+              "White has fewer ways to attack than in the full Dragon",
+              "Clear plans: castle, play ...d6, then hit the center with ...d5"
+            ],
+            "cons": [
+              "The Maroczy Bind (White's pawns on c4 and e4) can feel cramped",
+              "You must know the early tricks, such as the ...Nxd4 and ...Qa5 ideas"
+            ],
+            "plans": [
+              "Castle short and put a rook on c8",
+              "Trade White's strong central knight",
+              "Break with ...d5 when it is ready"
+            ],
+            "why_for_you": "It matches your King's Indian pieces and gives you a Sicilian with a moderate amount of theory."
+          },
+          {
+            "name": "Sicilian Defence: Taimanov Variation",
+            "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 Nc6 5.Nc3 Qc7",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Very flexible and hard for White to prepare against",
+              "Healthy structure with natural development",
+              "Many positions suit both attack and defence"
+            ],
+            "cons": [
+              "White can choose from several setups, such as Be3 or the Scotch-like Nxc6",
+              "Move orders need care"
+            ],
+            "plans": [
+              "Develop with ...a6, ...Nf6 and ...Bb4 or ...Be7",
+              "Castle short and play ...d5 or ...b5",
+              "Use the queenside pawns and the half-open c-file"
+            ],
+            "why_for_you": "It is a solid but flexible Sicilian where you can attack or defend as the game needs."
+          },
+          {
+            "name": "Sicilian Defence: Najdorf Variation",
+            "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6",
+            "style": "sharp",
+            "theory": "high",
+            "pros": [
+              "The most popular and best-studied Sicilian",
+              "Gives you real winning chances with Black",
+              "Plenty of model games to learn from"
+            ],
+            "cons": [
+              "Heavy theory against 6.Bg5, 6.Be3 and 6.Bc4",
+              "Mistakes are punished quickly in sharp lines"
+            ],
+            "plans": [
+              "Play ...e5 or ...e6 and ...b5 depending on White's setup",
+              "Castle short and put your pieces on active squares",
+              "Counterattack on the queenside"
+            ],
+            "why_for_you": "It fits your wish for sharp play, but it asks for more study than the other two."
+          }
+        ]
+      },
+      {
+        "slot": "black_d4",
+        "options": [
+          {
+            "name": "King's Indian Defence: Classical Variation",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O",
+            "style": "sharp",
+            "theory": "medium",
+            "pros": [
+              "The most standard King's Indian structure",
+              "Clear plan: ...e5, then a kingside pawn storm with ...f5",
+              "Lots of model games to study"
+            ],
+            "cons": [
+              "White gets space and a strong center",
+              "You must know when to break with ...e5 or ...c5"
+            ],
+            "plans": [
+              "Play ...e5 and develop with ...Nbd7 and ...Re8",
+              "Attack on the kingside with ...Nh5 and ...f5",
+              "Use your dark-squared bishop on the long diagonal"
+            ],
+            "why_for_you": "It keeps the King's Indian you know and gives the sharp attacking play you like."
+          },
+          {
+            "name": "King's Indian Defence: Fianchetto Variation",
+            "moves": "1.d4 Nf6 2.c4 g6 3.g3 Bg7 4.Bg2 O-O 5.Nc3 d6",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Quieter and easier to handle",
+              "Less sharp theory to remember",
+              "The usual ...e5 plan still works"
+            ],
+            "cons": [
+              "White's bishop on g2 limits your play on the long diagonal",
+              "Winning chances come more slowly"
+            ],
+            "plans": [
+              "Play ...Nbd7 and ...e5",
+              "Develop the knights and bishop quickly",
+              "Play on the queenside with ...c6 or ...a6"
+            ],
+            "why_for_you": "It gives you a solid way to meet a quiet White setup without learning many new lines."
+          },
+          {
+            "name": "King's Indian Defence: Sämisch Variation",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.f3 O-O",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Clear plans against a slightly loosening f3",
+              "Common at club level, so it pays to know it",
+              "You can choose between ...e5 and ...c5"
+            ],
+            "cons": [
+              "White often attacks quickly with Be3, Qd2 and a pawn storm",
+              "You must time your counterplay well"
+            ],
+            "plans": [
+              "Strike the center with ...e5 or ...c5",
+              "Develop with ...Nc6 and ...a6",
+              "Counterattack on the queenside before White gets going"
+            ],
+            "why_for_you": "It stays inside the King's Indian and helps you against a common club-level White plan."
+          }
+        ]
+      },
+      {
+        "slot": "black_other",
+        "options": [
+          {
+            "name": "King's Indian Setup against the English",
+            "moves": "1.c4 Nf6 2.Nc3 g6 3.g3 Bg7 4.Bg2 O-O 5.Nf3 d6",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Uses the same pieces and plans as your King's Indian",
+              "Works against 1.c4 and 1.Nf3",
+              "You can play it with little new theory"
+            ],
+            "cons": [
+              "White can choose a more flexible setup",
+              "You may have to be patient before you get counterplay"
+            ],
+            "plans": [
+              "Play ...e5 with ...Nc6 or ...Nbd7",
+              "Put a rook on the e-file or c-file",
+              "Keep your pieces flexible and watch for White's central breaks"
+            ],
+            "why_for_you": "It reuses your King's Indian knowledge in one setup, so you do not need a new opening."
+          },
+          {
+            "name": "English Opening: Reversed Sicilian",
+            "moves": "1.c4 e5 2.Nc3 Nf6 3.Nf3 Nc6 4.g3 d5 5.cxd5 Nxd5 6.Bg2 Nb6",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Good central control and clear development",
+              "You often get an active game with the first strike in the center",
+              "Principled and popular"
+            ],
+            "cons": [
+              "Needs some theory in the 4.e4 and 4.g3 lines",
+              "White has the extra tempo of a Sicilian reversed"
+            ],
+            "plans": [
+              "Develop quickly and castle short",
+              "Hit the center with ...e4 or ...f5 at the right moment",
+              "Keep your pieces active against White's fianchetto"
+            ],
+            "why_for_you": "It gives you a classical central game with active play if you want more than a King's Indian setup."
+          },
+          {
+            "name": "English Opening: Symmetrical Variation",
+            "moves": "1.c4 c5 2.Nc3 Nc6 3.g3 g6 4.Bg2 Bg7 5.Nf3 e6",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Familiar Sicilian-style ideas",
+              "Very solid and hard for White to break",
+              "Easy to learn"
+            ],
+            "cons": [
+              "Can become slow and give fewer winning chances",
+              "White can try to take over the center"
+            ],
+            "plans": [
+              "Play ...Nge7 and castle short",
+              "Break with ...d5 when ready",
+              "Use the c-file and queenside space"
+            ],
+            "why_for_you": "It is another route that mirrors your Sicilian play and needs little new theory."
+          }
+        ]
+      }
+    ]
+  },
+  "repertoireProposalBlackPt": {
+    "summary": "Você já joga Siciliana e Índia do Rei, então o repertório gira em torno delas: Siciliana contra 1.e4, Índia do Rei contra 1.d4 e o mesmo esquema de Índia do Rei contra 1.Nf3 e 1.c4. Assim você aprende poucas estruturas e as repete em muitas partidas.",
+    "slots": [
+      {
+        "slot": "black_e4",
+        "options": [
+          {
+            "name": "Defesa Siciliana: Variante Kan",
+            "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 a6 5.Bd3 Nf6 6.O-O Qc7",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Estrutura flexível e sólida, fácil de entender",
+              "Evita muitos ataques diretos de teoria pesada",
+              "Planos parecidos em quase todas as linhas"
+            ],
+            "cons": [
+              "Dá um pouco de espaço às Brancas",
+              "Exige paciência até a hora de romper com ...d5 ou ...b5"
+            ],
+            "plans": [
+              "Desenvolver com ...Nf6, ...Qc7 e ...Nc6 ou ...b5",
+              "Preparar o pawn-break ...d5 ou ...b5",
+              "Manter o rei seguro e esperar o ataque branco passar"
+            ],
+            "why_for_you": "Mantém a sua Siciliana (1...c5), mas com menos teoria decorada e posições em que você entende o que fazer."
+          },
+          {
+            "name": "Defesa Siciliana: Variante Najdorf",
+            "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3 e5",
+            "style": "sharp",
+            "theory": "high",
+            "pros": [
+              "Muito combativa, com muitas chances de ganhar como Preto",
+              "Ganha espaço no centro com ...e5 e tem boa estrutura",
+              "Lances claros: ...a6, ...e5, ...Be7"
+            ],
+            "cons": [
+              "Muita teoria, principalmente contra Bg5 e o Ataque Inglês",
+              "Erros na abertura são punidos rápido"
+            ],
+            "plans": [
+              "Controlar o centro com ...e5 e desenvolver o bispo em e7",
+              "Roque curto e depois ...b5 ou ...d5 como pawn-break",
+              "Atacar o centro e a ala da dama com iniciativa"
+            ],
+            "why_for_you": "Se você quer o lado afiado da Siciliana, a Najdorf é a mais popular e rende bastante com estudo gradual."
+          },
+          {
+            "name": "Defesa Siciliana: Variante do Dragão",
+            "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 g6",
+            "style": "sharp",
+            "theory": "high",
+            "pros": [
+              "Bispo em g7 parecido com o da Índia do Rei",
+              "Ideias claras e muito ataque na coluna c",
+              "Posições muito vivas e práticas"
+            ],
+            "cons": [
+              "O Ataque Yugoslavo é muito agudo e exige decorar lances",
+              "Perigoso se você esquecer a teoria"
+            ],
+            "plans": [
+              "Fianchetto com ...Bg7 e roque curto",
+              "Trocar peças na coluna c para atacar o rei branco",
+              "Usar o pawn-break ...d5 quando possível"
+            ],
+            "why_for_you": "Combina com a sua Índia do Rei: bispo em g7, rei roqueado e jogo de contra-ataque."
+          }
+        ]
+      },
+      {
+        "slot": "black_d4",
+        "options": [
+          {
+            "name": "Defesa Índia do Rei: Variante Clássica",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2 e5",
+            "style": "balanced",
+            "theory": "medium",
+            "pros": [
+              "Estrutura clara, com plano bem conhecido",
+              "Boa mistura de solidez e ataque",
+              "Plano de ataque contra o rei nas Brancas é fácil de seguir"
+            ],
+            "cons": [
+              "Posição um pouco apertada se o centro fechar",
+              "Exige conhecer as respostas a d5 e dxe5"
+            ],
+            "plans": [
+              "Após ...e5, jogar ...Nc6 ou ...exd4",
+              "Preparar o pawn-break ...f5 quando o centro fechar",
+              "Atacar o rei branco com ...Nh5, ...f5 e ...g5 se possível"
+            ],
+            "why_for_you": "Você já quer manter a Índia do Rei e esta é a linha mais direta e popular para aprendê-la."
+          },
+          {
+            "name": "Defesa Índia do Rei: Variante Sämisch",
+            "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.f3 O-O 6.Be3 e5",
+            "style": "sharp",
+            "theory": "medium",
+            "pros": [
+              "Alvo claro: o centro branco e o rei com roque longo",
+              "Reação central rápida com ...e5",
+              "Posições com muita tática"
+            ],
+            "cons": [
+              "Brancas frequentemente atacam com g4 e h4",
+              "Precisa de atenção na segurança do rei"
+            ],
+            "plans": [
+              "Responder no centro com ...e5 ou ...c5",
+              "Pressionar o centro branco com ...Nc6 e ...a6",
+              "Contra-ataque na ala da dama se as Brancas roquearem longo"
+            ],
+            "why_for_you": "Dá jogo afiado e a estrutura é a mesma da Índia do Rei que você já conhece."
+          },
+          {
+            "name": "Defesa Índia do Rei: Fianchetto",
+            "moves": "1.d4 Nf6 2.c4 g6 3.g3 Bg7 4.Bg2 O-O 5.Nf3 d6 6.O-O Nbd7",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Menos teoria e menos ataques diretos",
+              "Posição sólida e fácil de jogar",
+              "Pouco risco de perder cedo"
+            ],
+            "cons": [
+              "Brancas têm iniciativa lenta e pressão posicional",
+              "Menos chances de ataque rápido para você"
+            ],
+            "plans": [
+              "Desenvolver com ...Nbd7, ...e5 e ...c6",
+              "Jogar ...e5 e fechar o centro",
+              "Preparar ...Re8 e peças ativas"
+            ],
+            "why_for_you": "Boa opção se algum adversário evitar o ataque central e você quiser uma posição segura."
+          }
+        ]
+      },
+      {
+        "slot": "black_other",
+        "options": [
+          {
+            "name": "Índia do Rei contra Nf3 (transposição)",
+            "moves": "1.Nf3 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.d4 O-O",
+            "style": "balanced",
+            "theory": "low",
+            "pros": [
+              "Quase sempre transpõe para a Índia do Rei que você já estuda",
+              "Estruturas familiares",
+              "Pouca teoria nova"
+            ],
+            "cons": [
+              "Brancas podem evitar d4 e jogar de forma mais lenta",
+              "Exige flexibilidade se escolherem g3"
+            ],
+            "plans": [
+              "Montar ...g6, ...Bg7, ...O-O e ...d6",
+              "Jogar ...e5 e controlar o centro",
+              "Atacar com ...f5 se o centro permitir"
+            ],
+            "why_for_you": "Aproveita o que você já sabe da Índia do Rei, sem precisar de um repertório novo."
+          },
+          {
+            "name": "Índia do Rei contra o Fianchetto das Brancas",
+            "moves": "1.Nf3 Nf6 2.c4 g6 3.g3 Bg7 4.Bg2 O-O 5.O-O d6 6.Nc3 Nc6",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Setup simples e sólido",
+              "Desenvolvimento natural das peças",
+              "Evita complicações desnecessárias"
+            ],
+            "cons": [
+              "Posição mais lenta",
+              "Precisa saber quando jogar ...e5 ou ...a6"
+            ],
+            "plans": [
+              "Desenvolver ...Nc6 e ...Rb8",
+              "Jogar ...a6 e ...b5 na ala da dama",
+              "Preparar ...e5 e lutar pelo centro"
+            ],
+            "why_for_you": "Mantém o mesmo esquema de peças e dá uma posição segura e fácil de entender."
+          },
+          {
+            "name": "Defesa Grünfeld-Réti (...d5 e fianchetto)",
+            "moves": "1.Nf3 d5 2.g3 Nf6 3.Bg2 g6 4.O-O Bg7 5.d3 O-O",
+            "style": "solid",
+            "theory": "low",
+            "pros": [
+              "Centro com ...d5 desde cedo",
+              "Mesmo fianchetto da Índia do Rei",
+              "Estrutura sólida e simples"
+            ],
+            "cons": [
+              "Posições mais tranquilas, pouco ataque inicial",
+              "Menos agressiva que a Índia do Rei com ...d6"
+            ],
+            "plans": [
+              "Desenvolver ...c5 e ...Nc6",
+              "Preparar ...e5 com mais espaço no centro",
+              "Colocar as peças em boas casas e esperar o erro"
+            ],
+            "why_for_you": "Alternativa tranquila se você quiser um esquema fácil e seguro contra qualquer ordem de lances."
+          }
+        ]
+      }
+    ]
   }
 }

@@ -11,7 +11,14 @@ import { phaseOfLine } from "./phase";
 import type { Color, EngineLine, Phase } from "./types";
 import { classifyMove, describeWin, winFor } from "./winprob";
 
-export type RequestKind = "hello" | "moveExplanation" | "positionPlan" | "gameReview" | "bestMoves" | "openingOverview";
+export type RequestKind =
+  | "hello"
+  | "moveExplanation"
+  | "positionPlan"
+  | "gameReview"
+  | "bestMoves"
+  | "openingOverview"
+  | "repertoireProposal";
 
 export const RATING_BAND = "800-1200 (Chess.com rapid)";
 
