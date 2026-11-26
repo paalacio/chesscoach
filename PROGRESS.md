@@ -3,8 +3,7 @@
 ## Phase 5 (26 Nov 2026): insights, polish, release
 
 **Status:** built and tested on this Mac, committed and pushed; **CI green** (tests + macOS + Windows
-builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45905648228)). **The release isn't
-made yet:** it needs your go-ahead (see "Release" below). Not tried in the real window: the Liquid Glass
+builds, [run](https://github.com/paalacio/chesscoach/actions/runs/45905648228)). **Release:** `v1.0.0` draft ready (see "Release" below). Not tried in the real window: the Liquid Glass
 setting.
 
 ### What's new
@@ -45,8 +44,10 @@ setting.
 - The release is a **draft**: you check it on GitHub and press Publish.
 
 ### Release
-When you're happy with the app (`pnpm tauri dev`, or the built app), I push the tag `v1.0.0`. About 20
-minutes later the draft release, with the Mac `.dmg` and the Windows installer, is ready on GitHub to publish.
+`v1.0.0` is tagged and its **draft** release is on GitHub ([build](https://github.com/paalacio/chesscoach/actions/runs/45908971986)),
+with `Tung.Tung.Chessahur_1.0.0_aarch64.dmg` (Mac), `…_x64-setup.exe` and `…_x64_en-US.msi` (Windows), and
+`…_aarch64.app.tar.gz` (the Mac app zipped, for a future auto-updater). To publish: GitHub → Releases → the
+draft → Edit → Publish release.
 
 ### Click-through checklist (Phase 5, real app)
 - [ ] Insights: after a Chess.com sync, check the numbers, hover the chart, try As White / As Black,
