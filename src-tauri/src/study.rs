@@ -426,11 +426,11 @@ pub fn restore_from(conn: &mut Connection, path: &Path, safety_copy: &Path) -> R
         .map(|n| n == 1)
         .unwrap_or(false);
     if !looks_right {
-        return Err("That file isn't a ChessCoach backup.".into());
+        return Err("That file isn't a Tung Tung Chessahur backup.".into());
     }
     let version: i64 = src.pragma_query_value(None, "user_version", |r| r.get(0)).unwrap_or(0);
     if version > db::migrations_count() {
-        return Err("That backup comes from a newer version of ChessCoach. Update the app first.".into());
+        return Err("That backup comes from a newer version of Tung Tung Chessahur. Update the app first.".into());
     }
     backup_to(conn, safety_copy)?;
     let backup = rusqlite::backup::Backup::new(&src, conn).map_err(|e| format!("Restore failed: {e}"))?;

@@ -383,8 +383,8 @@ export function repertoireToPgn(rep: Repertoire): string {
   const moves = new PgnNode<PgnNodeData>();
   build(START_FEN, moves);
   const headers = new Map<string, string>([
-    ["Event", `ChessCoach repertoire: ${rep.name}`],
-    ["Site", "ChessCoach"],
+    ["Event", `Tung Tung Chessahur repertoire: ${rep.name}`],
+    ["Site", "Tung Tung Chessahur"],
     ["White", rep.color === "white" ? "Me" : "Opponent"],
     ["Black", rep.color === "black" ? "Me" : "Opponent"],
     ["Result", "*"],

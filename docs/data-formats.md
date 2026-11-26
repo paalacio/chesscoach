@@ -1,14 +1,14 @@
-# ChessCoach data formats
+# Tung Tung Chessahur data formats
 
 Your data should never be locked into a format only this app can read. These
-are the files ChessCoach writes, so another app (a phone trainer, say) can use them.
+are the files Tung Tung Chessahur writes, so another app (a phone trainer, say) can use them.
 
 ## 1. Repertoire: PGN
 
 **Repertoire → Export PGN…** writes one standard PGN game with variations:
 
 - The headers say whose repertoire it is: `[Orientation "white"]` or `[Orientation "black"]`
-  (the header Lichess studies use), plus `Event "ChessCoach repertoire: <name>"`.
+  (the header Lichess studies use), plus `Event "Tung Tung Chessahur repertoire: <name>"`.
 - **Your moves** are the only move at each of your turns. **Opponent replies** are the
   main line (the most played one) and variations (the others).
 - Positions are shared: if two move orders reach the same position (a transposition),
@@ -71,4 +71,4 @@ answers) as one SQLite file. Any SQLite tool can open it; the tables are describ
 
 **Restore…** replaces all of your data with a backup. Before that, the current data is
 saved in the app's data folder as `before-restore-<time>.sqlite`, so a wrong restore can
-be undone. Backups from newer versions of ChessCoach are refused.
+be undone. Backups from newer versions of Tung Tung Chessahur are refused.

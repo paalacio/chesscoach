@@ -14,7 +14,7 @@ export async function exportTraining() {
   try {
     const data = await backend.srsExport();
     const text = JSON.stringify(trainingFile(data.cards, data.reviews), null, 2);
-    const name = await backend.fileSaveText(`ChessCoach training ${localDay()}.json`, "JSON", "json", text);
+    const name = await backend.fileSaveText(`Tung Tung Chessahur training ${localDay()}.json`, "JSON", "json", text);
     if (name) toast(tNow("data.saved", { name }));
   } catch (e) {
     toast(toBackendError(e).message);

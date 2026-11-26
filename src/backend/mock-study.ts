@@ -323,7 +323,7 @@ export function mockStudy() {
       });
     },
     async dbBackup() {
-      return "ChessCoach backup (mock).sqlite";
+      return "Tung Tung Chessahur backup (mock).sqlite";
     },
     async dbRestore() {
       return null;

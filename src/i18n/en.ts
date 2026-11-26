@@ -176,9 +176,9 @@ export const en = {
   "error.badResponse": "Chess.com sent something unexpected: {detail}",
 
   // setup
-  "setup.titleWelcome": "Welcome to ChessCoach",
+  "setup.titleWelcome": "Welcome to Tung Tung Chessahur",
   "setup.titleCheck": "Setup check",
-  "setup.intro": "Stockfish calculates the moves, Claude explains them. ChessCoach needs a few things on this computer; here's how they look.",
+  "setup.intro": "Stockfish calculates the moves, Claude explains them. Tung Tung Chessahur needs a few things on this computer; here's how they look.",
   "setup.openSettings": "Open Settings…",
   "setup.testClaude": "Send a test question",
   "setup.checkAgain": "Check again",
@@ -188,12 +188,12 @@ export const en = {
   "setup.engine.label": "Chess engine",
   "setup.engine.ok": "{name} is ready ({threads} threads, {hash} MB hash)",
   "setup.engine.error": "The chess engine couldn't start: {error}",
-  "setup.engine.error.fix": "Reinstall ChessCoach, or choose a Stockfish binary under Settings → Engine.",
+  "setup.engine.error.fix": "Reinstall Tung Tung Chessahur, or choose a Stockfish binary under Settings → Engine.",
   "setup.claude.label": "Claude Code",
   "setup.claude.ok": "Found {version} at {path}",
   "setup.claude.error": "Claude Code wasn't found on this computer.",
   "setup.claude.error.fix":
-    "Install Claude Code: open {terminal} and run  {command}  then restart ChessCoach. If it's installed somewhere unusual, set its path in Settings → Claude.",
+    "Install Claude Code: open {terminal} and run  {command}  then restart Tung Tung Chessahur. If it's installed somewhere unusual, set its path in Settings → Claude.",
   "setup.claudeLogin.label": "Claude login",
   "setup.claudeLogin.ok": "Logged in with a Claude subscription ({plan})",
   "setup.claudeLogin.warning": "Logged in with {method}, not a Claude subscription. Calls may be billed to that account.",
@@ -328,7 +328,7 @@ export const en = {
   "import.label": "PGN or FEN",
 
   // about
-  "about.title": "About ChessCoach",
+  "about.title": "About Tung Tung Chessahur",
   "about.license": "Version {version}. Free software under the GNU General Public License, version 3 or later. You may share and change it under the terms of that license.",
   "about.includes": "Includes",
   "about.stockfish": "the chess engine, by the Stockfish developers. GPL-3.0. Source code:",
@@ -416,8 +416,8 @@ export const en = {
   // your data (Phase 4)
   "data.saved": "Saved as “{name}”.",
   "data.imported": "Imported {cards} cards and {reviews} reviews.",
-  "data.notTrainingFile": "That isn't a ChessCoach training file.",
-  "data.newerFile": "That file comes from a newer version of ChessCoach. Update the app first.",
+  "data.notTrainingFile": "That isn't a Tung Tung Chessahur training file.",
+  "data.newerFile": "That file comes from a newer version of Tung Tung Chessahur. Update the app first.",
   "data.restored": "Restored “{name}”. Reloading…",
 
   // repertoire (Phase 4)

@@ -249,7 +249,7 @@ export function createMockBackend(): Backend {
       const loginFix = "Open a terminal, run  claude  and log in with your Claude account (Pro or Max). Then click Check again.";
       return [
         errorsMode
-          ? { id: "engine", label: "Chess engine", status: "error", detail: "Stockfish was not found.", fix: "Reinstall ChessCoach, or choose a Stockfish binary under Settings → Engine.", params: { error: "Stockfish was not found. Reinstall the app or set an engine path in Settings." } }
+          ? { id: "engine", label: "Chess engine", status: "error", detail: "Stockfish was not found.", fix: "Reinstall Tung Tung Chessahur, or choose a Stockfish binary under Settings → Engine.", params: { error: "Stockfish was not found. Reinstall the app or set an engine path in Settings." } }
           : { id: "engine", label: "Chess engine", status: "ok", detail: "Stockfish 19 is ready (9 threads, 256 MB hash)", fix: null, params: { name: "Stockfish 19", threads: "9", hash: "256" } },
         { id: "claude", label: "Claude Code", status: "ok", detail: "Found 2.1.311 (Claude Code) at ~/.local/bin/claude", fix: null, params: { version: "2.1.311 (Claude Code)", path: "~/.local/bin/claude" } },
         errorsMode

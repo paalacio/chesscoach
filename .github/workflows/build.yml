@@ -87,4 +87,4 @@ jobs:
           args: ${{ matrix.args }}
           # No tagName/releaseId: build only, no GitHub release yet.
           uploadWorkflowArtifacts: true
-          workflowArtifactNamePattern: "ChessCoach-[platform]-[arch]-[bundle]"
+          workflowArtifactNamePattern: "TungTungChessahur-[platform]-[arch]-[bundle]"

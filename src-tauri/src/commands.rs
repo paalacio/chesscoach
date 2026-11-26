@@ -310,7 +310,7 @@ pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
                 .param("hash", st.hash_mb)
         }
         Err(e) => check("engine", "Chess engine", Fail, e.clone())
-            .fix("Reinstall ChessCoach, or choose a Stockfish binary under Settings → Engine.")
+            .fix("Reinstall Tung Tung Chessahur, or choose a Stockfish binary under Settings → Engine.")
             .param("error", e),
     });
 
@@ -329,7 +329,7 @@ pub async fn setup_checks(app: AppHandle) -> CmdResult<Vec<SetupCheck>> {
         }
         Err(e) => check("claude", "Claude Code", Fail, e.to_string())
             .fix(format!(
-                "Install Claude Code: open {}  {install_cmd}  then restart ChessCoach. If it's installed somewhere unusual, set its path in Settings → Claude.",
+                "Install Claude Code: open {}  {install_cmd}  then restart Tung Tung Chessahur. If it's installed somewhere unusual, set its path in Settings → Claude.",
                 if cfg!(windows) { "PowerShell and run" } else { "Terminal and run" }
             ))
             .param("command", install_cmd)
@@ -700,7 +700,7 @@ fn file_name(path: &std::path::Path) -> String {
 /// Saves a copy of the whole database (games, analysis, repertoires, cards, cache).
 #[tauri::command]
 pub async fn db_backup(app: AppHandle, state: State<'_, AppState>) -> CmdResult<Option<String>> {
-    let name = format!("ChessCoach backup {}.sqlite", today());
+    let name = format!("Tung Tung Chessahur backup {}.sqlite", today());
     let Some(path) =
         pick_path(move || app.dialog().file().set_file_name(name).add_filter("SQLite", &["sqlite", "db"]).blocking_save_file())
             .await?

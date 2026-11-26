@@ -52,7 +52,7 @@ export const useApp = create<AppState>((set, get) => ({
       set({ checks: await backend.setupChecks() });
     } catch (e) {
       const err = toBackendError(e);
-      set({ checks: [{ id: "app", label: "ChessCoach", status: "error", detail: err.message, fix: null, params: {} }] });
+      set({ checks: [{ id: "app", label: "Tung Tung Chessahur", status: "error", detail: err.message, fix: null, params: {} }] });
     } finally {
       set({ checking: false });
     }

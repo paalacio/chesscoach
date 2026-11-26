@@ -294,7 +294,7 @@ function LichessTokenField() {
           <button
             type="button"
             className="link-btn"
-            onClick={() => backend.openUrl("https://lichess.org/account/oauth/token/create?description=ChessCoach")}
+            onClick={() => backend.openUrl("https://lichess.org/account/oauth/token/create?description=Tung%20Tung%20Chessahur")}
           >
             {t("settings.lichessCreate")}
           </button>

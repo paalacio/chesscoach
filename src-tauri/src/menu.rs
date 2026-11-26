@@ -31,21 +31,21 @@ pub fn build<R: Runtime>(app: &AppHandle<R>, language: &str) -> tauri::Result<Me
     // On macOS the first submenu becomes the app menu (shown with the app's name).
     let app_menu = Submenu::with_items(
         app,
-        "ChessCoach",
+        "Tung Tung Chessahur",
         true,
         &[
-            &item(app, "about", l.t("About ChessCoach", "Sobre o ChessCoach"), None)?,
+            &item(app, "about", l.t("About Tung Tung Chessahur", "Sobre o Tung Tung Chessahur"), None)?,
             &sep()?,
             &item(app, "settings", l.t("Settings…", "Ajustes…"), Some("CmdOrCtrl+,"))?,
             &item(app, "setup", l.t("Setup Check…", "Verificar instalação…"), None)?,
             &sep()?,
             &PredefinedMenuItem::services(app, Some(l.t("Services", "Serviços")))?,
             &sep()?,
-            &PredefinedMenuItem::hide(app, Some(l.t("Hide ChessCoach", "Ocultar ChessCoach")))?,
+            &PredefinedMenuItem::hide(app, Some(l.t("Hide Tung Tung Chessahur", "Ocultar Tung Tung Chessahur")))?,
             &PredefinedMenuItem::hide_others(app, Some(l.t("Hide Others", "Ocultar outros")))?,
             &PredefinedMenuItem::show_all(app, Some(l.t("Show All", "Mostrar tudo")))?,
             &sep()?,
-            &PredefinedMenuItem::quit(app, Some(l.t("Quit ChessCoach", "Encerrar ChessCoach")))?,
+            &PredefinedMenuItem::quit(app, Some(l.t("Quit Tung Tung Chessahur", "Encerrar Tung Tung Chessahur")))?,
         ],
     )?;
 

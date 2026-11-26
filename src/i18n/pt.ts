@@ -179,9 +179,9 @@ export const pt: Record<keyof typeof en, string> = {
   "error.badResponse": "O Chess.com mandou algo inesperado: {detail}",
 
   // setup
-  "setup.titleWelcome": "Bem-vindo ao ChessCoach",
+  "setup.titleWelcome": "Bem-vindo ao Tung Tung Chessahur",
   "setup.titleCheck": "Verificação",
-  "setup.intro": "O Stockfish calcula os lances e o Claude explica. O ChessCoach precisa de algumas coisas neste computador; veja como estão.",
+  "setup.intro": "O Stockfish calcula os lances e o Claude explica. O Tung Tung Chessahur precisa de algumas coisas neste computador; veja como estão.",
   "setup.openSettings": "Abrir Ajustes…",
   "setup.testClaude": "Mandar uma pergunta de teste",
   "setup.checkAgain": "Verificar de novo",
@@ -191,12 +191,12 @@ export const pt: Record<keyof typeof en, string> = {
   "setup.engine.label": "Motor de xadrez",
   "setup.engine.ok": "{name} está pronto ({threads} threads, {hash} MB de hash)",
   "setup.engine.error": "O motor de xadrez não conseguiu iniciar: {error}",
-  "setup.engine.error.fix": "Reinstale o ChessCoach ou escolha um executável do Stockfish em Ajustes → Motor.",
+  "setup.engine.error.fix": "Reinstale o Tung Tung Chessahur ou escolha um executável do Stockfish em Ajustes → Motor.",
   "setup.claude.label": "Claude Code",
   "setup.claude.ok": "Encontrado {version} em {path}",
   "setup.claude.error": "O Claude Code não foi encontrado neste computador.",
   "setup.claude.error.fix":
-    "Instale o Claude Code: abra o {terminal} e rode  {command}  e depois reinicie o ChessCoach. Se ele estiver instalado em outro lugar, indique o caminho em Ajustes → Claude.",
+    "Instale o Claude Code: abra o {terminal} e rode  {command}  e depois reinicie o Tung Tung Chessahur. Se ele estiver instalado em outro lugar, indique o caminho em Ajustes → Claude.",
   "setup.claudeLogin.label": "Conta do Claude",
   "setup.claudeLogin.ok": "Conectado com uma assinatura do Claude ({plan})",
   "setup.claudeLogin.warning": "Conectado com {method}, não com uma assinatura do Claude. Os pedidos podem ser cobrados nessa conta.",
@@ -331,7 +331,7 @@ export const pt: Record<keyof typeof en, string> = {
   "import.label": "PGN ou FEN",
 
   // about
-  "about.title": "Sobre o ChessCoach",
+  "about.title": "Sobre o Tung Tung Chessahur",
   "about.license":
     "Versão {version}. Software livre sob a Licença Pública Geral GNU, versão 3 ou posterior. Você pode compartilhar e modificar nos termos dessa licença.",
   "about.includes": "Inclui",
@@ -420,8 +420,8 @@ export const pt: Record<keyof typeof en, string> = {
   // your data (Phase 4)
   "data.saved": "Salvo como “{name}”.",
   "data.imported": "Importados {cards} cartões e {reviews} revisões.",
-  "data.notTrainingFile": "Esse não é um arquivo de treino do ChessCoach.",
-  "data.newerFile": "Esse arquivo é de uma versão mais nova do ChessCoach. Atualize o app primeiro.",
+  "data.notTrainingFile": "Esse não é um arquivo de treino do Tung Tung Chessahur.",
+  "data.newerFile": "Esse arquivo é de uma versão mais nova do Tung Tung Chessahur. Atualize o app primeiro.",
   "data.restored": "“{name}” restaurado. Recarregando…",
 
   // repertoire (Phase 4)

@@ -1,7 +1,9 @@
-# ChessCoach
+# Tung Tung Chessahur (code name: ChessCoach)
 
 Desktop app (Tauri 2: Rust backend + React/TypeScript UI) for studying chess openings and plans.
-**Stockfish calculates, Claude explains.** The full spec is `CHESS_COACH_SPEC.md`; progress notes and
+**Stockfish calculates, Claude explains.** The app is shown to users as "Tung Tung Chessahur"; code, crate names, the bundle identifier
+(`app.chesscoach.desktop`, which decides where user data lives), file-format IDs and the API User-Agent keep
+"ChessCoach". Don't change the identifier: users would lose their data folder and keychain entries. The full spec is `CHESS_COACH_SPEC.md`; progress notes and
 open questions for the owner are in `PROGRESS.md`.
 
 The owner is a beginner in TypeScript/Rust: keep code readable, comment the non-obvious parts, and
