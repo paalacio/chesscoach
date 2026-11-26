@@ -1,0 +1,88 @@
+# Tests on every push/PR, then builds the app for macOS (Apple Silicon) and
+# Windows and uploads the installers as workflow artifacts (Actions tab → run →
+# Artifacts). Phase 5 adds publishing a GitHub release on version tags.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: 12.23.0
+  NODE_VERSION: 26
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: pnpm install --frozen-lockfile
+      # Tauri needs the sidecar binary to exist even to compile the tests.
+      - run: pnpm fetch-stockfish
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - run: pnpm exec playwright install webkit chromium
+      - run: pnpm test:e2e --grep-invert @screenshot
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest # Apple Silicon
+            args: --target aarch64-apple-darwin
+            target: aarch64-apple-darwin
+          - platform: windows-latest
+            args: ""
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm fetch-stockfish --target ${{ matrix.target }}
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: ${{ matrix.args }}
+          # No tagName/releaseId: build only, no GitHub release yet.
+          uploadWorkflowArtifacts: true
+          workflowArtifactNamePattern: "ChessCoach-[platform]-[arch]-[bundle]"

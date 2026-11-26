@@ -80,14 +80,25 @@ async function main() {
   const bytes = Buffer.from(await res.arrayBuffer());
   console.log(`  ${(bytes.length / 1e6).toFixed(1)} MB, sha256 ${createHash("sha256").update(bytes).digest("hex")}`);
 
-  // Extract into a fresh temp folder. `tar` reads .tar.gz everywhere and also
-  // .zip on Windows 10+ (bsdtar), so we need no extra npm packages.
+  // Extract into a fresh temp folder with the OS's own tools (no npm packages):
+  // .tar.gz with `tar`; .zip with PowerShell on Windows (the `tar` on a Windows
+  // PATH may be Git's GNU tar, which can't read zip files) or `unzip` elsewhere.
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "stockfish-"));
   const archive = path.join(tmp, asset);
   fs.writeFileSync(archive, bytes);
   const extractDir = path.join(tmp, "x");
   fs.mkdirSync(extractDir);
-  execFileSync("tar", ["-xf", archive, "-C", extractDir], { stdio: "inherit" });
+  if (!asset.endsWith(".zip")) {
+    execFileSync("tar", ["-xzf", archive, "-C", extractDir], { stdio: "inherit" });
+  } else if (process.platform === "win32") {
+    execFileSync(
+      "powershell",
+      ["-NoProfile", "-Command", `Expand-Archive -LiteralPath '${archive}' -DestinationPath '${extractDir}' -Force`],
+      { stdio: "inherit" },
+    );
+  } else {
+    execFileSync("unzip", ["-q", archive, "-d", extractDir], { stdio: "inherit" });
+  }
 
   // The archive contains source + docs + the binary. The binary is the biggest
   // file whose name starts with "stockfish" (and ends in .exe on Windows).
