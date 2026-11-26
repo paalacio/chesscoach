@@ -81,8 +81,13 @@ async function main() {
   console.log(`  ${(bytes.length / 1e6).toFixed(1)} MB, sha256 ${createHash("sha256").update(bytes).digest("hex")}`);
 
   // Extract into a fresh temp folder with the OS's own tools (no npm packages):
-  // .tar.gz with `tar`; .zip with PowerShell on Windows (the `tar` on a Windows
-  // PATH may be Git's GNU tar, which can't read zip files) or `unzip` elsewhere.
+  // - .tar.gz: `tar`
+  // - .zip on Windows: Windows' own tar.exe in System32 (bsdtar, reads zip files).
+  //   Not just "tar": the first one on PATH may be Git's GNU tar, which can't.
+  //   Fallback: PowerShell's Expand-Archive with PSModulePath cleared (when
+  //   started from PowerShell 7, Windows PowerShell otherwise loads the wrong
+  //   Archive module and fails; that's what broke the first CI run).
+  // - .zip elsewhere: `unzip`
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "stockfish-"));
   const archive = path.join(tmp, asset);
   fs.writeFileSync(archive, bytes);
@@ -91,11 +96,17 @@ async function main() {
   if (!asset.endsWith(".zip")) {
     execFileSync("tar", ["-xzf", archive, "-C", extractDir], { stdio: "inherit" });
   } else if (process.platform === "win32") {
-    execFileSync(
-      "powershell",
-      ["-NoProfile", "-Command", `Expand-Archive -LiteralPath '${archive}' -DestinationPath '${extractDir}' -Force`],
-      { stdio: "inherit" },
-    );
+    const systemTar = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe");
+    if (fs.existsSync(systemTar)) {
+      execFileSync(systemTar, ["-xf", archive, "-C", extractDir], { stdio: "inherit" });
+    } else {
+      const { PSModulePath: _ignored, ...env } = process.env;
+      execFileSync(
+        "powershell",
+        ["-NoProfile", "-Command", `Expand-Archive -LiteralPath '${archive}' -DestinationPath '${extractDir}' -Force`],
+        { stdio: "inherit", env },
+      );
+    }
   } else {
     execFileSync("unzip", ["-q", archive, "-d", extractDir], { stdio: "inherit" });
   }
