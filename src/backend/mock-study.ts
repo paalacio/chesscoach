@@ -69,9 +69,9 @@ const statsOf = (r: ExplorerResult): MoveStats => ({
   moves: r.moves.map((m) => ({ uci: m.uci, san: m.san, games: m.white + m.draws + m.black })),
 });
 
-const recorded = (explorerFixture as unknown as { masters: Record<string, ExplorerResult> }).masters;
 /** Real recorded masters answers where we have them, else the made-up book numbers. */
-const explorerFor = (fen: string) => recorded[fen.split(" ").slice(0, 4).join(" ")] ?? bookExplorer(fen);
+const explorerFor = (fen: string) =>
+  (explorerFixture as unknown as { masters: Record<string, ExplorerResult> }).masters[fen.split(" ").slice(0, 4).join(" ")] ?? bookExplorer(fen);
 
 /** The builder's oracle in mock mode: recorded masters games (or the book) for both sides, no engine. */
 const bookOracle: BuildOracle = {
