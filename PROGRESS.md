@@ -2,6 +2,8 @@
 
 ## 1.0.1 (27 Nov 2026): the Mac download opens
 
+**Published:** https://github.com/paalacio/chesscoach/releases/tag/v1.0.1 (the README's "latest release" link goes there).
+
 Checking the v1.0.0 release found a real problem: only the Mac app's main program was signed, not the app
 bundle as a whole. Apple's own check (`syspolicy_check distribution`) called a downloaded copy **fatal**
 ("code has no resources but signature indicates they must be present"). Another Mac would say the app is
